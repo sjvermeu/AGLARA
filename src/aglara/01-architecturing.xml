@@ -319,13 +319,13 @@
       design is where I start writing and documenting how the architecture
       looks like, translating the requirements in services (or even
       immediately into technologies). In this book I'll also use a lightweight
-      logical design to describe why decisions are made in the reference
-      architecture. These logical design documents will be separate from the
-      book (but referred to) so that the book itself is not cluttered, but
-      will be a valuable resource into understanding why the reference
-      architecture used further is as it is.</para>
+      logical design method to describe why decisions are made in the
+      reference architecture. I will not be providing full logical design
+      documents (that would be a bit overkill for now, especially since it is
+      just a fictional company) but the methods and structures used can help
+      you in your quest to find out what you need to think about.</para>
 
-      <para>The lightweight logical design document starts off with (a subset
+      <para>A lightweight logical design document starts off with (a subset
       of) requirements that is used during the design and which influences the
       decisions made. Alongside the requirements a design might also include
       assumptions, although you might want to remove assumptions before it is
@@ -596,5 +596,51 @@
         also drive other decisions. </para>
       </section>
     </section>
+  </section>
+
+  <section>
+    <title>Security benchmarks</title>
+
+    <para>To support a hardened approach on the servers, I advise to use the
+    Gentoo Security Benchmarks which I have written using XCCDF<indexterm>
+        <primary>XCCDF</primary>
+      </indexterm> and OVAL<indexterm>
+        <primary>OVAL</primary>
+      </indexterm>. This has the advantage that you can have your system
+    "verified" by XCCDF/OVAL-capable tools like openscap<indexterm>
+        <primary>openscap</primary>
+      </indexterm>. As I go along with this book, such benchmarks will be
+    created and referenced. The link towards the benchmark will be shown
+    together with the other resources of each chapter.</para>
+
+    <para><emphasis>XCCDF</emphasis> is part of a standard for documenting the
+    settings of a system for a particular subject (that standard is called
+    SCAP<indexterm>
+        <primary>SCAP</primary>
+      </indexterm>).. The document is primarily written in XHTML (but can be
+    exported to PDF or other formats) but contains references to checks that
+    can be done on a system to verify if it complies with what is documented.
+    Because of this functionality, XCCDF documents are widely popular in the
+    security world as they offer a standard method for building benchmarks
+    (best practices). Example organizations that offer XCCDF-based benchmarks
+    are <link xlink:href="http://www.cisecurity.org">CISecurity</link> and
+    <link
+    xlink:href="http://web.nvd.nist.gov/view/ncp/repository">NIST</link>.
+    Providers of a particular product also offer XCCDF content for their
+    products (like <link
+    xlink:href="https://fedorahosted.org/scap-security-guide/">Fedora</link>).</para>
+
+    <para><emphasis>OVAL</emphasis> is a part of SCAP as well, and contains
+    the instructions to check for a particular setting. The OVAL language is
+    quite extensible, but also quite difficult to read. However, once defined,
+    it allows administrators to check for a particular setting (or installed
+    software, or missing configuration entry) in an automated manner and
+    report on the state. For instance, <link
+    xlink:href="https://www.redhat.com/security/data/oval/">RedHat</link>
+    provides OVAL definitions for each of its security advisories, allowing
+    administrators to automatically validate if their system is vulnerable or
+    not. In Gentoo Linux, <command>glsa-check</command><indexterm>
+        <primary>glsa-check</primary>
+      </indexterm> does something similar but without OVAL (currently).</para>
   </section>
 </chapter>

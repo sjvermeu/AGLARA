@@ -46,22 +46,44 @@
         better performance, but also to a saving in storage requirements,
         patching frequency, etc.</para>
       </listitem>
+
+      <listitem>
+        <para>Gentoo has a subproject called Gentoo Hardened who strives to
+        provide security-improving patches on the base system. This project
+        has always been a fore-runner in security mitigation
+        strategies.</para>
+      </listitem>
     </itemizedlist>
 
     <para>Of course, because this book is called "A Gentoo Linux Advanced
     Reference Architecture", it would be weird to have it talk about another
     distribution, wouldn't it?</para>
-  </section>
 
-  <section>
-    <title>x86_64 architecture</title>
+    <para>Now, the selection of Gentoo Linux also has a few challenges up its
+    sleeve. </para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Gentoo Linux is primarily a source-based distribution, which is
+        frequently frowned upon in the enterprise market. Weirdly enough, they
+        don't find it strange that their development and operational teams
+        keep on building frameworks and tools themselves because of lack of
+        good tools. This is exactly where Gentoo Linux outshines the others:
+        it offers many tools out-of-the-box to support every possible
+        requirement.</para>
+
+        <para>To reduce the impact of its source-only stigma, we will be using
+        build servers and binhost support for improved manageability.</para>
+      </listitem>
+    </itemizedlist>
 
     <para>We will standardize on the x86_64 architecture (or in Gentoo's
     terms, amd64), partially because it is the widest known in the Gentoo
     Linux development community, but also because its hardware is widely
-    available and sufficiently cheap. The company might in the future invest
-    in ARM as well (as it has good potential, better power consumption ratios,
-    etc.) but for now, we will focus on x86_64 only.</para>
+    available and sufficiently cheap. The fictional company might in the
+    future invest in ARM as well (as it has good potential, better power
+    consumption ratios, etc.) but for now, we will focus on x86_64
+    only.</para>
 
     <para>That being said, we'll also use the no-multilib approach in Gentoo
     Linux. Systems need to be fully x86_64 driven, partially for
@@ -70,168 +92,171 @@
     problems. Generally though, this gives little (to no) additinoal advantage
     towards a multilib profile. But as this is a reference architecture, I'll
     stick with this.</para>
-  </section>
-
-  <section>
-    <title>Gentoo Hardened</title>
-
-    <para>To increase security of the deployments, all systems will use a
-    Gentoo Hardened deployment.</para>
-
-    <para>The features used include:</para>
-
-    <itemizedlist>
-      <listitem>
-        <para>PaX</para>
-      </listitem>
-
-      <listitem>
-        <para>PIE/PIC/SSP</para>
-      </listitem>
-
-      <listitem>
-        <para>SELinux as MAC</para>
-      </listitem>
-
-      <listitem>
-        <para>grSecurity kernel improvements</para>
-      </listitem>
-    </itemizedlist>
 
     <section>
-      <title>PaX</title>
+      <title>Gentoo Hardened</title>
 
-      <para>The PaX<indexterm>
-          <primary>PaX</primary>
-        </indexterm> project (part of grSecurity) aims to update the Linux
-      kernel with <link
-      xlink:href="http://pax.grsecurity.net/docs/pax.txt">defense
-      mechanisms</link> against exploitation of software bugs that allow an
-      attacker access to the software's address space (memory). By exploiting
-      this access, a malicious user could introduce or execute arbitrary code,
-      execute existing code without the applications' intended behavior, or
-      with different data than expected.</para>
+      <para>To increase security of the deployments, all systems will use a
+      Gentoo Hardened deployment.</para>
 
-      <para>One of the defence mechanisms introduced is NOEXEC<indexterm>
-          <primary>NOEXEC</primary>
-        </indexterm>. With this enabled, memory pages of an application cannot
-      be marked writeable and executable. So either a memory page contains
-      application code, but cannot be modified (kernel enforced), or it
-      contains data and cannot be executed (kernel enforced). The enforcement
-      methods used are beyond the scope of this book, but are described <link
-      xlink:href="http://pax.grsecurity.net/docs/noexec.txt">online</link>.
-      Enforcing NOEXEC does have potential consequences: some applications do
-      not work when PaX enforces this behavior. Because of this, PaX allows
-      administrators to toggle the enforcement on a per-binary basis. For more
-      information about this, see the Hardened Gentoo PaX Quickstart document
-      (see resources at the end of this chapter). Note that this also requires
-      PIE/PIC built code (see later).</para>
+      <para>The features used include:</para>
 
-      <para>Another mechanism used is ASLR<indexterm>
-          <primary>ASLR</primary>
-        </indexterm>, or Address Space Layout Randomization. This thwarts
-      attacks that need advance knowledge of addresses (for instance through
-      observation of previous runs). With ASLR enabled, the address space is
-      randomized for each application, which makes it much more difficult to
-      guess where a certain code (or data) portion is loaded, and as such
-      attacks will be much more difficult to execute succesfully. This
-      requires the code to be PIE built.</para>
+      <itemizedlist>
+        <listitem>
+          <para>PaX</para>
+        </listitem>
 
-      <para>To enable PaX, you will need to install the hardened-sources
-      kernel in Gentoo Linux and configure it according to the instructions
-      found on the Hardened Gentoo PaX Quickstart document. You should also
-      install <command>paxctl</command><indexterm>
-          <primary>paxctl</primary>
-        </indexterm>.</para>
+        <listitem>
+          <para>PIE/PIC/SSP</para>
+        </listitem>
 
-      <programlisting># <command>emerge hardened-sources</command>
+        <listitem>
+          <para>SELinux as MAC</para>
+        </listitem>
+
+        <listitem>
+          <para>grSecurity kernel improvements</para>
+        </listitem>
+      </itemizedlist>
+
+      <section>
+        <title>PaX</title>
+
+        <para>The PaX<indexterm>
+            <primary>PaX</primary>
+          </indexterm> project (part of grSecurity) aims to update the Linux
+        kernel with <link
+        xlink:href="http://pax.grsecurity.net/docs/pax.txt">defense
+        mechanisms</link> against exploitation of software bugs that allow an
+        attacker access to the software's address space (memory). By
+        exploiting this access, a malicious user could introduce or execute
+        arbitrary code, execute existing code without the applications'
+        intended behavior, or with different data than expected.</para>
+
+        <para>One of the defence mechanisms introduced is NOEXEC<indexterm>
+            <primary>NOEXEC</primary>
+          </indexterm>. With this enabled, memory pages of an application
+        cannot be marked writeable and executable. So either a memory page
+        contains application code, but cannot be modified (kernel enforced),
+        or it contains data and cannot be executed (kernel enforced). The
+        enforcement methods used are beyond the scope of this book, but are
+        described <link
+        xlink:href="http://pax.grsecurity.net/docs/noexec.txt">online</link>.
+        Enforcing NOEXEC does have potential consequences: some applications
+        do not work when PaX enforces this behavior. Because of this, PaX
+        allows administrators to toggle the enforcement on a per-binary basis.
+        For more information about this, see the Hardened Gentoo PaX
+        Quickstart document (see resources at the end of this chapter). Note
+        that this also requires PIE/PIC built code (see later).</para>
+
+        <para>Another mechanism used is ASLR<indexterm>
+            <primary>ASLR</primary>
+          </indexterm>, or Address Space Layout Randomization. This thwarts
+        attacks that need advance knowledge of addresses (for instance through
+        observation of previous runs). With ASLR enabled, the address space is
+        randomized for each application, which makes it much more difficult to
+        guess where a certain code (or data) portion is loaded, and as such
+        attacks will be much more difficult to execute succesfully. This
+        requires the code to be PIE built.</para>
+
+        <para>To enable PaX, you will need to install the hardened-sources
+        kernel in Gentoo Linux and configure it according to the instructions
+        found on the Hardened Gentoo PaX Quickstart document. You should also
+        install <command>paxctl</command><indexterm>
+            <primary>paxctl</primary>
+          </indexterm>.</para>
+
+        <programlisting># <command>emerge hardened-sources</command>
 # <command>emerge paxctl</command></programlisting>
-    </section>
+      </section>
 
-    <section>
-      <title>PIE/PIC/SSP</title>
+      <section>
+        <title>PIE/PIC/SSP</title>
 
-      <para>The given abbreviations describe how source code is built into
-      binary, executable code.</para>
+        <para>The given abbreviations describe how source code is built into
+        binary, executable code.</para>
 
-      <para>PIC<indexterm>
-          <primary>PIC</primary>
-        </indexterm> (Position Independent Code) is used for shared libraries
-      to support the fact that they are loaded in memory dynamically (and
-      without prior knowledge to the addresses). Whereas older methods use
-      load-time relocation (where address pointers are all rewritten the
-      moment the code is loaded in memory), PIC uses a higher abstraction of
-      indirection towards data and function references. By building shared
-      objects with PIC, relocations in the text segment in memory (which
-      contains the application code) are not needed anymore. As such, these
-      pages can be marked as non-writeable.</para>
+        <para>PIC<indexterm>
+            <primary>PIC</primary>
+          </indexterm> (Position Independent Code) is used for shared
+        libraries to support the fact that they are loaded in memory
+        dynamically (and without prior knowledge to the addresses). Whereas
+        older methods use load-time relocation (where address pointers are all
+        rewritten the moment the code is loaded in memory), PIC uses a higher
+        abstraction of indirection towards data and function references. By
+        building shared objects with PIC, relocations in the text segment in
+        memory (which contains the application code) are not needed anymore.
+        As such, these pages can be marked as non-writeable.</para>
 
-      <para>To find out if you have libraries that still support text
-      relocations<indexterm>
-          <primary>text relocation</primary>
-        </indexterm>, you can install the pax-utils package and scan your
-      libraries for text relocations:</para>
+        <para>To find out if you have libraries that still support text
+        relocations<indexterm>
+            <primary>text relocation</primary>
+          </indexterm>, you can install the pax-utils package and scan your
+        libraries for text relocations:</para>
 
-      <programlisting># <command>emerge pax-utils</command>
+        <programlisting># <command>emerge pax-utils</command>
 $ <command>scanelf -lpqt</command>
 TEXTREL  /opt/Citrix/ICAClient/libctxssl.so</programlisting>
 
-      <para>In the above example, the libctxssl.so file is not built with PIC
-      and as such could be more vulnerable to attacks as its code-containing
-      memory pages might not be marked as non-writeable.</para>
+        <para>In the above example, the libctxssl.so file is not built with
+        PIC and as such could be more vulnerable to attacks as its
+        code-containing memory pages might not be marked as
+        non-writeable.</para>
 
-      <para>With PIE<indexterm>
-          <primary>PIE</primary>
-        </indexterm> (Position Independent Executables) enabled, executables
-      are built in a fashion similar to shared objects: their base address can
-      be relocated and as such, PaX' ASLR method can be put in effect to
-      randomize the address in use. An application binary that is PIE-built
-      will show up as a shared object file rather than an executable file when
-      checking its ELF header</para>
+        <para>With PIE<indexterm>
+            <primary>PIE</primary>
+          </indexterm> (Position Independent Executables) enabled, executables
+        are built in a fashion similar to shared objects: their base address
+        can be relocated and as such, PaX' ASLR method can be put in effect to
+        randomize the address in use. An application binary that is PIE-built
+        will show up as a shared object file rather than an executable file
+        when checking its ELF header</para>
 
-      <programlisting>$ <command>readelf -h /bin/ls | grep Type</command>
+        <programlisting>$ <command>readelf -h /bin/ls | grep Type</command>
   Type:            DYN (Shared object file)
 
 $ <command>readelf -h /opt/Citrix/ICAClient/wfcmgr.bin | grep Type</command>
   Type:            EXEC (Executable file)</programlisting>
 
-      <para>SSP<indexterm>
-          <primary>SSP</primary>
-        </indexterm> finally stands for Stack Smashing Protection. Its purpose
-      is to add in additional buffers after memory allocations (for variables
-      and such) which contain a cryptographic marker (often called the
-      canary). When an overflow occurs, this marker is also overwritten (after
-      all, that's how overflows work). When a function would return, this
-      marker is first checked to see if it is still valid. If not, then an
-      overflow has occurred and the application is stopped abruptly. </para>
-    </section>
+        <para>SSP<indexterm>
+            <primary>SSP</primary>
+          </indexterm> finally stands for Stack Smashing Protection. Its
+        purpose is to add in additional buffers after memory allocations (for
+        variables and such) which contain a cryptographic marker (often called
+        the canary). When an overflow occurs, this marker is also overwritten
+        (after all, that's how overflows work). When a function would return,
+        this marker is first checked to see if it is still valid. If not, then
+        an overflow has occurred and the application is stopped
+        abruptly.</para>
+      </section>
 
-    <section>
-      <title>SELinux as MAC</title>
+      <section>
+        <title>SELinux as MAC</title>
 
-      <para>With a MAC<indexterm>
-          <primary>MAC</primary>
-        </indexterm> (Mandatory Access Control<indexterm>
-          <primary>Mandatory Access Control</primary>
-        </indexterm>), the system administrator can control which accesses are
-      allowed and which not, and can enforce that the user cannot override
-      this. Regular access patterns in Linux are discretionary, so the user
-      can define this himself. In this book, we will use SELinux<indexterm>
-          <primary>SELinux</primary>
-        </indexterm> as the MAC system. Another supported MAC in Gentoo
-      Hardened is grSecurity's RBAC model.</para>
+        <para>With a MAC<indexterm>
+            <primary>MAC</primary>
+          </indexterm> (Mandatory Access Control<indexterm>
+            <primary>Mandatory Access Control</primary>
+          </indexterm>), the system administrator can control which accesses
+        are allowed and which not, and can enforce that the user cannot
+        override this. Regular access patterns in Linux are discretionary, so
+        the user can define this himself. In this book, we will use
+        SELinux<indexterm>
+            <primary>SELinux</primary>
+          </indexterm> as the MAC system. Another supported MAC in Gentoo
+        Hardened is grSecurity's RBAC model.</para>
 
-      <para>Installing and configuring Hardened Gentoo with SELinux is
-      described in the Gentoo SELinux handbook. It is seriously recommended to
-      read through this resource a few times, as SELinux is not just about
-      enabling a feature - it is a change in the security model and requires
-      experience with it.</para>
+        <para>Installing and configuring Hardened Gentoo with SELinux is
+        described in the Gentoo SELinux handbook. It is seriously recommended
+        to read through this resource a few times, as SELinux is not just
+        about enabling a feature - it is a change in the security model and
+        requires experience with it.</para>
 
-      <para>We will use the SELinux strict policy (so no unconfined domains)
-      for regular services, or MCS (without unconfined domains) when we want
-      to use the multi-tenancy support.</para>
+        <para>We will use the SELinux strict policy (so no unconfined domains)
+        for regular services, or MCS (without unconfined domains) when we want
+        to use the multi-tenancy support.</para>
 
-      <programlisting>$ <command>id -Z</command>
+        <programlisting>$ <command>id -Z</command>
 staff_u:staff_r:staff_t
 
 # <command>sestatus</command>
@@ -244,149 +269,492 @@ Mode from config file:          enforcing
 Policy MLS status:              disabled
 Policy deny_unknown status:     denied
 Max kernel policy version:      26</programlisting>
-    </section>
+      </section>
 
-    <section>
-      <title>grSecurity kernel improvements</title>
+      <section>
+        <title>grSecurity kernel improvements</title>
 
-      <para>Next to the previously mentioned grSecurity updates, grSecurity
-      also adds in additional kernel protection measures. </para>
+        <para>Next to the previously mentioned grSecurity updates, grSecurity
+        also adds in additional kernel protection measures.</para>
 
-      <para>This includes additional hardening on chroot jails (to make it a
-      lot more difficult to break out of a chroot) and file system abuse (like
-      getting information from pseudo-filesystems to improve attacks).</para>
+        <para>This includes additional hardening on chroot jails (to make it a
+        lot more difficult to break out of a chroot) and file system abuse
+        (like getting information from pseudo-filesystems to improve
+        attacks).</para>
 
-      <para>For more information on enabling grSecurity, see the Gentoo
-      grSecurity v2 Guide.</para>
-    </section>
-  </section>
+        <para>For more information on enabling grSecurity, see the Gentoo
+        grSecurity v2 Guide.</para>
+      </section>
 
-  <section>
-    <title>Virtualized platforms</title>
+      <section>
+        <title>Security benchmark</title>
 
-    <para>When possible, we will use virtualization. This offers a hardware
-    abstraction so that we can move guests from one hardware platform to
-    another without having too much impact on the loaded drivers. It also
-    supports better availability models (fast recovery when hardware fails)
-    and improved resource usage (which benefits our cost efficiency
-    again).</para>
+        <para>The security benchmark for Gentoo Linux currently contains
+        checks for</para>
 
-    <para>As virtualization platform, we will choose KVM.</para>
-  </section>
+        <itemizedlist>
+          <listitem>
+            <para>mount options</para>
+          </listitem>
 
-  <section>
-    <title>Gentoo security benchmark</title>
+          <listitem>
+            <para>kernel configuration options (including those for PaX and
+            grSecurity)</para>
+          </listitem>
 
-    <para>To further harden the Gentoo systems, I advise to use the Gentoo
-    Security Benchmark which is written using XCCDF<indexterm>
-        <primary>XCCDF</primary>
-      </indexterm> and OVAL<indexterm>
-        <primary>OVAL</primary>
-      </indexterm>. This has the advantage that you can have your system
-    "verified" by XCCDF/OVAL-capable tools like openscap<indexterm>
-        <primary>openscap</primary>
-      </indexterm>. As I go along with this book, such benchmarks will be
-    created and referenced.</para>
+          <listitem>
+            <para>SSH daemon configuration</para>
+          </listitem>
 
-    <para>Okay, that's lots of new words here, so allow me to give a quick
-    explanation.</para>
+          <listitem>
+            <para>general system settings and mandatory USE flags</para>
+          </listitem>
 
-    <para><emphasis>XCCDF</emphasis> is part of a standard for documenting the
-    settings of a system for a particular subject (that standard is called
-    SCAP<indexterm>
-        <primary>SCAP</primary>
-      </indexterm>).. The document is primarily written in XHTML (but can be
-    exported to PDF or other formats) but contains references to checks that
-    can be done on a system to verify if it complies with what is documented.
-    Because of this functionality, XCCDF documents are widely popular in the
-    security world as they offer a standard method for building benchmarks
-    (best practices). Example organizations that offer XCCDF-based benchmarks
-    are <link xlink:href="http://www.cisecurity.org">CISecurity</link> and
-    <link
-    xlink:href="http://web.nvd.nist.gov/view/ncp/repository">NIST</link>.
-    Providers of a particular product also offer XCCDF content for their
-    products (like <link
-    xlink:href="https://fedorahosted.org/scap-security-guide/">Fedora</link>).</para>
+          <listitem>
+            <para>state of unsecure services</para>
+          </listitem>
 
-    <para><emphasis>OVAL</emphasis> is a part of SCAP as well, and contains
-    the instructions to check for a particular setting. The OVAL language is
-    quite extensible, but also quite difficult to read. However, once defined,
-    it allows administrators to check for a particular setting (or installed
-    software, or missing configuration entry) in an automated manner and
-    report on the state. For instance, <link
-    xlink:href="https://www.redhat.com/security/data/oval/">RedHat</link>
-    provides OVAL definitions for each of its security advisories, allowing
-    administrators to automatically validate if their system is vulnerable or
-    not. In Gentoo Linux, <command>glsa-check</command><indexterm>
-        <primary>glsa-check</primary>
-      </indexterm> does something similar but without OVAL (currently).</para>
+          <listitem>
+            <para>bootloader configuration protection</para>
+          </listitem>
 
-    <section>
-      <title>Content of the benchmark</title>
+          <listitem>
+            <para>authorization settings</para>
+          </listitem>
 
-      <para>The security benchmark for Gentoo Linux currently contains checks
-      for</para>
+          <listitem>
+            <para>file and directory privileges</para>
+          </listitem>
+        </itemizedlist>
 
-      <itemizedlist>
-        <listitem>
-          <para>mount options</para>
-        </listitem>
+        <para>I am still planning on extending the benchmarks further and
+        further, but also to provide proper ways to automatically enforce
+        these settings.</para>
 
-        <listitem>
-          <para>kernel configuration options (including those for PaX and
-          grSecurity)</para>
-        </listitem>
+        <para>To verify the state of your system against the given benchmark,
+        we first generate the necessary output (as the test is not allowed to
+        execute commands itself, so we need to prepare the output
+        first).</para>
 
-        <listitem>
-          <para>SSH daemon configuration</para>
-        </listitem>
-
-        <listitem>
-          <para>general system settings and mandatory USE flags</para>
-        </listitem>
-
-        <listitem>
-          <para>state of unsecure services</para>
-        </listitem>
-
-        <listitem>
-          <para>bootloader configuration protection</para>
-        </listitem>
-
-        <listitem>
-          <para>authorization settings</para>
-        </listitem>
-
-        <listitem>
-          <para>file and directory privileges</para>
-        </listitem>
-      </itemizedlist>
-
-      <para>I am still planning on extending the benchmarks further and
-      further, but also to provide proper ways to automatically enforce these
-      settings.</para>
-    </section>
-
-    <section>
-      <title>Running the benchmark</title>
-
-      <para>To verify the state of your system against the given benchmark, we
-      first generate the necessary output (as the test is not allowed to
-      execute commands itself, so we need to prepare the output first).</para>
-
-      <programlisting># <command>mkdir /var/tmp/genoval_output</command>
+        <programlisting># <command>mkdir /var/tmp/genoval_output</command>
 # <command>export GENOVAL_SCRIPTOUTPUTDIR=/var/tmp/genoval_output</command>
 # <command>emerge --info --verbose &gt; ${GENOVAL_SCRIPTOUTPUTDIR}/emerge-info-verbose</command>
 # <command>zcat /proc/config.gz &gt; ${GENOVAL_SCRIPTOUTPUTDIR}/kernel-config</command></programlisting>
 
-      <para>Next, you can run the tests and see if your system is configured
-      properly:</para>
+        <para>Next, you can run the tests and see if your system is configured
+        properly:</para>
 
-      <programlisting># <command>oscap xccdf eval --profile Gentoo-Default scap-gentoo-xccdf.xml</command></programlisting>
+        <programlisting># <command>oscap xccdf eval --profile Gentoo-Default scap-gentoo-xccdf.xml</command></programlisting>
 
-      <para>You can generate an HTML report too</para>
+        <para>You can generate an HTML report too</para>
 
-      <programlisting># <command>oscap xccdf eval --profile Gentoo-Default --results xccdf-results.xml --report report.html scap-gentoo-xccdf.xml</command></programlisting>
+        <programlisting># <command>oscap xccdf eval --profile Gentoo-Default --results xccdf-results.xml --report report.html scap-gentoo-xccdf.xml</command></programlisting>
+      </section>
+    </section>
+
+    <section>
+      <title>Virtualized platforms</title>
+
+      <para>When possible, we will use virtualization. This offers a hardware
+      abstraction so that we can move guests from one hardware platform to
+      another without having too much impact on the loaded drivers. It also
+      supports better availability models (fast recovery when hardware fails)
+      and improved resource usage (which benefits our cost efficiency
+      again).</para>
+
+      <para>As virtualization platform, we will choose KVM.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Building a build server</title>
+
+    <para>To support multiple Gentoo Linux hosts, we will be creating a build
+    server. But just having one server build packages isn't sufficient - we
+    need to be able to</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>have separate build environments based on a number of different
+        "templates" that will be used in our architecture.</para>
+
+        <para>Because of Gentoo's flexibility, we will have systems that have
+        different USE flags, CFLAGS or other settings. All these settings
+        however need to be constant for the build service to work well. If
+        deviations are small, it is possible to use the majority of the build
+        server and still use local compilations, but in our architecture, we
+        will assume that the build server offers the binaries for all systems
+        and that systems by themselves usually do not need to build code
+        themselves.</para>
+      </listitem>
+
+      <listitem>
+        <para>support phased builds across the architecture</para>
+
+        <para>Our architecture supports both production and non-production
+        systems. The non-production systems are used to stage updates and
+        validate changes before pushing them to production (this for quality
+        assurance as well as a better service availability). This does mean
+        that we need to be able to "fix" the repositories once we deem them
+        stable enough, and then work on a new one.</para>
+      </listitem>
+
+      <listitem>
+        <para>provide access to stable tree</para>
+
+        <para>Any client that wishes to use the build server will need access
+        to that build servers' portage tree and overlays (if applicable). As
+        the tree is only needed in case of updates, there is little point in
+        having this tree available on the clients at all times.</para>
+      </listitem>
+
+      <listitem>
+        <para>limit host access to authorized systems</para>
+
+        <para>We want to limit access to the built packages to authorized
+        systems only. This both to prevent "production" systems to
+        accidentally take in non-production data, as well as ensure that only
+        systems we manage ourselves are accessing the system. By using
+        host-based authorizations, we can also follow up on systems more
+        easily (such as logging).</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>and this is just a subset of the requirements that are involved in
+    the build server.</para>
+
+    <para>When you make a simple build server design, you immediately see that
+    a multitude of other components are needed. These include</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>a DNS server to offer round-robin access to the build
+        servers</para>
+      </listitem>
+
+      <listitem>
+        <para>a certificate server to support management of certificates in
+        the organization</para>
+      </listitem>
+
+      <listitem>
+        <para>a high-available NFS server to host the built packages on</para>
+      </listitem>
+
+      <listitem>
+        <para>a scheduler to execute builds</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The deployment and installation of all these components, with
+    information on their configuration and usage, is the goal of the remainder
+    of this book.</para>
+
+    <section>
+      <title>Setup build host</title>
+
+      <para>The build host is most likely a dedicated (i.e. non-virtualized)
+      system because it will be very CPU and memory hungry and can use all the
+      resources it can have. As a result though, it means that our build
+      host(s) should be set up in a multi-active setup. Each buildhost then
+      runs a web server (like lighttpd) which hosts the built package
+      locations as its document root. To support the multiple build profiles,
+      we will use different virtual hosts, each of them uses a
+      certificate-based access list to only allow authorized hosts to connect
+      and download packages from the server. I opt to use web-based disclosure
+      of packages instead of network mounts as they offer more control, easier
+      logging, etc.</para>
+
+      <para>The build server itself will use a simple configuration scheme and
+      a few scripts that are either triggered manually or scheduled centrally.
+      These scripts will pull in the necessary changes (be it updates in
+      overlays or in the main portage tree) and do full system builds. The
+      resulting packages will be stored in NFS-mounted locations (where the
+      NFS server is set up high available).</para>
+
+      <section>
+        <title>Build profile configuration</title>
+
+        <para>Let's first start with the build profile configuration. We will
+        use <command>catalyst</command><indexterm>
+            <primary>catalyst</primary>
+          </indexterm>, Gentoo's release management tool that is used to
+        generate the weekly releases. With some tweaks, it can be easily used
+        to support our build server. </para>
+
+        <para>Our build setup will do something akin to the following:</para>
+
+        <programlisting>Daily:
++- Fetch new portage tree snapshot
++- For each build profile:
+   +- Put snapshot in &lt;storedir&gt;/snapshots
+   +- Build stage3 (using catalyst)
+   `- Build grp (using catalyst)
+
+Weekly (and before daily): 
+`- For each build profile
+   `- Update spec file to now point to most recent stage3</programlisting>
+
+        <para>The setup will assume that a working stage3 tarball already
+        exists and is made for further use. If that is not the case, you will
+        need to get a fresh stage3 first and put it in
+        <filename>&lt;storedir&gt;/builds</filename>. From that point onwards,
+        this stage3 is reused for the new stage3. Binary packages are kept as
+        those will be used for the binary host later. The grp build (which
+        stands for Gentoo Reference Platform) will then build the remainder of
+        binary packages.</para>
+
+        <para>So let's first install catalyst.</para>
+
+        <programlisting># <command>emerge catalyst</command></programlisting>
+
+        <para>Next, we make an initial configuration for catalyst. One set of
+        configuration files matches one build profile, so you'll need to
+        repeat the next steps for each build profile you want to support.
+        We'll start with the generic catalyst configuration, use
+        <filename>/srv/build</filename> as the base directory for all related
+        activities under which each build profile will have its top level. In
+        the next example, where you see "basic_bp", it is the name of this
+        build profile.</para>
+
+        <programlisting># <command>mkdir -p /srv/build/basic_bp/{portage,portage_settings,snapshot_cache,catalyst_store}</command>
+# <command>cd /etc/catalyst</command>
+# <command>cat catalyst-basic_bp.conf</command>
+digests="sha512"
+contents="auto"
+distdir="/usr/portage/distfiles"
+envscript="/etc/catalyst/catalystrc"
+hash_function="crc32"
+options="autoresume metadata_overlay pkgcache seedcache snapcache"
+portdir="/srv/build/basic_bp/portage"
+sharedir="/usr/lib64/catalyst"
+snapshot_cache="/srv/build/basic_bp/snapshot_cache"
+storedir="/srv/build/basic_bp/catalyst_store"</programlisting>
+
+        <para>Next, create the <filename>stage3.spec</filename> and
+        <filename>grp.spec</filename> files. The templates for these files can
+        be found in
+        <filename>/usr/share/doc/catalyst-&lt;version&gt;/examples</filename>.</para>
+
+        <programlisting># <command>cat stage3-basic_bp.conf</command>
+## Static settings
+subarch: amd64
+target: stage3
+rel_type: default
+profile: hardened/linux/amd64/no-multilib/selinux
+cflags: -O2 -pipe -march=native
+portage_confdir: /srv/build/basic_bp/portage_settings
+## Dynamic settings (might be passed on as parameters instead)
+# Name of the "seed" stage3 file to use
+source_subpath: stage3-amd64-20120401
+# Name of the portage snapshot to use
+snapshot: 20120406
+# Timestamp to use on your resulting stage3 file
+version_stamp: 20120406
+
+# <command>cat grp-basic_bp.conf</command>
+(... similar as to stage3 ...)
+grp/packages: lighttpd nginx cvechecker bind apache ...</programlisting>
+
+        <para>The <parameter>portage_confdir</parameter> variable tells
+        catalyst where to find the portage configuration specific files (all
+        those you usually put in <filename>/etc/portage</filename>).</para>
+
+        <para>The <parameter>source_subpath</parameter> variable tells
+        catalyst which stage3 file to use as a seed file. You can opt to point
+        this one to the stage3 built the day before or to a fixed value,
+        whatever suits youµ the best. This file needs to be stored inside
+        <filename>/srv/build/basic_bp/catalyst_store/builds</filename>.</para>
+
+        <para>Copy the portage snapshot (here,
+        <filename>portage-20120406.tar.bz</filename>2) and related files in
+        <filename>/srv/build/basic_bp/catalyst_store/snapshots</filename>. If
+        you rather create your own snapshot, populate
+        <filename>/srv/build/basic_bp/portage</filename> with the tree you
+        want to use, and then call catalyst to generate a snapshot for you
+        from it:</para>
+
+        <programlisting># <command>catalyst -c catalyst-basic_bp.conf -s 20120406</command></programlisting>
+
+        <para>Next, we have the two catalyst runs executed to generate the new
+        stage3 (which will be used by subsequent installations as the new
+        "seed" stage3) and grp build (which is used to generate the binary
+        packages).</para>
+
+        <programlisting># <command>catalyst -c catalyst-basic_bp.conf -f stage3-basic_bp.conf</command>
+# <command>catalyst -c catalyst-basic_bp.conf -f grp-basic_bp.conf</command></programlisting>
+
+        <para>When the builds have finished, you will find the packages for
+        this profile in
+        <filename>/srv/build/basic_bp/catalyst_store/builds</filename>. These
+        packages can then be moved to the NFS mount later.</para>
+      </section>
+
+      <section>
+        <title>Automating the builds</title>
+
+        <para>To automate the build process, remove the date-specific
+        parameters and instead pass them on as parameters, like so:</para>
+
+        <programlisting># <command>catalyst -c catalyst-basic_bp.conf -f stage3-basic_bp.conf -C version_stamp=20120406</command></programlisting>
+
+        <para>Next, if the grp build finishes succesfully as well, we can use
+        rsync to:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>synchronize the binary packages from
+            <filename>/srv/build/basic_bp/catalyst_store/packages/default/stage3-amd64-&lt;version_stamp&gt;</filename>
+            to the NFS mount for this particular profile, as well as rsync the
+            portage tree used (as these two need to be synchronized).</para>
+          </listitem>
+
+          <listitem>
+            <para>copy the portage tree snapshot to the NFS mount for this
+            particular profile, while signing it to support GPG-validated
+            web-rsyncs.</para>
+          </listitem>
+
+          <listitem>
+            <para>rsync the content of the
+            <parameter>portage_confdir</parameter> location to the NFS
+            mount</para>
+          </listitem>
+        </orderedlist>
+
+        <para>The combination of these three allow us to easily update
+        clients:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Update <filename>/etc/portage</filename> (locally) using the
+            stored <parameter>portage_confdir</parameter> settings</para>
+          </listitem>
+
+          <listitem>
+            <para>Update the local portage tree using emerge-webrsync (with
+            GPG validation)</para>
+          </listitem>
+
+          <listitem>
+            <para>Update the system, using the binaries created by the build
+            server</para>
+          </listitem>
+
+          <listitem>
+            <para>Update the eix catalogue</para>
+          </listitem>
+        </orderedlist>
+
+        <para>The following two scripts support this in one go (fairly small
+        scripts - modify to your liking) although we will be using a different
+        method for updating the systems later.</para>
+
+        <programlisting># <command>cat autobuild</command>
+#!/bin/sh
+
+# Build Profile
+BP="basic_bp"
+# Time Stamp
+TS="$(date +%Y%m%d)"
+# Build Directory
+BD="/srv/build/${BP}"
+# Packages Directory
+PD="${BD}/catalyst_store/packages/default/stage3-${TS}"
+
+catalyst -c /etc/catalyst/catalyst-${BP}.conf \
+         -f /etc/catalyst/stage3-${BP}.conf \
+         -C version_stamp=${TS} || exit 1
+catalyst -c /etc/catalyst/catalyst-${BP}.conf \
+         -f /etc/catalyst/grp-${BP}.conf \
+         -C version_stamp=${TS} || exit 2
+rsync -avug ${PD}/ /nfs/${BP}/packages || exit 3
+cp ${BD}/catalyst_store/builds/portage-${TS}.tar.bz2 /nfs/${BP}/snapshots || exit 4
+gpg --armor --sign \
+    --output /nfs/${BP}/snapshots/portage-${TS}.tar.bz2.gpg \
+    /nfs/${BP}/snapshots/portage-${TS}.tar.bz2 || exit 5
+tar cvjf ${BD}/portage_settings /nfs/${BP}/portage_settings-${TS}.tar.bz2 || exit 6</programlisting>
+
+        <programlisting># <command>cat autoupdate</command>
+#!/bin/sh
+
+# Build Profile
+BP="basic_bp"
+# Edition
+ED="testing"
+# Time Stamp to use
+TS="$1"
+
+wget https://${BP}-${ED}.builds.siphos.be/${BP}/${ED}/portage_settings-${TS}.tar.bz2
+tar xvjf -C /etc/portage portage_settings-${TS}.tar.bz2
+restorecon -R /etc/portage
+emerge-webrsync --revert=${TS}
+emerge -uDNg world
+eix-update</programlisting>
+      </section>
+
+      <section>
+        <title>Promoting editions</title>
+
+        <para>The automated builds will do daily packaging for the "testing"
+        edition. Once in a while though, you will want to make a snapshot of
+        it and promote it to production. Most of these activities will be done
+        on the NFS server though (we will be using LVM snapshots). The clients
+        still connect to the build servers for their binaries (although this
+        is not mandatory - you can host other web servers with the same mount
+        points elsewhere to remove the stress of the build servers) but "poll"
+        in the snapshot location (by using a different edition).</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Enabling the web server</title>
+
+      <para>We will be using lighttpd as the web server of choice for the
+      build server. The purpose of the web server is to disclose the end
+      result of the builds towards the clients. </para>
+
+      <section>
+        <title>Installing and configuring lighttpd</title>
+
+        <para>First install lighttpd:</para>
+
+        <programlisting># <command>emerge lighttpd</command></programlisting>
+
+        <para>Next, configure the web server with the virtual hosts you want
+        to use. For instance:</para>
+
+        <programlisting>basic-production.builds.siphos.be
+basic-testing.builds.siphos.be
+ldap-production.builds.siphos.be
+ldap-testing.builds.siphos.be</programlisting>
+
+        <para>These virtual hosts provide the packages (and tree) for the
+        build profiles "basic" and "ldap" (you can generate as many as you
+        want). Each build profile has two "editions", one is called testing
+        (and contains the daily generated ones), the other production (which
+        is the tested one). You might create a "snapshot" edition as well, to
+        prepare for a new production build.</para>
+
+        <programlisting># <command>cat lighttpd.conf</command>
+TODO</programlisting>
+
+        <para>TODO include info on certificate management (how to involve
+        client access control).</para>
+      </section>
+
+      <section>
+        <title>Managing lighttpd</title>
+
+        <para>TODO what needs to be evaluated for lighttpd (log file
+        management, SELinux settings, ...à)</para>
+      </section>
+
+      <section>
+        <title>Security benchmark</title>
+
+        <para>TODO write a security benchmark for lighttpd ?</para>
+      </section>
     </section>
   </section>
 
@@ -434,6 +802,12 @@ Max kernel policy version:      26</programlisting>
         <para><link
         xlink:href="http://www.gentoo.org/proj/en/hardened/grsecurity.xml">Gentoo
         grSecurity v2 Guide</link> (Gentoo Linux)</para>
+      </listitem>
+
+      <listitem>
+        <para><link
+        xlink:href="http://dev.gentoo.org/~swift/docs/security_benchmarks/">Security
+        benchmarks</link></para>
       </listitem>
     </itemizedlist>
   </section>

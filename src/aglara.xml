@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V5.0//EN"
-"http://www.oasis-open.org/docbook/xml/5.0/docbookx.dtd" [
-<!ENTITY architecturing.xml SYSTEM        "aglara/01-architecturing.xml">
-<!ENTITY genindex.sgm SYSTEM "genindex.sgm">
-]>
-<book>
+<book xmlns="http://docbook.org/ns/docbook" version="5.0" xml:lang="en">
   <title>A Gentoo Linux Advanced Reference Architecture</title>
 
   <bookinfo>
@@ -77,8 +72,8 @@
 
   <toc></toc>
 
-  &01-architecturing.xml;
-  &glossary.xml;
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/01-architecturing.xml" />
+  <!-- <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="glossary.xml" /> -->
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="genindex.sgm" />
 
-  &genindex.sgm;
 </book>

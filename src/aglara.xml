@@ -81,6 +81,7 @@
   <toc></toc>
 
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/01-architecturing.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/02-platform.xml" />
   <!-- <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="glossary.xml" /> -->
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="genindex.sgm" />
 

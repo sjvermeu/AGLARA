@@ -267,7 +267,7 @@
         is captured, a design is made after which some sort of storyboard
         approach is used to describe to the organization how the design looks
         like. It will give the organization time to react or give their ideas
-        (or additional requirements). </para>
+        (or additional requirements).</para>
       </section>
 
       <section>
@@ -445,15 +445,18 @@
       hosting-agnostic and easily transportable, so that opportunities for
       other hosting providers can be exploited easily. It also has a private
       data room for testing and preproduction work, but this one will never
-      host any customer data nor has specific availability requirements.
-      </para>
+      host any customer data nor has specific availability
+      requirements.</para>
     </section>
 
     <section>
       <title>Functional requirements</title>
 
       <para>The following is an overview of functional requirements used
-      throughout this book.</para>
+      throughout this book. The difference between functional and
+      non-functional might sometimes seem to be forced. That's okay, do not
+      spend too much time figuring out if a requirement is functional or
+      non-functional. Its a requirement, and that's what counts.</para>
 
       <section>
         <title>Audit and logging</title>
@@ -533,12 +536,65 @@
         locales (because the customers are hosted in different locations
         across Europe).</para>
       </section>
+
+      <section>
+        <title>Paperless office</title>
+
+        <para>The company uses a strict paperless office policy. That means:
+        no printers, no print servers.</para>
+
+        <para>When printing services are needed, the company will use external
+        providers for its print requirements. Cost is an important driver
+        here, but the company also found that forcing a paperless office
+        improves productivity: digital documents flow much faster through an
+        organization.</para>
+
+        <para>Sorry folks, no CUPS information in this architecture ;-)</para>
+      </section>
     </section>
 
     <section>
       <title>Non-functional requirements</title>
 
-      <para/>
+      <para>The following is an overview of non-functional reqiurements used
+      throughout this book.</para>
+
+      <section>
+        <title>Service Level Agreement</title>
+
+        <para>Customer-facing or impacting services must offer a basic service
+        level of 24/7 availability window with one change window per month
+        where scheduled downtime is allowed (which is usually in the night
+        between the last saturday of the month to sunday). However, the
+        architecture must support an always-on principle (with active/active
+        services) so that changes that can be done in stages and that do not
+        influence availability can be done during daytime. This decreases
+        labour cost and offers a flexible approach on customer demands which
+        can be targeted much faster than when the company needs to wait for
+        the next scheduled downtime window.</para>
+
+        <para>Data hosting services must have backups that allow to recover
+        (individual files or entries) to earlier backups which are taken at
+        least every 24 hours. The backups are retained for 8 days. Each
+        "sunday" backup is kept for 6 weeks. Every "first sunday of the month"
+        backup is retained for 6 months. Specific customer requirements might
+        change this requirement though.</para>
+
+        <para>System backups are taken weekly, but system recovery must be
+        possible by replaying changes. So while a virtual guest image which
+        hosts an Apache web server might have its image backed up weekly, it
+        must be possible to reinstall the guest based on the
+        procedures/scripts in use. System backups are retained for 6
+        weeks.</para>
+      </section>
+
+      <section>
+        <title>Low cost, high quality</title>
+
+        <para>The company strives for low cost solutions with a high quality
+        output. This is already visible in the scope (free software) but might
+        also drive other decisions. </para>
+      </section>
     </section>
   </section>
 </chapter>

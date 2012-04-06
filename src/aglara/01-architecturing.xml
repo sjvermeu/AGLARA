@@ -6,11 +6,539 @@
          xmlns:m="http://www.w3.org/1998/Math/MathML"
          xmlns:html="http://www.w3.org/1999/xhtml"
          xmlns:db="http://docbook.org/ns/docbook">
-  <title>Architecturing for Free Software</title>
+  <title>Infrastructure Architecturing for Free Software</title>
 
   <section>
     <title>Introduction</title>
 
-    <para>Blabla</para>
+    <para>When you're dealing with larger environments, you have undoubtedly
+    heard about IT infrastructure architecturing. It is the "art" of capturing
+    organizational requirements, translating them into well defined services,
+    creating building blocks that adhere to the functional and non-functional
+    requirements, integrating those building blocks in a larger deployment
+    design and finally translating this into physical deployments on your
+    infrastructure. For small deployments (a few servers) this is probably not
+    really beneficial to do so intensively - most administrators in such cases
+    do the entire architecturing in their head. Because of the small scale,
+    this is perfectly doable, although there is something to say about
+    properly documenting it anyhow.</para>
+
+    <para>Larger scale deployments (several dozen servers, possibly even
+    hundreds which might also be deployed across multiple sites) are more of a
+    concern here, usually because the requirements put into the architecture
+    by the organization are more broadly defined and focus on things such as
+    maintainability or manageability, enhanced security, ... These
+    requirements are often written down into process-like approaches on how to
+    deal with your infrastructure, because that improves the quality of
+    activities done on your infrastructure and provides a way to streamline
+    handover of activities or jobs within the organization.</para>
+
+    <para>When dealing with large-scale free software deployments, this is not
+    different. Within the next few sections, I will elaborate on how to match
+    requirements and which processes you need to look at.</para>
+
+    <section>
+      <title>Architecturing frameworks</title>
+
+      <para>Many IT infrastructure architecturing frameworks exist. When you
+      are working for a large enterprise, these frameworks will most likely be
+      translated into the companies internal architecturing framework. Small
+      and medium-sized enterprises usually do not invest that much in managing
+      their own infrastructure architecture framework and instead work with
+      online published and managed frameworks as good (or as bad) as they
+      can.</para>
+
+      <para>A well-known framework is <link
+      xlink:href="https://www.isaca.org/Pages/default.aspx">CObIT</link><indexterm>
+          <primary>CObIT</primary>
+        </indexterm>, which is an acronym for Control Objectives for IT. CObIT
+      dives into the requirements and deliverables of an IT organization,
+      based on the business requirements of the organization and the processes
+      involved in managing IT infrastructure. I personally find CObIT a very
+      interesting resource from which you can learn a lot. When reading
+      through it, it might seem very difficult to implement, but that's ok.
+      Most of the time, organizations gradually grow into the objectives.
+      Trying to implement the objectives immediately will not work. But having
+      a good read through the framework allows you to investigate and prepare
+      a good "path" towards a more process-like, mature IT organization.
+      Still, most organizations that want to have a high degree of CObIT
+      implementation will be large. Medium-sized organizations might want to
+      keep CObIT as a valuable resource to see how they can mature, without
+      going into the full deployment of CObIT in the organization.</para>
+
+      <para>When we talk about processes, <link
+      xlink:href="http://www.itil-officialsite.com/home/home.aspx">ITIL</link><indexterm>
+          <primary>ITIL</primary>
+        </indexterm> is most likely the resource for process maturity. It
+      talks about how IT services should be organized and which services you
+      need to take care of in order to provide mature and qualitative services
+      towards your (internal) business. The practices talk about financial
+      management (contracts, licenses, chargeback, ...), service level
+      management (allowed changes, production and non-production environments,
+      handling incidents and questions, ...), security management (including
+      central authentication and authorization, auditing services, ...),
+      configuration management and more. Knowing what ITIL wants to achieve
+      and which services it defines is very important if you grow towards a
+      larger enterprise, because those are the services you will need to
+      consider and deploy. However, unlike CObIT, which is fairly technical
+      driven, ITIL stays on a higher abstraction level.</para>
+
+      <para>Security management is, in my opinion, too often seen as a
+      mandatory component that removes flexibility from the organization. This
+      is not true. When properly done, security means that you have a high
+      degree of manageability across your organization. Security is more than
+      just authentication and authorization, it strives on automation (which
+      improves the time-to-market and reduces possible human errors),
+      standardization (which lowers total cost of ownership), advanced log
+      management (including accountability, but also very important for
+      quality assurance and incident handling) and more. The <link
+      xlink:href="https://en.wikipedia.org/wiki/ISO/IEC_27000-series">ISO/IEC
+      27000</link><indexterm>
+          <primary>ISO/IEC 27000</primary>
+        </indexterm> standard focuses on the high-level scope of information
+      security management and introduces the starting point for many other
+      security-related standards.</para>
+
+      <para>Another interesting resource is <link
+      xlink:href="http://www.togaf.info/">TOGAF</link><indexterm>
+          <primary>TOGAF</primary>
+        </indexterm>, The Open Group Architecture Framework. TOGAF focuses
+      more on service design and how information flows and is managed through
+      those services. It also helps to design the process of architecturing
+      itself, providing valuable information about architecture lifecycle,
+      planning, and more.</para>
+
+      <para>Yet many readers will undoubtedly thing this is all quite too
+      high-level or abstract to work with. If so, then please read on, because
+      that is what I want to help you with in this book!</para>
+    </section>
+
+    <section>
+      <title>Reference architecture for infrastructure</title>
+
+      <para>To make the various processes and methods described in the
+      architecture frameworks more tangible, a reference architecture can be
+      documented.</para>
+
+      <para>A reference architecture shows how you could potentially design
+      your infrastructure, working with known software services (like Apache
+      for web services, OpenLDAP for directory services, etc.) and management
+      components (like Puppet for configuration management). This is more in
+      line with what many readers expect and know, because we are then talking
+      about the technologies they know and deploy themselves. Many vendors
+      that have a huge portfolio of software and server services have their
+      reference architectures as well, which is often used by administrators
+      as a first resource reference to their own infrastructure.</para>
+
+      <para>Microsoft has the <link
+      xlink:href="http://technet.microsoft.com/en-us/library/cc196387.aspx">Infrastructure
+      Planning and Design series</link> in which it describes implementations
+      of its various services, such as Active Directory (for the central
+      management of it all), DirectAccess (for simplified yet secure VPN-like
+      implementations, SQL Server for databases, etc.)</para>
+
+      <para>Oracle uses its <link
+      xlink:href="http://www.oracle.com/goto/itstrategies">IT
+      Strategies</link> series to describe its Oracle Reference Architecture,
+      a suggestion on how to deal with the various Oracle products and
+      integrate them in the organization.</para>
+
+      <para>RedHat uses a different approach, describing <link
+      xlink:href="https://www.redhat.com/resourcelibrary/reference-architectures/">reference
+      architectures</link> for specific products within the RedHat Enterprise
+      Linux distribution.</para>
+
+      <para>By describing such a reference architecture, administrators can
+      understand why various processes exist and how they can make life easier
+      for engineers and administrators as well as provide valuable for the
+      organization as a whole. For many IT service delivery companies, their
+      suggested reference architecture is both a sales pitch (to describe the
+      maturity and integration of their services) as well as a check point for
+      their own development departments (is our offering sufficient and
+      necessary).</para>
+
+      <para>Throughout the rest of this book, I'm going to go design a
+      reference architecture, with primary focus on the components used, the
+      reason for these components and possible process implementations that
+      are related to it.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Designing a reference architecture</title>
+
+    <section>
+      <title>The process</title>
+
+      <para>The focus of designing a reference architecture is to be able to
+      display quickly how all needed services are deployed, integrated and
+      managed. In very high terms, it boils down to the following
+      steps.</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Capture the requirements</para>
+        </listitem>
+
+        <listitem>
+          <para>Make a logical design</para>
+        </listitem>
+
+        <listitem>
+          <para>Translate the design in infrastructure implementation
+          details</para>
+        </listitem>
+
+        <listitem>
+          <para>Go do it</para>
+        </listitem>
+      </orderedlist>
+
+      <para>These steps are simply put the order of doing things, but they are
+      all but very easy.</para>
+
+      <section>
+        <title>Capturing the requirements</title>
+
+        <para>Generally speaking, there are two types of
+        requirements<indexterm>
+            <primary>requirements</primary>
+          </indexterm>:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Functional requirements, describing the features, functions,
+            security, capabilities and more of the organizations' needs</para>
+          </listitem>
+
+          <listitem>
+            <para>Non-functional requirements, which are more about the
+            service level agreements (performance, availability, reliability,
+            ...), support requirements</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>Functional requirements can be thought of in terms like</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>What does the organization want to get?</para>
+          </listitem>
+
+          <listitem>
+            <para>Which security requirements are there (most often based on
+            legal or compliance requirements)</para>
+          </listitem>
+
+          <listitem>
+            <para>Which financial requirements are being presented</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The non-functional requirements can be thought of through the
+        FURPS(+)<indexterm>
+            <primary>FURPS</primary>
+          </indexterm> acronym. We had the F already (which stands for
+        Functional), but the other letters in the acronym give a nice overview
+        of non-functional requirements that might exist: Usability,
+        Reliability, Performance, Supportability. The + in the acronym focuses
+        on additional process-driven requirements, such as design requirements
+        ("you need to use a relational database"), implementation requirement
+        ("you need to code it in Python"), interface requirement ("you need to
+        use SOAP for communication across services"), physical requirements
+        ("the service must run in a colocation center") or progress
+        requirement ("you must use a lean-IT approach with visual progress
+        boards").</para>
+
+        <para>Capturing requirements from the organization is one of the most
+        tough (but most important) tasks in any design exercise. Properly
+        evaluating and documenting the requirements, as well as their priority
+        (for which you can use the <link
+        xlink:href="http://www.coleyconsulting.co.uk/moscow.htm">MoSCoW</link><indexterm>
+            <primary>MoSCoW</primary>
+          </indexterm> approach - Must/Should/Could/Won't - which was
+        originally made for software development but can be used in other
+        requirement exercises as well) and who asked for it (stakeholders).
+        Although you can go extremely far in this (asking hundreds of
+        questions), be sure to take a pragmatic approach and inform the
+        stakeholders about possible consequences too (like the cost and
+        time-to-market influence of additional requirements). I personally
+        like a iterative production approach where a first set of requirements
+        is captured, a design is made after which some sort of storyboard
+        approach is used to describe to the organization how the design looks
+        like. It will give the organization time to react or give their ideas
+        (or additional requirements). </para>
+      </section>
+
+      <section>
+        <title>Make a logical design</title>
+
+        <para>A logical design visualizes and describes a solution without
+        going into the details of the implementation. The idea of logical
+        designs is that you can modularize them, designing one component after
+        another, and using building blocks to give a high-level overview of
+        the solution you are designing. This high-level design allows you to
+        keep track of your architecture whereas the components logical design
+        documents go into the details of a single building block.</para>
+
+        <para>When a logical design is made, you should try to keep
+        implementation details out of it. Details such as IP addresses, number
+        of parallel instances, memory details, ... might not be needed in
+        order to track and manage your architecture. These implementation
+        details go into the later stage.</para>
+      </section>
+
+      <section>
+        <title>Infrastructure implementation details</title>
+
+        <para>The implementation details are then used as a sort-of handover
+        process between designing the architecture and implementing it.
+        Whereas the logical design can be reused in other projects or
+        sometimes even other organizations, the implementation details are
+        more about how it all works in your own infrastructure. Overview of
+        instances, IP addresses, functional accounts in use, location of files
+        and certificates, etc. are all implementation details that are
+        important to manage properly (and will often be managed through a
+        configuration management database) but not that vital in understanding
+        the architecture by itself.</para>
+      </section>
+
+      <section>
+        <title>Go do it</title>
+
+        <para>Only when these implementation details are known as well can the
+        infrastructure be really created.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Logical design</title>
+
+      <para>For me personally, the logical design is where I do most of my
+      work. Whereas requirements capturing is the most important, the logical
+      design is where I start writing and documenting how the architecture
+      looks like, translating the requirements in services (or even
+      immediately into technologies). In this book I'll also use a lightweight
+      logical design to describe why decisions are made in the reference
+      architecture. These logical design documents will be separate from the
+      book (but referred to) so that the book itself is not cluttered, but
+      will be a valuable resource into understanding why the reference
+      architecture used further is as it is.</para>
+
+      <para>The lightweight logical design document starts off with (a subset
+      of) requirements that is used during the design and which influences the
+      decisions made. Alongside the requirements a design might also include
+      assumptions, although you might want to remove assumptions before it is
+      too late - after all, every assumption that isn't validated is a risk
+      for your design.</para>
+
+      <para>Next, the logical design itself is made, for which I use the
+      FAMOUS abbreviation:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Feeds or flows that are important for the design</para>
+        </listitem>
+
+        <listitem>
+          <para>Administration of the components</para>
+        </listitem>
+
+        <listitem>
+          <para>Monitoring of the components</para>
+        </listitem>
+
+        <listitem>
+          <para>Operational flows (runtime behavior)</para>
+        </listitem>
+
+        <listitem>
+          <para>User management</para>
+        </listitem>
+
+        <listitem>
+          <para>Security details</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>After this logical design, I also write down further details about
+      the design that are less about the components and more about how they
+      will or could be used. For this, I use the FASTCARD abbreviation:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Financial information</para>
+        </listitem>
+
+        <listitem>
+          <para>Aftermath (future development or evolution)</para>
+        </listitem>
+
+        <listitem>
+          <para>Selection criteria</para>
+        </listitem>
+
+        <listitem>
+          <para>Technology lifecycle</para>
+        </listitem>
+
+        <listitem>
+          <para>Communication of changes (what are the stakeholders that need
+          to be modified when the design changes)</para>
+        </listitem>
+
+        <listitem>
+          <para>Affiliated standards (which standards, policies, guidelines,
+          ... do users, analysts or other roles need to specifically look at
+          when they work with or integrate with this component)</para>
+        </listitem>
+
+        <listitem>
+          <para>Residual risks (issues that cannot be solved by the logical
+          design by itself and thus need to be taken care of during
+          integration or through other means)</para>
+        </listitem>
+
+        <listitem>
+          <para>Documentation (overview of resources that are interesting to
+          look at)</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>By documenting these two aspects, I usually have all information I
+      need about one building block or architecture. It is this information
+      that I keep alive during the lifecycle of the components within the
+      architecture. Don't worry if the acronyms are currently too illogical
+      for you - they will become more clear when you start looking at the
+      example design sheets that are referenced further in the book.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Initial requirements</title>
+
+    <para>So, before closing off this chapter and start with the actual gory
+    details of the reference architecture, I'd like to finish with the initial
+    requirements that will be used across this book. The requirements are of
+    different sorts and might be a good read to know what drives the creation
+    of this book anyhow. They will also give a first impression on how certain
+    processes (like service management) tie into the decision of
+    architecturing infrastructure.</para>
+
+    <section>
+      <title>Scope</title>
+
+      <para>The scope of the architecture is, as is common in such approaches,
+      a fictional company called Siphos. It is a IT services delivery
+      organization that offers qualitative IT services to customers based on
+      free software only. The services are diverse, being added on-the-fly as
+      new opportunities come out. The company also offers consultancy for
+      other companies as well as training in the use and administration of
+      free software. The company is located in Belgium, but offers its
+      services across Europe. There is a possibility of extending this towards
+      the United States of America as well, but the company has some concerns
+      about the juridical and legal consequences of that and as thus has not
+      taken the plunge towards this big market yet.</para>
+
+      <para>The company uses colocation services in two data centers, one in
+      Belgium and another one in France, but hopes to keep its services
+      hosting-agnostic and easily transportable, so that opportunities for
+      other hosting providers can be exploited easily. It also has a private
+      data room for testing and preproduction work, but this one will never
+      host any customer data nor has specific availability requirements.
+      </para>
+    </section>
+
+    <section>
+      <title>Functional requirements</title>
+
+      <para>The following is an overview of functional requirements used
+      throughout this book.</para>
+
+      <section>
+        <title>Audit and logging</title>
+
+        <para>Activities should be logged with sufficient detail to know who
+        did what, from where, when and possibly how. This logging should be
+        immediately sent towards capturing systems that are not hosted on the
+        same platform as the service that generates it, so that malicious
+        users with access to the platform cannot easily remove these log
+        entries (audit requirement). Logs should be kept for 6 months by
+        default. This also applies for service logs.</para>
+
+        <para>This requirement stems from both quality assurance (for the
+        service logs) as well as security management. Proper auditing is asked
+        by many regulatory bodies and if you are hosting customer data,
+        quality standards like <link
+        xlink:href="http://sas70.com/">SAS70</link><indexterm>
+            <primary>SAS70</primary>
+          </indexterm> require this before giving you proper certification. By
+        keeping track of the activities, you can also improve process working
+        (analyzing logs helps you identify possible bottlenecks or issues with
+        the architecture). And because we immediately know the retention of
+        the logs, it is far easier to provide proper capacity
+        management.</para>
+
+        <para>Of course, 6 months is a long time to host all possible logs. It
+        is therefor not that weird that the company will also ask for "cheap"
+        storage for let's say logs older than 40 days.</para>
+      </section>
+
+      <section>
+        <title>License management</title>
+
+        <para>All services hosted on the infrastructure by the company should
+        be free software, but does not need to be the free downloadable
+        variant. The company must still take care of contract and support
+        management (which is closely related) as it might fall back to support
+        companies for particular services. These support companies often
+        require that you keep close track of the systems that are part of that
+        contract.</para>
+
+        <para>A second important requirement is that technologies that play an
+        important role in the organization must either be managed internally
+        or must be able to shift towards an externally supported platform. For
+        instance, you can use PostgreSQL databases but keep the option open to
+        move towards EnterpriseDB (the commercially supported PostgreSQL
+        database) if the need (and opportunity) rises. Similarly, such
+        commercially supported platforms must be downgradable towards the
+        community editions as well.</para>
+
+        <para>The latter allows the company to reduce risks involved with
+        using free software. Although the community is usually sufficiently
+        supportive and the company itself has good engineers and
+        administrators, any future influence might jeopardize the service. By
+        being able to go for a commercially supported platform the company has
+        the insurance that it can deal with specific requests, but without
+        having the immediate need to go for commercially supported
+        platforms.</para>
+      </section>
+
+      <section>
+        <title>English language, single localization</title>
+
+        <para>By default, services are to be set up in English, using a single
+        locale (en_US.UTF-8). The servers use UTC as basic time setting and
+        support that the user session defined the timezone in which the user
+        works.</para>
+
+        <para>By limiting localization to English, the company does not need
+        translation services and reduces the risk of misinterpretation due to
+        different language constructs. It also simplifies getting support from
+        the broader community (as most projects use English as the language of
+        choice for development and support).</para>
+
+        <para>This principle is only for infrastructure services that do not
+        affect business services. Customer services must support multiple
+        locales (because the customers are hosted in different locations
+        across Europe).</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Non-functional requirements</title>
+
+      <para/>
+    </section>
   </section>
 </chapter>

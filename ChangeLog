@@ -1,0 +1,75 @@
+** (2012-04-03) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Update regarding separate /usr or not
+	- Introduce btrfs information and switch to ext4 as "default"
+
+** (2011-12-31) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Update to recent versions
+	- Drop reference to /etc/modules.autoload.d, it is now /etc/conf.d/modules
+
+** (2011-12-21) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Fix typo about nice values, thanks to nomilieu (on Gentoo Forums) for
+	  reporting
+
+** (2011-07-22) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Add information on rc-service
+
+** (2011-07-21) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Add information on "make -k" (aka apropos)
+
+** (2011-05-10) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Update to openrc / baselayout-2
+
+** (2011-05-03) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Mention grub-static for x86_64 installations
+
+** (2011-04-10) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Add information on eselect (example with python)
+
+** (2011-02-13) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Use package.accept_keywords instead of package.keywords
+
+** (2011-02-12) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Add information on file system UUIDs and LABELs
+
+** (2010-11-02) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Switch from slocate to mlocate
+	- Add information on Portage error where a dependency cannot
+	  be met because a dependency must be built with different USE
+	  settings
+
+** (2010-09-11) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Add information on elog files
+	- Remove 'fastboot' as boot param (not supported, only /fastboot
+	  touchfile)
+
+** (2010-09-10) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Updates on kernel configuration
+
+** (2010-09-08) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Shell scripting using Posix SH, not bash
+	- Add 'multiple package instances within single package slot' install
+	  failure information
+
+** (2010-09-04) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Simple spellcheck
+	- Add in system requirement paragraph (especially disk space)
+	- Add in shell scripting chapter as a closer of the book
+
+** (2010-09-03) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Elaborate a bit more on stage4/5 backup/restores
+
+** (2010-09-02) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Add chapter on logfile management
+	- Add chapter on backups
+	- Mention stage4 and stage5
+
+** (2010-08-27) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Add information on kernel module parameters
+	- Add information on autoloading modules and blacklisting modules
+	- Add blurb about "make install" in kernel installation
+	- Use -march=native as default example, add reference to online list
+	  of GCC-supported architectures
+
+** (2010-08-26) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Reorganize sections within "Software Management"
+	- Add information on nl80211 iw toolset

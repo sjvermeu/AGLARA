@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V5.0//EN"
+"http://www.oasis-open.org/docbook/xml/5.0/docbookx.dtd" [
+<!ENTITY architecturing.xml SYSTEM        "aglara/01-architecturing.xml">
+<!ENTITY genindex.sgm SYSTEM "genindex.sgm">
+]>
+<book>
+  <title>A Gentoo Linux Advanced Reference Architecture</title>
+
+  <bookinfo>
+    <title>A Gentoo Linux Advanced Reference Architecture</title>
+
+    <author>
+      <firstname>Sven</firstname>
+
+      <surname>Vermeulen</surname>
+    </author>
+
+    <authorblurb>
+      <para>
+      Sven Vermeulen is an ICT Architect who enjoys working on Gentoo Linux
+      in his spare time. Within the Gentoo Linux project, he is a documentation
+      developer, largely to blame for the Gentoo Handbook and a large number of
+      Gentoo-related guides, and a Gentoo Hardened developer in charge for
+      Gentoo's SELinux support. You can find him online under the alias "SwifT"
+      or reach him through his e-mail address "sven.vermeulen@siphos.be".
+      </para>
+    </authorblurb>
+
+    <abstract>
+      <para>
+        The book "A Gentoo Linux Advanced Reference Architecture" is meant as a
+	resource displaying the powerful features of many free software
+	solutions that are supported on top of Gentoo Linux. It is a deep-dive
+	approach in many aspects related to processes, supportability,
+	maintainability based on Gentoo Linux system deployments.
+      </para>
+      <para>
+        Unlike the existing, per-application documents that exist on the
+	Internet (and which are a valuable resource to get into the gory details
+	of many applications) and the per-distribution guides that provide
+	information on using that particular distribution, this book will focus
+	more on architecturing IT infrastructure for medium-sized enterprises.
+	Smaller enterprises might find the reference architecture here too
+	expensive or large - however, many services described in the book can be
+	slimmed down into a smaller deployment as well.
+      </para>
+      <para>
+        It is seriously recommended to have a good grasp of what Gentoo Linux is
+	to start with. The other online resource ("Linux Sea") can be a good
+	introduction to Gentoo Linux, but that might not be sufficient to
+	appreciate the detail and organization of this book.
+      </para>
+      <para>
+        The version you are reading currently is v0.01 and has been generated
+	on 2012/04/06.
+      </para>
+    </abstract>
+
+    <edition>GLARA v0.01</edition> <!-- Update above paragraph too!! -->
+
+    <copyright>
+      <year>2012</year>
+
+      <holder>Sven Vermeulen</holder>
+    </copyright>
+    
+    <legalnotice>
+      <para>
+        You are free to share (copy, distribute and transmit) the work as well
+        as remix (adapt) the work under the conditions of the Creative Commons
+        Attribution Noncommercial Share Alike 2.0 license, available at
+        http://creativecommons.org/licenses/by-nc-sa/2.0/be/deed.en
+      </para>
+    </legalnotice>
+  </bookinfo>
+
+  <toc></toc>
+
+  &01-architecturing.xml;
+  &glossary.xml;
+
+  &genindex.sgm;
+</book>

@@ -226,6 +226,24 @@ $ <command>readelf -h /opt/Citrix/ICAClient/wfcmgr.bin | grep Type</command>
       read through this resource a few times, as SELinux is not just about
       enabling a feature - it is a change in the security model and requires
       experience with it.</para>
+
+      <para>We will use the SELinux strict policy (so no unconfined domains)
+      for regular services, or MCS (without unconfined domains) when we want
+      to use the multi-tenancy support.</para>
+
+      <programlisting>$ <command>id -Z</command>
+staff_u:staff_r:staff_t
+
+# <command>sestatus</command>
+SELinux status:                 enabled
+SELinuxfs mount:                /selinux
+SELinux root directory:         /etc/selinux
+Loaded policy name:             strict
+Current mode:                   enforcing
+Mode from config file:          enforcing
+Policy MLS status:              disabled
+Policy deny_unknown status:     denied
+Max kernel policy version:      26</programlisting>
     </section>
 
     <section>
@@ -254,6 +272,122 @@ $ <command>readelf -h /opt/Citrix/ICAClient/wfcmgr.bin | grep Type</command>
     again).</para>
 
     <para>As virtualization platform, we will choose KVM.</para>
+  </section>
+
+  <section>
+    <title>Gentoo security benchmark</title>
+
+    <para>To further harden the Gentoo systems, I advise to use the Gentoo
+    Security Benchmark which is written using XCCDF<indexterm>
+        <primary>XCCDF</primary>
+      </indexterm> and OVAL<indexterm>
+        <primary>OVAL</primary>
+      </indexterm>. This has the advantage that you can have your system
+    "verified" by XCCDF/OVAL-capable tools like openscap<indexterm>
+        <primary>openscap</primary>
+      </indexterm>. As I go along with this book, such benchmarks will be
+    created and referenced.</para>
+
+    <para>Okay, that's lots of new words here, so allow me to give a quick
+    explanation.</para>
+
+    <para><emphasis>XCCDF</emphasis> is part of a standard for documenting the
+    settings of a system for a particular subject (that standard is called
+    SCAP<indexterm>
+        <primary>SCAP</primary>
+      </indexterm>).. The document is primarily written in XHTML (but can be
+    exported to PDF or other formats) but contains references to checks that
+    can be done on a system to verify if it complies with what is documented.
+    Because of this functionality, XCCDF documents are widely popular in the
+    security world as they offer a standard method for building benchmarks
+    (best practices). Example organizations that offer XCCDF-based benchmarks
+    are <link xlink:href="http://www.cisecurity.org">CISecurity</link> and
+    <link
+    xlink:href="http://web.nvd.nist.gov/view/ncp/repository">NIST</link>.
+    Providers of a particular product also offer XCCDF content for their
+    products (like <link
+    xlink:href="https://fedorahosted.org/scap-security-guide/">Fedora</link>).</para>
+
+    <para><emphasis>OVAL</emphasis> is a part of SCAP as well, and contains
+    the instructions to check for a particular setting. The OVAL language is
+    quite extensible, but also quite difficult to read. However, once defined,
+    it allows administrators to check for a particular setting (or installed
+    software, or missing configuration entry) in an automated manner and
+    report on the state. For instance, <link
+    xlink:href="https://www.redhat.com/security/data/oval/">RedHat</link>
+    provides OVAL definitions for each of its security advisories, allowing
+    administrators to automatically validate if their system is vulnerable or
+    not. In Gentoo Linux, <command>glsa-check</command><indexterm>
+        <primary>glsa-check</primary>
+      </indexterm> does something similar but without OVAL (currently).</para>
+
+    <section>
+      <title>Content of the benchmark</title>
+
+      <para>The security benchmark for Gentoo Linux currently contains checks
+      for</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>mount options</para>
+        </listitem>
+
+        <listitem>
+          <para>kernel configuration options (including those for PaX and
+          grSecurity)</para>
+        </listitem>
+
+        <listitem>
+          <para>SSH daemon configuration</para>
+        </listitem>
+
+        <listitem>
+          <para>general system settings and mandatory USE flags</para>
+        </listitem>
+
+        <listitem>
+          <para>state of unsecure services</para>
+        </listitem>
+
+        <listitem>
+          <para>bootloader configuration protection</para>
+        </listitem>
+
+        <listitem>
+          <para>authorization settings</para>
+        </listitem>
+
+        <listitem>
+          <para>file and directory privileges</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>I am still planning on extending the benchmarks further and
+      further, but also to provide proper ways to automatically enforce these
+      settings.</para>
+    </section>
+
+    <section>
+      <title>Running the benchmark</title>
+
+      <para>To verify the state of your system against the given benchmark, we
+      first generate the necessary output (as the test is not allowed to
+      execute commands itself, so we need to prepare the output first).</para>
+
+      <programlisting># <command>mkdir /var/tmp/genoval_output</command>
+# <command>export GENOVAL_SCRIPTOUTPUTDIR=/var/tmp/genoval_output</command>
+# <command>emerge --info --verbose &gt; ${GENOVAL_SCRIPTOUTPUTDIR}/emerge-info-verbose</command>
+# <command>zcat /proc/config.gz &gt; ${GENOVAL_SCRIPTOUTPUTDIR}/kernel-config</command></programlisting>
+
+      <para>Next, you can run the tests and see if your system is configured
+      properly:</para>
+
+      <programlisting># <command>oscap xccdf eval --profile Gentoo-Default scap-gentoo-xccdf.xml</command></programlisting>
+
+      <para>You can generate an HTML report too</para>
+
+      <programlisting># <command>oscap xccdf eval --profile Gentoo-Default --results xccdf-results.xml --report report.html scap-gentoo-xccdf.xml</command></programlisting>
+    </section>
   </section>
 
   <section>

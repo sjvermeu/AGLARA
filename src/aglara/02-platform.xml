@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter version="5.0" xmlns="http://docbook.org/ns/docbook"
+<chapter version="5.0" xml:id="platform" xmlns="http://docbook.org/ns/docbook"
          xmlns:xlink="http://www.w3.org/1999/xlink"
          xmlns:xi="http://www.w3.org/2001/XInclude"
          xmlns:svg="http://www.w3.org/2000/svg"
@@ -80,10 +80,9 @@
     <para>We will standardize on the x86_64 architecture (or in Gentoo's
     terms, amd64), partially because it is the widest known in the Gentoo
     Linux development community, but also because its hardware is widely
-    available and sufficiently cheap. The fictional company might in the
-    future invest in ARM as well (as it has good potential, better power
-    consumption ratios, etc.) but for now, we will focus on x86_64
-    only.</para>
+    available and sufficiently cheap. We might invest in ARM in the future as
+    well (as it has good potential, better power consumption ratios, etc.) but
+    for now, we will focus on x86_64 only.</para>
 
     <para>That being said, we'll also use the no-multilib approach in Gentoo
     Linux. Systems need to be fully x86_64 driven, partially for
@@ -97,9 +96,16 @@
       <title>Gentoo Hardened</title>
 
       <para>To increase security of the deployments, all systems will use a
-      Gentoo Hardened deployment.</para>
+      Gentoo Hardened deployment. Within the Gentoo Linux community, Gentoo
+      Hardened is a project that oversees the research, implementation and
+      maintenance of security-oriented projects in Gentoo Linux. It focuses on
+      delivering viable security strategies for high stability production
+      environments and is therefor absolutely suitable for this reference
+      architecture.</para>
 
-      <para>The features used include:</para>
+      <para>Within our scope, we will implement all services on a Gentoo
+      Hardened deployment with the following security measures in
+      place:</para>
 
       <itemizedlist>
         <listitem>
@@ -289,8 +295,9 @@ Max kernel policy version:      26</programlisting>
       <section>
         <title>Security benchmark</title>
 
-        <para>The security benchmark for Gentoo Linux currently contains
-        checks for</para>
+        <para>As mentioned earlier, we will try to provide security benchmarks
+        for the services that we configure. The security benchmark for Gentoo
+        Linux currently contains checks for</para>
 
         <itemizedlist>
           <listitem>
@@ -365,6 +372,110 @@ Max kernel policy version:      26</programlisting>
       <para>As virtualization platform, we will choose KVM as it offers many
       interesting features (both for development as well as larger enterprise
       usability).</para>
+
+      <section>
+        <title>Hypervisor kernel configuration</title>
+
+        <para>A hypervisor<indexterm>
+            <primary>hypervisor</primary>
+          </indexterm> is the general term given to the host operating system
+        that offers virtualization services, so in effect is running the
+        virtual guests as processes (or groups of processes). In case of
+        KVM<indexterm>
+            <primary>KVM</primary>
+          </indexterm>, this means that the Linux kernel will be configured
+        with KVM enabled, but also with the proper virtualization
+        improvements. Below you can find a subset of kernel configuration
+        settings that can be used as a base for the configuration:</para>
+
+        <programlisting># <command>zgrep -E '(KVM|VIRT)' /proc/config.gz</command>
+# CONFIG_PARAVIRT_GUEST is not set
+CONFIG_VIRT_TO_BUS=y
+CONFIG_VIRTIO_BLK=m
+CONFIG_VIRTIO_NET=m
+# CONFIG_VIRTIO_CONSOLE is not set
+# CONFIG_HW_RANDOM_VIRTIO is not set
+# CONFIG_FB_VIRTUAL is not set
+# CONFIG_SND_VIRTUOSO is not set
+CONFIG_VIRTIO=m
+CONFIG_VIRTIO_RING=m
+# CONFIG_VIRTIO_PCI is not set
+CONFIG_VIRTIO_BALLOON=m
+CONFIG_VIRT_DRIVERS=y
+# CONFIG_DEBUG_VIRTUAL is not set
+CONFIG_GRKERNSEC_HARDENED_VIRTUALIZATION=y
+CONFIG_HAVE_KVM=y
+CONFIG_HAVE_KVM_IRQCHIP=y
+CONFIG_HAVE_KVM_EVENTFD=y
+CONFIG_KVM_APIC_ARCHITECTURE=y
+CONFIG_KVM_MMIO=y
+CONFIG_KVM_ASYNC_PF=y
+CONFIG_VIRTUALIZATION=y
+CONFIG_KVM=m
+CONFIG_KVM_INTEL=m
+# CONFIG_KVM_AMD is not set</programlisting>
+
+        <para>Make sure that your hardware systems support hardware-assisted
+        virtualization. For Intel processors, this means that vmx must be
+        available; on AMD processors, this is svm:</para>
+
+        <programlisting># <command>egrep '(vmx|svm)' /proc/cpuinfo | head -1</command>
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat \
+                  pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx \
+                  rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl \
+                  xtopology nonstop_tsc aperfmperf pni dtes64 monitor ds_cpl <emphasis>vmx</emphasis> \
+                  est tm2 ssse3 cx16 xtpr pdcm sse4_1 sse4_2 popcnt lahf_lm ida \
+                  arat dts tpr_shadow vnmi flexpriority ept vpid</programlisting>
+      </section>
+
+      <section>
+        <title>Software packages</title>
+
+        <para>To build up the hypervisor, you first need to install
+        qemu-kvm<indexterm>
+            <primary>qemu-kvm</primary>
+          </indexterm>. This is the base platform under which the guests will
+        run and supports all possible features you need in a virtualized
+        environment.</para>
+
+        <programlisting># <command>emerge qemu-kvm</command></programlisting>
+
+        <para>Next to qemu-kvm, you probably want to install a front-end
+        toolchain. If not, you will need to launch images command-line driven,
+        which can be quite a hassle to manage:</para>
+
+        <programlisting># <command>qemu-system-x86_64 --enable-kvm -gdb tcp::1237 -vnc 127.0.0.1:3 \
+     -net nic,model=virtio,macaddr=00:11:22:33:44:b1,vlan=0 \
+     -net vde,vlan=0 -drive file=/srv/virt/gentoo/test.img,if=virtio,boot=on \
+     -usb -usbdevice tablet -smp 4 -cpu kvm64 -k nl-be -m 1536</command></programlisting>
+
+        <para>Same for managing the image files on which they would
+        run:</para>
+
+        <programlisting># <command>qemu-img create -f qcow2 test.img 50G</command></programlisting>
+
+        <para>Although this is all very feasible (and with some scripting
+        assistance can even be manageable for smaller-scale deployments) you
+        will soon look for frameworks that assist you in the configuration and
+        management of your virtual environment. There are a couple of these
+        available in Gentoo.</para>
+
+        <para>The first one is <package>app-emulation/libvirt</package> and is
+        RedHat's virtualization management platform. The hypervisor systems
+        run the libvirt daemon which manages the virtual guests as well as
+        storage and other settings, and the administrator remotely connects to
+        the various hypervisor systems through the
+        <package>app-emulation/virt-manager</package> application. Because of
+        its support by RedHat, it is constantly growing in features and is
+        well supported, but to quickly capture the advancements made by KVM in
+        the hypervisor, you might still need to do a lot of things
+        manually.</para>
+
+        <para>Another one that is gaining momentum is
+        <package>app-emulation/ganeti</package> and is backed by Google. It is
+        foremost a command-line driven method but is well capable of handling
+        dozens and dozens of hypervisor systems. </para>
+      </section>
 
       <section>
         <title>Simple guests</title>

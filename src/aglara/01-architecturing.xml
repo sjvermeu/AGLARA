@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter version="5.0" xmlns="http://docbook.org/ns/docbook"
+<chapter version="5.0" xml:id="architecturing"
+         xmlns="http://docbook.org/ns/docbook"
          xmlns:xlink="http://www.w3.org/1999/xlink"
          xmlns:xi="http://www.w3.org/2001/XInclude"
          xmlns:svg="http://www.w3.org/2000/svg"
@@ -593,7 +594,7 @@
 
         <para>The company strives for low cost solutions with a high quality
         output. This is already visible in the scope (free software) but might
-        also drive other decisions. </para>
+        also drive other decisions.</para>
       </section>
     </section>
   </section>
@@ -642,5 +643,14 @@
     not. In Gentoo Linux, <command>glsa-check</command><indexterm>
         <primary>glsa-check</primary>
       </indexterm> does something similar but without OVAL (currently).</para>
+
+    <para>The benchmarks that will be made available throughout the
+    development of this book can be validated with openscap, so it might be a
+    good idea to install the tool already.</para>
+
+    <programlisting># <command>emerge openscap</command></programlisting>
+
+    <para>The instructions to validate a benchmark on a given system will be
+    shown per chapter.</para>
   </section>
 </chapter>

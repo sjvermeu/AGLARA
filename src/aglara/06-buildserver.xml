@@ -1,0 +1,493 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <title>A Gentoo build server</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>To support multiple Gentoo Linux hosts, we will be creating a build
+    server. But just having one server build packages isn't sufficient - we
+    need to be able to</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>have separate build environments based on a number of different
+        "templates" that will be used in our architecture.</para>
+
+        <para>Because of Gentoo's flexibility, we will have systems that have
+        different USE flags, CFLAGS or other settings. All these settings
+        however need to be constant for the build service to work well. If
+        deviations are small, it is possible to use the majority of the build
+        server and still use local compilations, but in our architecture, we
+        will assume that the build server offers the binaries for all systems
+        and that systems by themselves usually do not need to build code
+        themselves.</para>
+      </listitem>
+
+      <listitem>
+        <para>support phased builds across the architecture</para>
+
+        <para>Our architecture supports both production and non-production
+        systems. The non-production systems are used to stage updates and
+        validate changes before pushing them to production (this for quality
+        assurance as well as a better service availability). This does mean
+        that we need to be able to "fix" the repositories once we deem them
+        stable enough, and then work on a new one.</para>
+      </listitem>
+
+      <listitem>
+        <para>provide access to stable tree</para>
+
+        <para>Any client that wishes to use the build server will need access
+        to that build servers' portage tree and overlays (if applicable). As
+        the tree is only needed in case of updates, there is little point in
+        having this tree available on the clients at all times.</para>
+      </listitem>
+
+      <listitem>
+        <para>limit host access to authorized systems</para>
+
+        <para>We want to limit access to the built packages to authorized
+        systems only. This both to prevent "production" systems to
+        accidentally take in non-production data, as well as ensure that only
+        systems we manage ourselves are accessing the system. By using
+        host-based authorizations, we can also follow up on systems more
+        easily (such as logging).</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>and this is just a subset of the requirements that are involved in
+    the build server.</para>
+
+    <para>When you make a simple build server design, you immediately see that
+    a multitude of other components are needed. These include</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>a DNS server to offer round-robin access to the build
+        servers</para>
+      </listitem>
+
+      <listitem>
+        <para>a certificate server to support management of certificates in
+        the organization</para>
+      </listitem>
+
+      <listitem>
+        <para>a high-available NFS server to host the built packages on</para>
+      </listitem>
+
+      <listitem>
+        <para>a scheduler to execute builds</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Some of these have been discussed already, others can be integrated
+    nicely afterwards.</para>
+  </section>
+
+  <section>
+    <title>Building a build server</title>
+
+    <para>Setting up a build server requires building the server. It comes to
+    no surprise that we will not be benefiting from a build server initially
+    here, but once the build infrastructure is set up, we might be able to use
+    the existing build results (which will be stored on the NFS server) to
+    recreate the build infrastructure.</para>
+
+    <section>
+      <title>Setup build host</title>
+
+      <para>The build host is most likely a dedicated (i.e. non-virtualized)
+      system because it will be very CPU and memory hungry and can use all the
+      resources it can have. As a result though, it means that our build
+      host(s) should be set up in a multi-active setup. Each buildhost then
+      runs a web server (like lighttpd) which hosts the built package
+      locations as the document root of the virtual hosts. To support the
+      multiple build profiles, we will use different IP-based virtual hosts
+      and control access to them through a certificate-based access list to
+      only allow authorized hosts to download packages from the server. I opt
+      to use web-based disclosure of packages instead of network mounts as
+      they offer more control, easier logging, etc.</para>
+
+      <para>The build server itself will use a simple configuration scheme and
+      a few scripts that are either triggered manually or scheduled centrally.
+      These scripts will pull in the necessary changes (be it updates in
+      overlays or in the main portage tree) and do full system builds. The
+      resulting packages will be stored in NFS-mounted locations (where the
+      NFS server is set up high available).</para>
+
+      <section>
+        <title>Build profile configuration</title>
+
+        <para>Let's first start with the build profile configuration. We will
+        use <command>catalyst</command><indexterm>
+            <primary>catalyst</primary>
+          </indexterm>, Gentoo's release management tool that is used to
+        generate the weekly releases. With some tweaks, it can be easily used
+        to support our build server.</para>
+
+        <para>Our build setup will do something akin to the following:</para>
+
+        <programlisting>Daily:
++- Fetch new portage tree snapshot
++- For each build profile:
+   +- Put snapshot in &lt;storedir&gt;/snapshots
+   +- Build stage3 (using catalyst)
+   `- Build grp (using catalyst)
+
+Weekly (and before daily): 
+`- For each build profile
+   `- Update spec file to now point to most recent stage3</programlisting>
+
+        <para>The setup will assume that a working stage3 tarball already
+        exists and is made for further use. If that is not the case, you will
+        need to get a fresh stage3 first and put it in
+        <filename>&lt;storedir&gt;/builds</filename>. From that point onwards,
+        this stage3 is reused for the new stage3. Binary packages are kept as
+        those will be used for the binary host later. The grp build (which
+        stands for Gentoo Reference Platform) will then build the remainder of
+        binary packages.</para>
+
+        <para>So let's first install catalyst.</para>
+
+        <programlisting># <command>emerge catalyst</command></programlisting>
+
+        <para>Next, we make an initial configuration for catalyst. One set of
+        configuration files matches one build profile, so you'll need to
+        repeat the next steps for each build profile you want to support.
+        We'll start with the generic catalyst configuration, use
+        <filename>/srv/build</filename> as the base directory for all related
+        activities under which each build profile will have its top level. In
+        the next example, where you see "basic_bp", it is the name of this
+        build profile.</para>
+
+        <programlisting># <command>mkdir -p /srv/build/basic_bp/{portage,portage_settings,snapshot_cache,catalyst_store}</command>
+# <command>cd /etc/catalyst</command>
+# <command>cat catalyst-basic_bp.conf</command>
+digests="sha512"
+contents="auto"
+distdir="/usr/portage/distfiles"
+envscript="/etc/catalyst/catalystrc"
+hash_function="crc32"
+options="autoresume metadata_overlay pkgcache seedcache snapcache"
+portdir="/srv/build/basic_bp/portage"
+sharedir="/usr/lib64/catalyst"
+snapshot_cache="/srv/build/basic_bp/snapshot_cache"
+storedir="/srv/build/basic_bp/catalyst_store"</programlisting>
+
+        <para>Next, create the <filename>stage3.spec</filename> and
+        <filename>grp.spec</filename> files. The templates for these files can
+        be found in
+        <filename>/usr/share/doc/catalyst-&lt;version&gt;/examples</filename>.</para>
+
+        <programlisting># <command>cat stage3-basic_bp.conf</command>
+## Static settings
+subarch: amd64
+target: stage3
+rel_type: default
+profile: hardened/linux/amd64/no-multilib/selinux
+cflags: -O2 -pipe -march=native
+portage_confdir: /srv/build/basic_bp/portage_settings
+## Dynamic settings (might be passed on as parameters instead)
+# Name of the "seed" stage3 file to use
+source_subpath: stage3-amd64-20120401
+# Name of the portage snapshot to use
+snapshot: 20120406
+# Timestamp to use on your resulting stage3 file
+version_stamp: 20120406
+
+# <command>cat grp-basic_bp.conf</command>
+(... similar as to stage3 ...)
+grp/packages: lighttpd nginx cvechecker bind apache ...</programlisting>
+
+        <para>The <parameter>portage_confdir</parameter> variable tells
+        catalyst where to find the portage configuration specific files (all
+        those you usually put in <filename>/etc/portage</filename>).</para>
+
+        <para>The <parameter>source_subpath</parameter> variable tells
+        catalyst which stage3 file to use as a seed file. You can opt to point
+        this one to the stage3 built the day before or to a fixed value,
+        whatever suits youµ the best. This file needs to be stored inside
+        <filename>/srv/build/basic_bp/catalyst_store/builds</filename>.</para>
+
+        <para>Copy the portage snapshot (here,
+        <filename>portage-20120406.tar.bz</filename>2) and related files in
+        <filename>/srv/build/basic_bp/catalyst_store/snapshots</filename>. If
+        you rather create your own snapshot, populate
+        <filename>/srv/build/basic_bp/portage</filename> with the tree you
+        want to use, and then call catalyst to generate a snapshot for you
+        from it:</para>
+
+        <programlisting># <command>catalyst -c catalyst-basic_bp.conf -s 20120406</command></programlisting>
+
+        <para>Next, we have the two catalyst runs executed to generate the new
+        stage3 (which will be used by subsequent installations as the new
+        "seed" stage3) and grp build (which is used to generate the binary
+        packages).</para>
+
+        <programlisting># <command>catalyst -c catalyst-basic_bp.conf -f stage3-basic_bp.conf</command>
+# <command>catalyst -c catalyst-basic_bp.conf -f grp-basic_bp.conf</command></programlisting>
+
+        <para>When the builds have finished, you will find the packages for
+        this profile in
+        <filename>/srv/build/basic_bp/catalyst_store/builds</filename>. These
+        packages can then be moved to the NFS mount later.</para>
+      </section>
+
+      <section>
+        <title>Automating the builds</title>
+
+        <para>To automate the build process, remove the date-specific
+        parameters and instead pass them on as parameters, like so:</para>
+
+        <programlisting># <command>catalyst -c catalyst-basic_bp.conf -f stage3-basic_bp.conf -C version_stamp=20120406</command></programlisting>
+
+        <para>Next, if the grp build finishes succesfully as well, we can use
+        rsync to:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>synchronize the binary packages from
+            <filename>/srv/build/basic_bp/catalyst_store/packages/default/stage3-amd64-&lt;version_stamp&gt;</filename>
+            to the NFS mount for this particular profile, as well as rsync the
+            portage tree used (as these two need to be synchronized).</para>
+          </listitem>
+
+          <listitem>
+            <para>copy the portage tree snapshot to the NFS mount for this
+            particular profile, while signing it to support GPG-validated
+            web-rsyncs.</para>
+          </listitem>
+
+          <listitem>
+            <para>rsync the content of the
+            <parameter>portage_confdir</parameter> location to the NFS
+            mount</para>
+          </listitem>
+        </orderedlist>
+
+        <para>The combination of these three allow us to easily update
+        clients:</para>
+
+        <orderedlist>
+          <listitem>
+            <para>Update <filename>/etc/portage</filename> (locally) using the
+            stored <parameter>portage_confdir</parameter> settings</para>
+          </listitem>
+
+          <listitem>
+            <para>Update the local portage tree using emerge-webrsync (with
+            GPG validation)</para>
+          </listitem>
+
+          <listitem>
+            <para>Update the system, using the binaries created by the build
+            server</para>
+          </listitem>
+
+          <listitem>
+            <para>Update the eix catalogue</para>
+          </listitem>
+        </orderedlist>
+
+        <para>The following two scripts support this in one go (fairly small
+        scripts - modify to your liking) although we will be using a different
+        method for updating the systems later.</para>
+
+        <programlisting># <command>cat autobuild</command>
+#!/bin/sh
+
+# Build Profile
+BP="basic_bp"
+# Time Stamp
+TS="$(date +%Y%m%d)"
+# Build Directory
+BD="/srv/build/${BP}"
+# Packages Directory
+PD="${BD}/catalyst_store/packages/default/stage3-${TS}"
+
+catalyst -c /etc/catalyst/catalyst-${BP}.conf \
+         -f /etc/catalyst/stage3-${BP}.conf \
+         -C version_stamp=${TS} || exit 1
+catalyst -c /etc/catalyst/catalyst-${BP}.conf \
+         -f /etc/catalyst/grp-${BP}.conf \
+         -C version_stamp=${TS} || exit 2
+rsync -avug ${PD}/ /nfs/${BP}/packages || exit 3
+cp ${BD}/catalyst_store/builds/portage-${TS}.tar.bz2 /nfs/${BP}/snapshots || exit 4
+gpg --armor --sign \
+    --output /nfs/${BP}/snapshots/portage-${TS}.tar.bz2.gpg \
+    /nfs/${BP}/snapshots/portage-${TS}.tar.bz2 || exit 5
+tar cvjf ${BD}/portage_settings /nfs/${BP}/portage_settings-${TS}.tar.bz2 || exit 6</programlisting>
+
+        <programlisting># <command>cat autoupdate</command>
+#!/bin/sh
+
+# Build Profile
+BP="basic_bp"
+# Edition
+ED="testing"
+# Time Stamp to use
+TS="$1"
+
+wget https://${BP}-${ED}.builds.siphos.be/${BP}/${ED}/portage_settings-${TS}.tar.bz2
+tar xvjf -C /etc/portage portage_settings-${TS}.tar.bz2
+restorecon -R /etc/portage
+emerge-webrsync --revert=${TS}
+emerge -uDNg world
+eix-update</programlisting>
+      </section>
+
+      <section>
+        <title>Promoting editions</title>
+
+        <para>The automated builds will do daily packaging for the "testing"
+        edition. Once in a while though, you will want to make a snapshot of
+        it and promote it to production. Most of these activities will be done
+        on the NFS server though (we will be using LVM snapshots). The clients
+        still connect to the build servers for their binaries (although this
+        is not mandatory - you can host other web servers with the same mount
+        points elsewhere to remove the stress of the build servers) but "poll"
+        in the snapshot location (by using a different edition).</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Enabling the web server</title>
+
+      <para>We will be using lighttpd as the web server of choice for the
+      build server. The purpose of the web server is to disclose the end
+      result of the builds towards the clients.</para>
+
+      <section>
+        <title>Installing and configuring lighttpd</title>
+
+        <para>First install lighttpd:</para>
+
+        <programlisting># <command>emerge lighttpd</command></programlisting>
+
+        <para>Next, configure the web server with the sublocations you want to
+        use. We will be using IP-based virtual hosts because we will be using
+        SSL-based authentication and access control. Since SSL handshakes
+        occur before the HTTP headers are sent, we cannot use name-based
+        virtual hosts. The downside is that you will need additional IP
+        addresses to support each build target:</para>
+
+        <programlisting>build-basic.siphos.be          (IP1)
+build-basic.testing.siphos.be  (IP2)
+build-ldap.siphos.be           (IP3)
+build-ldap.testing.siphos.be   (IP4)</programlisting>
+
+        <para>These aliases are used for the packages (and tree) for the build
+        profiles "basic" and "ldap" (you can generate as many as you want).
+        Each build profile has two "editions", one is called testing (and
+        contains the daily generated ones), the other production (which is the
+        tested one). You might create a "snapshot" edition as well, to prepare
+        for a new production build.</para>
+
+        <programlisting># <command>cat lighttpd.conf</command>
+var.log_root            = "/var/log/lighttpd"
+var.server_root         = "/var/www/localhost"
+var.state_dir           = "/var/run/lighttpd"
+
+server.use-ipv6         = "enable"
+server.username         = "lighttpd"
+server.groupname        = "lighttpd"
+server.document-root    = server_root + "/htdocs"
+server.pid-file         = state_dir + "/lighttpd.pid"
+
+server.errorlog         = log_root + "/error.log"
+
+$SERVER["socket"] == "IP1:443" {
+ssl.engine             = "enable"
+ssl.pemfile            = "/etc/ssl/private/basic-production-server.pem"
+ssl.ca-file            = "/etc/ssl/certs/production-crtchain.crt"
+ssl.verifyclient.activate      = "enable"
+ssl.verifyclient.enforce       = "enable"
+ssl.verifyclient.depth         = 2
+ssl.verifyclient.exportcert    = "enable"
+ssl.verifyclient.username      = "SSL_CLIENT_S_DN_CN"
+server.document-root    = "/nfs/build/production/basic"
+server.error-log        = log_root + "/basic/error.log"
+accesslog.filename      = log_root + "/basic/access.log"
+}
+
+$SERVER["socket"] == "1IP2:443" {
+ssl.engine              = "enable"
+ssl.pemfile             = "/etc/ssl/private/basic-testing-server.pem"
+ssl.ca-file             = "/etc/ssl/certs/testing-crtchain.crt"
+ssl.verifyclient.activate      = "enable"
+ssl.verifyclient.enforce       = "enable"
+ssl.verifyclient.depth         = 2
+ssl.verifyclient.exportcert    = "enable"
+ssl.verifyclient.username      = "SSL_CLIENT_S_DN_CN"
+server.document-root    = "/nfs/build/testing/basic"
+server.error-log        = log_root + "/basic.testing/error.log"
+accesslog.filename      = log_root + "/basic.testing/access.log"
+}</programlisting>
+
+        <para>The configuration file can be extended with others (it currently
+        only includes the definitions for the "basic" build profile). As you
+        can see, different certificates are used for each virtual host.
+        However, the <parameter>ssl.ca-file</parameter> points to a chain of
+        certificates that is only applicable to either production or testing
+        (and not both). This ensures that production systems (with a
+        certificate issued by production CA) cannot succesfully authenticate
+        against a testing address and vice versa.</para>
+      </section>
+
+      <section>
+        <title>Managing lighttpd</title>
+
+        <para>The log files for the lighttpd server are stored in
+        /var/log/lighttpd. It is wise to configure logrotate to rotate the log
+        files. In the near future, we will reconfigure this towards a central
+        logging configuration.</para>
+      </section>
+
+      <section>
+        <title>Security benchmark</title>
+
+        <para>TODO:</para>
+
+        <programlisting>server.username and server.groupname must not be root
+server.tag = "webserver" to not disclose version information
+index-ffle.names = ( "index.php", "index.html" ) -&gt; which files to use for directory listings
+dir-listing.activate = "disabled" -&gt; disable generation of directory listings
+enable mod_access + url.access-deny = ("~", ".inc") -&gt; disable access to backup files
+enable ssl
+ssl.use-sslv2 = "disable"
+access log only writable for user, readable by group (is group membership ok for the rest?)
+same for error log
+</programlisting>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Resources</title>
+
+    <para>Catalyst:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>TODO</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Lighttpd:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link xlink:href="https://calomel.org/lighttpd.html">Lighttpd
+        tutorial</link> (Calomel.org)</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+</chapter>

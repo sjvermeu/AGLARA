@@ -82,6 +82,10 @@
 
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/01-architecturing.xml" />
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/02-platform.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/03-networkservices.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/04-certificates.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/05-nfs.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/06-buildserver.xml" />
   <!-- <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="glossary.xml" /> -->
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="genindex.sgm" />
 

@@ -26,25 +26,49 @@
 
         <para>But in light of our fictional company, it might also be because
         its current (fictional) engineers are all Gentoo Linux developers, or
-        because it has ties with regional Gentoo Linux supporting
-        services.</para>
+        because it has ties with regional Gentoo Linux supporting services. In
+        light of many organizations, when there is choice between Linux
+        distributions, one thing to consider is which distribution your
+        engineers are most likely to work with. I know, asking them will
+        probably result in some heavy fighting to see which distribution is
+        best (perhaps you can use the <link
+        xlink:href="https://en.wikipedia.org/wiki/Condorcet_method">Condorset
+        method</link> to find the best selection), but picking a distribution
+        your engineers are less eager to support will result in bad
+        administration anyhow.</para>
       </listitem>
 
       <listitem>
         <para>The reason to use CentOS (RHEL) could be to have certified
         hosting of certain products which are only supported on RHEL (or
         similar). However, because we will only use free software solutions,
-        this requirement is not valid in our case.</para>
+        this requirement is not valid in our case. But it is understandable
+        that companies that do run propriatary software choose a distribution
+        that is supported by their vendors. </para>
       </listitem>
 
       <listitem>
-        <para>Gentoo Linux offers a minimalistic approach on supported
+        <para>Gentoo Linux offers a fairly flexible approach on supported
         features. Thanks to a good balance of USE flags, we can install
         servers and services that offer just those services we need, without
         any additional dependencies or features that we will have to disable
         (in order to secure the services) anyhow. This leads to somewhat
         better performance, but also to a saving in storage requirements,
-        patching frequency, etc.</para>
+        patching frequency, etc. Gentoo is also quite fast in adopting new
+        technologies, which might help the business stand out against the
+        other competitors.</para>
+      </listitem>
+
+      <listitem>
+        <para>Gentoo uses rolling upgrades. That might not seem like a good
+        way in enterprises, but trust me - it is. If an organization is doing
+        things right, it is already distributing and rolling out patches and
+        minor upgrades regularly. With Gentoo, this process is a bit more
+        intrusive (as it might contain larger changes as well) but because the
+        administrators are used to it, it is very much under control. As a
+        result, whereas other organizations have to schedule large (expensive
+        and time-consuming) upgrades every 3 to 5 years, Gentoo just moves
+        along...</para>
       </listitem>
 
       <listitem>
@@ -75,14 +99,31 @@
         <para>To reduce the impact of its source-only stigma, we will be using
         build servers and binhost support for improved manageability.</para>
       </listitem>
+
+      <listitem>
+        <para>Because of its source-based nature, it also provides all the
+        tools for malicious users to build exploits on the server
+        itself.</para>
+
+        <para>In my opinion, it is fairly easy to hide the compiler or at
+        least have some group-based access control on it. But regardless of
+        that - the moment a malicious user has (shell) access to your system,
+        you're screwed anyhow. It is fairly easy to transfer files (even full
+        applications) towards the system then.</para>
+
+        <para>To reduce possible impact here, we will be using a Mandatory
+        Access Control system which isolates processes and even users very
+        tightly.</para>
+      </listitem>
     </itemizedlist>
 
     <para>We will standardize on the x86_64 architecture (or in Gentoo's
     terms, amd64), partially because it is the widest known in the Gentoo
     Linux development community, but also because its hardware is widely
-    available and sufficiently cheap. We might invest in ARM in the future as
-    well (as it has good potential, better power consumption ratios, etc.) but
-    for now, we will focus on x86_64 only.</para>
+    available and sufficiently cheap. It is also a processor architecture that
+    is constantly evolving and has many vendors working on it (less
+    monopolizing strategies) which makes it a better platform for consumers in
+    my opinion.</para>
 
     <para>That being said, we'll also use the no-multilib approach in Gentoo
     Linux. Systems need to be fully x86_64 driven, partially for
@@ -124,6 +165,11 @@
           <para>grSecurity kernel improvements</para>
         </listitem>
       </itemizedlist>
+
+      <para>The installation of a Gentoo Hardened system is similar to a
+      regular Gentoo Linux one. You can find all necessary information on the
+      Gentoo Hardened project page. Later, we'll use images of a (succesful)
+      installation for seeding new servers and systems.</para>
 
       <section>
         <title>PaX</title>
@@ -237,6 +283,94 @@ $ <command>readelf -h /opt/Citrix/ICAClient/wfcmgr.bin | grep Type</command>
       </section>
 
       <section>
+        <title>Checking PaX and PIE/PIC/SSP results</title>
+
+        <para>If you want to verify the state of your system after applying
+        the security measures identified earlier, install paxtest and run it.
+        The application supports two modes: kiddie and blackhat. The blackhat
+        test gives the worst-case scenario back whereas the kiddie-mode runs
+        tests that are more like the ones script-kiddies would run. The
+        paxtest application simulates certain attacks and presents plausible
+        results to the reader.</para>
+
+        <para>A full explanation on the tests ran can be found in the
+        <filename>/usr/share/doc/paxtest-*/README</filename> file.</para>
+
+        <programlisting># <command>emerge paxtest</command>
+# <command>paxtest blackhat</command>
+
+PaXtest - Copyright(c) 2003,2004 by Peter Busser &lt;peter@adamantix.org&gt;
+Released under the GNU Public Licence version 2 or later
+
+Writing output to paxtest.log
+It may take a while for the tests to complete
+Test results:
+PaXtest - Copyright(c) 2003,2004 by Peter Busser &lt;peter@adamantix.org&gt;
+Released under the GNU Public Licence version 2 or later
+
+Mode: blackhat
+Linux hpl 3.1.6-hardened #1 SMP PREEMPT Tue Dec 27 13:49:05 CET 2011 x86_64 Intel(R) Core(TM) i5 CPU M 430 @ 2.27GHz GenuineIntel GNU/Linux
+
+Executable anonymous mapping             : Killed
+Executable bss                           : Killed
+Executable data                          : Killed
+Executable heap                          : Killed
+Executable stack                         : Killed
+Executable shared library bss            : Killed
+Executable shared library data           : Killed
+...
+Writable text segments                   : Killed
+</programlisting>
+
+        <para>These tests will try to write data and then execute it. The
+        tests do this in different locations to verify if the memory
+        protection measures are working. Killed means that it works as the
+        attempt is stopped.</para>
+
+        <programlisting>Executable anonymous mapping (mprotect)  : Killed
+Executable bss (mprotect)                : Killed
+Executable data (mprotect)               : Killed
+Executable heap (mprotect)               : Killed
+Executable stack (mprotect)              : Killed
+Executable shared library bss (mprotect) : Killed
+Executable shared library data (mprotect): Killed
+</programlisting>
+
+        <para>These are virtually the same tests as before, but now the
+        application first tries to reset or change the protection bits on the
+        pages using mprotect.</para>
+
+        <programlisting>Anonymous mapping randomisation test     : 33 bits (guessed)
+Heap randomisation test (ET_EXEC)        : 13 bits (guessed)
+Heap randomisation test (PIE)            : 40 bits (guessed)
+Main executable randomisation (ET_EXEC)  : No randomisation
+Main executable randomisation (PIE)      : 32 bits (guessed)
+Shared library randomisation test        : 33 bits (guessed)
+Stack randomisation test (SEGMEXEC)      : 40 bits (guessed)
+Stack randomisation test (PAGEEXEC)      : 40 bits (guessed)
+</programlisting>
+
+        <para>The randomisation tests try to find out which level of
+        randomisation is put in place. Although randomisation by itself does
+        not offer protection, it obscures the view malicious users have on the
+        memory structures. The higher the randomisation, the better. On Gentoo
+        Hardened, (almost) all binaries are PIE.</para>
+
+        <programlisting>Return to function (strcpy)              : paxtest: return address contains a NULL byte.
+Return to function (memcpy)              : Vulnerable
+Return to function (strcpy, PIE)         : paxtest: return address contains a NULL byte.
+Return to function (memcpy, PIE)         : Vulnerable
+</programlisting>
+
+        <para>These types of attacks are very difficult to thwart by kernel
+        protection measures only. The author of the paxtest application has
+        put those in because he can, even though he knows PaX does not protect
+        against them. In effect, he tries to show users that PaX is not an
+        all-safe method and that additional security layers are still
+        important.</para>
+      </section>
+
+      <section>
         <title>SELinux as MAC</title>
 
         <para>With a MAC<indexterm>
@@ -281,12 +415,10 @@ Max kernel policy version:      26</programlisting>
         <title>grSecurity kernel improvements</title>
 
         <para>Next to the previously mentioned grSecurity updates, grSecurity
-        also adds in additional kernel protection measures.</para>
-
-        <para>This includes additional hardening on chroot jails (to make it a
-        lot more difficult to break out of a chroot) and file system abuse
-        (like getting information from pseudo-filesystems to improve
-        attacks).</para>
+        also adds in additional kernel protection measures. This includes
+        additional hardening on chroot jails (to make it a lot more difficult
+        to break out of a chroot) and file system abuse (like getting
+        information from pseudo-filesystems to improve attacks).</para>
 
         <para>For more information on enabling grSecurity, see the Gentoo
         grSecurity v2 Guide.</para>
@@ -360,35 +492,110 @@ Max kernel policy version:      26</programlisting>
     </section>
 
     <section>
-      <title>Virtualized platforms</title>
+      <title>Installation choices</title>
 
-      <para>When possible, we will use virtualization. This offers a hardware
-      abstraction so that we can move guests from one hardware platform to
-      another without having too much impact on the loaded drivers. It also
-      supports better availability models (fast recovery when hardware fails)
-      and improved resource usage (which benefits our cost efficiency
-      again).</para>
-
-      <para>As virtualization platform, we will choose KVM as it offers many
-      interesting features (both for development as well as larger enterprise
-      usability).</para>
+      <para>During the initial installation of Gentoo, a few choices will
+      already need to be made. </para>
 
       <section>
-        <title>Hypervisor kernel configuration</title>
+        <title>Partitioning and LVM</title>
 
-        <para>A hypervisor<indexterm>
-            <primary>hypervisor</primary>
-          </indexterm> is the general term given to the host operating system
-        that offers virtualization services, so in effect is running the
-        virtual guests as processes (or groups of processes). In case of
-        KVM<indexterm>
-            <primary>KVM</primary>
-          </indexterm>, this means that the Linux kernel will be configured
-        with KVM enabled, but also with the proper virtualization
-        improvements. Below you can find a subset of kernel configuration
-        settings that can be used as a base for the configuration:</para>
+        <para>In our architecture, we will be using directly attached storage
+        (so no SAN nor NAS for every possible file system) and deal with the
+        consequences of having distributed storage differently. One of the
+        methods we will be using is to use LVM wherever we can, including for
+        the root file system. I do recommend that the internal storage is
+        somewhat protected against disk failure through RAID. Although I am a
+        proponent of RAID1, <link
+        xlink:href="http://assets.en.oreilly.com/1/event/27/Linux%20Filesystem%20Performance%20for%20Databases%20Presentation.pdf">tests</link>
+        have shown that RAID5 performs equally well.</para>
 
-        <programlisting># <command>zgrep -E '(KVM|VIRT)' /proc/config.gz</command>
+        <para>We will use a non-LVM partition (RAID1 protected) for the /boot
+        location, and use LVM volumes for the rest. We will also define
+        different volume groups for system versus data.</para>
+
+        <programlisting># <command>pvcreate /dev/md1</command>
+# <command>vgcreate vg_system /dev/md1</command>
+# <command>lvcreate -l 20G -n lv_root vg_system</command>
+# <command>lvcreate -l 10G -n lv_home vg_system</command></programlisting>
+
+        <para>Through this approach, the root file system will be hosted on
+        /dev/mapper/vg_system-lv_root and as such be expandable (if necessary)
+        as well as protected by the underlying RAID system. If you keep enough
+        free space in the volume group, you can work with snapshots to support
+        flexible backup methods.</para>
+
+        <para>Needless to say, you will need to boot with an initramfs.</para>
+
+        <programlisting># <command>genkernel --install --lvm initramfs</command></programlisting>
+
+        <para>Don't forget to update the bootloader configuration.</para>
+      </section>
+
+      <section>
+        <title>The /boot location</title>
+
+        <para>I tend to keep my /boot location pretty "big" considering what
+        other users think is needed: 1 Gbyte. Although the kernel and
+        initramfs (plus boot loader files) are only a few megabytes, I often
+        place a rescue environment in it (such as a <link
+        xlink:href="http://www.sysresccd.org">sysresccd</link>) so that I can
+        recover even when initramfs is unable to. It also allows me to install
+        additional verification tools like memtest and the like.</para>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Virtualization using Ganeti and KVM</title>
+
+    <para>When possible, we will use virtualization. This offers a hardware
+    abstraction so that we can move guests from one hardware platform to
+    another without having too much impact on the loaded drivers. We can build
+    one kernel configuration and reuse that for all virtual guests in the
+    architecture. Our udev rules can be tested once and then deployed with
+    high confidence across all other guest systems. </para>
+
+    <para>It also supports better availability models. A hardware failure in a
+    physical system is disastrous for the services hosted on that system. In
+    case of virtualized systems, when the underlying hardware fails, we can
+    reboot the virtual guest on a new hardware platform. As long as it is
+    hosted in the same subnet, the virtual guest hardly notices it (beyond
+    that it was suddenly down of course). With the proper supporting
+    frameworks, the downtime of the guests can be as low as a few
+    minutes.</para>
+
+    <para>Virtualization also offers improved resource usage. A physical
+    system usually has a low resource consumption (with a CPU usage of less
+    than 10%) even though the system is taking up floor/rack space, providing
+    heat, taking electricity etc. In a virtualized system, we have a much more
+    condense situation. Properly balanced virtual hosts have a CPU consumption
+    of about 80%, which results in more optimized resource consumption. This
+    has a positive impact on the cost of running these servers.</para>
+
+    <para>As virtualization platform, we will choose KVM as it offers many
+    interesting features (both for development as well as larger enterprise
+    usability) and is quite popular in the Linux development (and user)
+    community. Other virtualization techniques that can be used are Xen or
+    Virtualbox. Within Gentoo Linux however, KVM is most known.</para>
+
+    <section>
+      <title>Hypervisor kernel configuration</title>
+
+      <para>A hypervisor<indexterm>
+          <primary>hypervisor</primary>
+        </indexterm> is the general term given to the host operating system
+      that offers virtualization services, so in effect is running the virtual
+      guests as processes (or groups of processes). In case of KVM<indexterm>
+          <primary>KVM</primary>
+        </indexterm>, this means that the Linux kernel will be configured with
+      KVM enabled (and with the proper virtualization improvements on various
+      drivers) as well as userland utilities to support KVM guests.</para>
+
+      <para>Below you can find a subset of kernel configuration settings that
+      can be used as a base for the configuration:</para>
+
+      <programlisting># <command>zgrep -E '(KVM|VIRT)' /proc/config.gz</command>
 # CONFIG_PARAVIRT_GUEST is not set
 CONFIG_VIRT_TO_BUS=y
 CONFIG_VIRTIO_BLK=m
@@ -415,21 +622,31 @@ CONFIG_KVM=m
 CONFIG_KVM_INTEL=m
 # CONFIG_KVM_AMD is not set</programlisting>
 
-        <para>Make sure that your hardware systems support hardware-assisted
-        virtualization. For Intel processors, this means that vmx must be
-        available; on AMD processors, this is svm:</para>
+      <para>Make sure that your hardware systems support hardware-assisted
+      virtualization. For Intel processors, this means that vmx must be
+      available; on AMD processors, this is svm:</para>
 
-        <programlisting># <command>egrep '(vmx|svm)' /proc/cpuinfo | head -1</command>
+      <programlisting># <command>egrep '(vmx|svm)' /proc/cpuinfo | head -1</command>
 flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat \
                   pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx \
                   rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl \
                   xtopology nonstop_tsc aperfmperf pni dtes64 monitor ds_cpl <emphasis>vmx</emphasis> \
                   est tm2 ssse3 cx16 xtpr pdcm sse4_1 sse4_2 popcnt lahf_lm ida \
                   arat dts tpr_shadow vnmi flexpriority ept vpid</programlisting>
-      </section>
+
+      <para>Because we are aiming for a hypervisor kernel, it is best to
+      remove all drivers not needed by the host. I am not directly opposed to
+      using kernel modules versus a monolithic kernel, but if the
+      configuration allows it, my preference goes to monolithic builds. This
+      also has the advantage that the initramfs does not need to take care of
+      kernel module loading.</para>
+    </section>
+
+    <section>
+      <title>Software packages</title>
 
       <section>
-        <title>Software packages</title>
+        <title>Installing KVM Utilities</title>
 
         <para>To build up the hypervisor, you first need to install
         qemu-kvm<indexterm>
@@ -440,66 +657,186 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
 
         <programlisting># <command>emerge qemu-kvm</command></programlisting>
 
-        <para>Next to qemu-kvm, you probably want to install a front-end
-        toolchain. If not, you will need to launch images command-line driven,
-        which can be quite a hassle to manage:</para>
+        <para>The package listens to a lot of USE flags. Many of those are
+        however to enable support for other architectures (as QEMU is a
+        software virtualization platform which you can use even without
+        hardware virtualization assistance). My advise is to at least enable
+        aoi (Asynchronous I/O support), sasl (Simple Authentication and
+        Security Layer support), threads, vde (Virtual Distributed Ethernet
+        support) and vhost-net.</para>
+
+        <para>The qemu-kvm package already provides command-line utilities
+        that you can use to create image files, launch guests, set up
+        networking etc. However, these commands are quite complex and,
+        especially for distributed environments, difficult to manage...</para>
 
         <programlisting># <command>qemu-system-x86_64 --enable-kvm -gdb tcp::1237 -vnc 127.0.0.1:3 \
      -net nic,model=virtio,macaddr=00:11:22:33:44:b1,vlan=0 \
      -net vde,vlan=0 -drive file=/srv/virt/gentoo/test.img,if=virtio,boot=on \
      -usb -usbdevice tablet -smp 4 -cpu kvm64 -k nl-be -m 1536</command></programlisting>
+      </section>
 
-        <para>Same for managing the image files on which they would
-        run:</para>
+      <section>
+        <title>Selecting a virtualization framework</title>
 
-        <programlisting># <command>qemu-img create -f qcow2 test.img 50G</command></programlisting>
+        <para>To help administrators manage the virtual guests that are
+        running on dozens of hosts, frameworks have emerged that lift some of
+        the management tasks to a higher level. These frameworks offer
+        automated generation of new guests, simplified configuration of the
+        instances, remote management of guests. Some of them even support
+        maintenance activities, such as moving guests from one host to
+        another, or monitor the resource consumption of guests to find a good
+        balance between running guests and available hosts.</para>
 
-        <para>Although this is all very feasible (and with some scripting
-        assistance can even be manageable for smaller-scale deployments) you
-        will soon look for frameworks that assist you in the configuration and
-        management of your virtual environment. There are a couple of these
-        available in Gentoo.</para>
+        <para>In Gentoo, many of these virtualization frameworks are
+        supported.</para>
 
         <para>The first one is <package>app-emulation/libvirt</package> and is
         RedHat's virtualization management platform. The hypervisor systems
         run the libvirt daemon which manages the virtual guests as well as
         storage and other settings, and the administrator remotely connects to
         the various hypervisor systems through the
-        <package>app-emulation/virt-manager</package> application. Because of
-        its support by RedHat, it is constantly growing in features and is
-        well supported, but to quickly capture the advancements made by KVM in
-        the hypervisor, you might still need to do a lot of things
-        manually.</para>
+        <package>app-emulation/virt-manager</package> application. It has
+        support for SELinux through its s(ecure)Virt(ualization) feature. To
+        do so, it does require the MCS SELinux policy. Libvirt is also being
+        used by many other frameworks (like oVirt, Archipel, Abiquo and
+        more).</para>
 
         <para>Another one that is gaining momentum is
         <package>app-emulation/ganeti</package> and is backed by Google. It is
         foremost a command-line driven method but is well capable of handling
-        dozens and dozens of hypervisor systems. </para>
+        dozens and dozens of hypervisor systems. It supports simplified
+        fail-over on top of DRBD and makes an abstraction of the running hosts
+        versus the guests. It bundles a set of hosts (which it calls nodes) in
+        logical groups called clusters. The guests (instances) are then spread
+        across the nodes in the cluster, and the administrator manages the
+        cluster remotely.</para>
+
+        <para>In this reference architecture, I will be using ganeti as it
+        looks to be a better match for Gentoo (better support through the
+        community). But the two (libvirt and ganeti) are equally
+        strong.</para>
       </section>
 
       <section>
-        <title>Simple guests</title>
+        <title>Installing ganeti</title>
 
-        <para>When working with simple guests, you can quickly create new
-        systems by starting from a basic predefined installation. You create a
-        qemu img, boot it to install Gentoo Linux on it, then shut it down and
-        use that image as a master template for newly created images.</para>
+        <para>The installation of ganeti is quite simple: install ganeti and
+        ganeti-htools. If you are planning on providing a high-available
+        virtualization platform, install drbd as well.</para>
 
-        <programlisting># <command>qemu-img create -f qcow2 test.img 50G</command>
-# <command>qemu-system-x86_64 --enable-kvm -gdb tcp::1237 -vnc 127.0.0.1:3 \
-     -net nic,model=virtio,macaddr=00:11:22:33:44:b1,vlan=0 \
-     -net vde,vlan=0 -drive file=/srv/virt/gentoo/test.img,if=virtio,boot=on \
-     -usb -usbdevice tablet -smp 4 -cpu kvm64 -k nl-be -m 1536</command></programlisting>
+        <programlisting># <command>emerge ganeti ganeti-htools drbd</command></programlisting>
+      </section>
+    </section>
 
-        <para>I never said the command would be easy ;-) Luckily, there are
-        libraries and tools that simplify the management of KVM-based guests.
-        I will discuss those later. Below are a few interesting commands for
-        converting images: the first one changes from the copy-on-write format
-        to a raw format (which is better performance-wise), the second one
-        increases the size of an image with 20 gigabytes.</para>
+    <section>
+      <title>Using Ganeti</title>
 
-        <programlisting># <command>qemu-img convert -f raw test.img guest1.img</command>
-# <command>qemu-img resize onefile.img +20G</command></programlisting>
+      <section>
+        <title>Preparing DRBD</title>
+
+        <para>Because high available virtual guests will be used in this
+        reference architecture, we will be configuring DRBD.</para>
+
+        <para>DRBD uses the network to synchronise block devices. It is
+        adviseable to have a different network for this back-end communication
+        versus the network used for front-end (business) activity. Logically
+        speaking, we will have 3 network channels: one for the data flow of
+        the services, one for the management activities and one for the
+        back-end synchronisation. You can have all these channels on a single
+        Ethernet if you want, but logically speaking, they are separate.
+        </para>
+
+        <para>In our architecture, we will be putting DRBD on top of LVM, and
+        then use LVM again based on DRBD devices. This stacking of
+        technologies has the downside of some complexity (and perhaps even
+        performance impact) but has advantages that imo win against the
+        downsides.</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Because DRBD works on top of LVM, you can expand the size of
+            the underlying LVM volume groups and logical volumes. DRBD
+            supports on-line resizing.</para>
+          </listitem>
+
+          <listitem>
+            <para>Because DRBD works on top of LVM, you can use LVM snapshot
+            technology to provide better resilience against failures.
+            Especially during synchronisation, if the source fails and the
+            target is in an inconsistent state, you will be glad to have a
+            snapshot (on the receiving side) to work from.</para>
+          </listitem>
+
+          <listitem>
+            <para>Because LVM works on top of DRBD, you have the advantages of
+            the volume manager for your image management functions while still
+            benefiting from the high availability mode that DRBD
+            offers.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>In the near future, I might include clustering file systems as
+        well. However, for now, I am less convinced about the maturity of
+        these file systems whereas I have read good reviews (and specifically
+        many) on DRBD in production scenarios.</para>
+
+        <para>To properly have DRBD for Ganeti, it is mandatory to run it with
+        the following two options. The listing shows them as kernel
+        parameters, but you can use them as module parameters as well (in
+        /etc/conf.d/modules):</para>
+
+        <programlisting>drbd.minor_count=255 drbd.usermode_helper=/bin/true</programlisting>
+
+        <para>We also need to protect the DRBD devices from being scanned by
+        LVM. To accomplish this, edit /etc/lvm/lvm.conf as follows:</para>
+
+        <programlisting>filter = [ "r|/dev/nbd.*|", "a/.*/"<emphasis>, "r|/dev/drbd[0-9]+|"</emphasis> ]</programlisting>
+
+        <para>Finally edit /etc/drbd.conf and skip all existing resource
+        configurations. Ganeti will configure DRBD itself when needed.</para>
+
+        <programlisting># <command>cat /etc/drbd.conf</command>
+<emphasis>skip</emphasis> resource r0 {
+  ...
+}</programlisting>
+      </section>
+
+      <section>
+        <title>Preparing Ganeti</title>
+
+        <para>Make sure that the hostname setting in
+        <filename>/etc/conf.d/hostname</filename> provides a fully qualified
+        hostname. Ganeti will otherwise refuse to function properly.</para>
+
+        <programlisting># <command>cat /etc/conf.d/hostname</command>
+## Ganeti Cluster 01 Node 01 in production hosts.genfic.com network
+hostname="gc01n01.hosts.genfic.com"</programlisting>
+
+        <para>Next prepare the LVM volume group you will use to host the guest
+        images on.</para>
+
+        <programlisting># <command>pvcreate /dev/md2</command>
+# <command>vgcreate vg_ganeti /dev/md2</command></programlisting>
+      </section>
+
+      <section>
+        <title>Creating the first cluster</title>
+
+        <para>Now we can initialize the first cluster (and node).</para>
+
+        <programlisting># <command>gnt-cluster init --master-netdev=br0 -g vg_ganeti -s &lt;node drbd_ip&gt; \
+   --enabled-hypervisors=kvm -N link=br0 -B vcpus=2,memory=512 \
+   -H kvm:kernel_path=/srv/virt/vmlinuz gc01n01.virt.internal.genfic.com</command></programlisting>
+      </section>
+
+      <section>
+        <title>Expanding the cluster</title>
+
+        <para>When you have configured a second system, instead of
+        initializing a cluster, you use:</para>
+
+        <programlisting># <command>gnt-cluster add -s &lt;node drbd_ip&gt; &lt;node hostname&gt;</command></programlisting>
       </section>
     </section>
   </section>
@@ -517,7 +854,12 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
       <listitem>
         <para><link
         xlink:href="http://www.gentoo.org/proj/en/hardened/pax-quickstart.xml">Hardened
-        Gentoo PaX Quickstart</link></para>
+        Gentoo PaX Quickstart</link> (Gentoo Linux)</para>
+      </listitem>
+
+      <listitem>
+        <para><link xlink:href="http://hardened.gentoo.org">Gentoo Hardened
+        project page</link> (Gentoo Linux)</para>
       </listitem>
 
       <listitem>
@@ -557,11 +899,18 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
       </listitem>
     </itemizedlist>
 
-    <para>KVM (virtualization):</para>
+    <para>KVM virtualization &amp; Ganeti:</para>
 
     <itemizedlist>
       <listitem>
-        <para/>
+        <para><link xlink:href="http://www.lancealbertson.com/">Lance
+        Albertson's blog</link> (high focus on Ganeti and Gentoo)</para>
+      </listitem>
+
+      <listitem>
+        <para><link
+        xlink:href="http://docs.ganeti.org/ganeti/current/html/">Ganeti
+        documentation</link></para>
       </listitem>
     </itemizedlist>
   </section>

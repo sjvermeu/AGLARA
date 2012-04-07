@@ -339,26 +339,97 @@
       <itemizedlist>
         <listitem>
           <para>Feeds or flows that are important for the design</para>
+
+          <para>This information provides insight in the occasional data
+          transports that occur towards the system. This might be the shipping
+          of the database backup file towards a remote location, the flow of
+          log entries that are sent to a central log server, an incoming daily
+          snapshot of configuration settings that need to be loaded in an
+          LDAP, etc. By properly documenting these feeds or flows, you are
+          quickly able to find possible attention points (storage volume
+          requirements, network traffic shaping needs, heavy I/O timeframes,
+          ...) that need to be tackled. </para>
+
+          <para>In many cases, integration-requirements can also be found from
+          this. A flow of log entries towards a central log server will help
+          you document the log structure &amp; communication standard that you
+          want to have in the organization. An incoming configuration file
+          will need to adhere to a certain format in order to make automation
+          possible.</para>
         </listitem>
 
         <listitem>
           <para>Administration of the components</para>
+
+          <para>In many cases, administration is often forgotten to be
+          designed. Yet the administration of components is an important
+          aspect since it is often (flawed) administration that is causing
+          vulnerabilities or exploits. The more administrative accesses you
+          notice, the more "attack vectors" exist that might be exploitable.
+          By properly designing the administration of the components, you're
+          most likely to find a good method that is both secure as well as
+          supported by your administration team.</para>
         </listitem>
 
         <listitem>
           <para>Monitoring of the components</para>
+
+          <para>Monitoring is more than having a cronjob checking if a process
+          is still running. It means you need to design what you want to
+          verify periodically (and how frequent) as well as the consequences
+          when certain events occur. So next to process monitoring (and
+          perhaps automatically restarting the process), also consider
+          resource monitoring (file system capacity, memory pressure, network
+          I/O) and service monitoring (automatic processes that perform
+          end-to-end tests on services).</para>
         </listitem>
 
         <listitem>
           <para>Operational flows (runtime behavior)</para>
+
+          <para>Designing the operational flow is less about your
+          (integration) architecture, but more about understanding what the
+          service is actually doing. Usually, you can find this information
+          from the products' project page (or vendor), but it never hurts to
+          verify this yourself and draw it so you understand it yourself.
+          </para>
+
+          <para>An example operational flow could be the high-level working of
+          Apache (with a master process bound to port 80, but that is
+          dispatching work to child processes when a request has entered).
+          These child processes have multiple worker threads that handle
+          requests one-at-a-time. If a request is for a CGI resource, Apache
+          either forks and launches the CGI command, or it uses FastCGI
+          towards a running instance, etc.</para>
+
+          <para>The operational flows also show which actors are involved and
+          how they connect/interact with the service.</para>
         </listitem>
 
         <listitem>
           <para>User management</para>
+
+          <para>Many services delegate user management to another service. Be
+          it direct LDAP access, or authentication through SASL or any other
+          method: properly designing and documenting how user management for
+          the service is done helps you figure out potential improvements as
+          well as integration aspects of the service. Don't forget to think
+          about the internal authentication &amp; authorization as well: does
+          the service offer role-based access? Which roles do you think you'll
+          need? What are the rights and privileges that these roles should
+          have?</para>
         </listitem>
 
         <listitem>
           <para>Security details</para>
+
+          <para>Finally, you might need to design particular security
+          requirements. Based on the earlier design flows, you can check if
+          you need firewall capabilities (or host filters), encryption (if
+          you're working with sensitive business data), certain audit
+          requirements you need to take care of, gateways you need to
+          implement that offer additional filtering or even request rewrites,
+          etc.</para>
         </listitem>
       </itemizedlist>
 
@@ -369,40 +440,77 @@
       <itemizedlist>
         <listitem>
           <para>Financial information</para>
+
+          <para>If the service has particular licensing restrictions, document
+          how the license works. Is it core-based? User-based? Instance-based?
+          If allowed, you should document what the cost is of this license as
+          that helps you decide on the usability (and evolution) of the
+          service. Document how you map contracts towards the
+          component.</para>
         </listitem>
 
         <listitem>
           <para>Aftermath (future development or evolution)</para>
+
+          <para>Your design is most likely either not finished, or is based on
+          the capacity you can currently provide whereas evolutions are in
+          sight. For instance, you might have documented an LDAP using a
+          master/slave approach, but you know you're going towards a
+          master/master situation later. Document the changes you think are
+          needed or will be done in the future.</para>
         </listitem>
 
         <listitem>
           <para>Selection criteria</para>
+
+          <para>The service probably can serve multiple requests (or types of
+          requests). In many cases, you'll need to provide a decision chart or
+          decision table to help administrators and engineers decide if the
+          design fits their needs. For instance, for a web server, the
+          decision table might provide input as to when SSL encryption is
+          needed, when SSL encryption with client certificate validation is
+          needed, etc. For a database, you want to include if (and when)
+          encryption or compression is needed, and so forth.</para>
         </listitem>
 
         <listitem>
           <para>Technology lifecycle</para>
+
+          <para>If the project or vendor has described it, document how long
+          this particular version will last. If you have a support contract
+          with a particular vendor, verify if this contract deals with
+          upgrades as well.</para>
         </listitem>
 
         <listitem>
-          <para>Communication of changes (what are the stakeholders that need
-          to be modified when the design changes)</para>
+          <para>Communication of changes</para>
+
+          <para>Who are the stakeholders that need to be modified when the
+          design changes</para>
         </listitem>
 
         <listitem>
-          <para>Affiliated standards (which standards, policies, guidelines,
-          ... do users, analysts or other roles need to specifically look at
-          when they work with or integrate with this component)</para>
+          <para>Affiliated standards</para>
+
+          <para>Which standards, policies, guidelines, ... do users, analysts
+          or other roles need to specifically look at when they work with or
+          integrate with this component</para>
         </listitem>
 
         <listitem>
-          <para>Residual risks (issues that cannot be solved by the logical
-          design by itself and thus need to be taken care of during
-          integration or through other means)</para>
+          <para>Residual risks</para>
+
+          <para>Issues that cannot be solved by the logical design by itself
+          and thus need to be taken care of during integration or through
+          other means. For instance, if a service does not offer SSL/TLS
+          encryption upon accessing it, you might have a residual risk
+          regarding plain-text network communication.</para>
         </listitem>
 
         <listitem>
-          <para>Documentation (overview of resources that are interesting to
-          look at)</para>
+          <para>Documentation</para>
+
+          <para>Overview of resources that are interesting to look at</para>
         </listitem>
       </itemizedlist>
 
@@ -430,23 +538,17 @@
       <title>Scope</title>
 
       <para>The scope of the architecture is, as is common in such approaches,
-      a fictional company called Siphos. It is a IT services delivery
+      a fictional company called Genfic. It is a IT services delivery
       organization that offers qualitative IT services to customers based on
       free software only. The services are diverse, being added on-the-fly as
       new opportunities come out. The company also offers consultancy for
       other companies as well as training in the use and administration of
-      free software. The company is located in Belgium, but offers its
-      services across Europe. There is a possibility of extending this towards
-      the United States of America as well, but the company has some concerns
-      about the juridical and legal consequences of that and as thus has not
-      taken the plunge towards this big market yet.</para>
-
-      <para>The company uses colocation services in two data centers, one in
-      Belgium and another one in France, but hopes to keep its services
-      hosting-agnostic and easily transportable, so that opportunities for
-      other hosting providers can be exploited easily. It also has a private
-      data room for testing and preproduction work, but this one will never
-      host any customer data nor has specific availability
+      free software. The company uses colocation services in two data centers
+      which are sufficiently far from each other (say 100km), but hopes to
+      keep its services hosting-agnostic and easily transportable, so that
+      opportunities for other hosting providers can be exploited easily. It
+      also has a private data room for testing and preproduction work, but
+      this one will never host any customer data nor has specific availability
       requirements.</para>
     </section>
 

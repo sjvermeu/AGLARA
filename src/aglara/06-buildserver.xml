@@ -337,7 +337,7 @@ ED="testing"
 # Time Stamp to use
 TS="$1"
 
-wget https://${BP}-${ED}.builds.siphos.be/${BP}/${ED}/portage_settings-${TS}.tar.bz2
+wget https://${BP}-${ED}.builds.genfic.com/${BP}/${ED}/portage_settings-${TS}.tar.bz2
 tar xvjf -C /etc/portage portage_settings-${TS}.tar.bz2
 restorecon -R /etc/portage
 emerge-webrsync --revert=${TS}
@@ -380,10 +380,10 @@ eix-update</programlisting>
         virtual hosts. The downside is that you will need additional IP
         addresses to support each build target:</para>
 
-        <programlisting>build-basic.siphos.be          (IP1)
-build-basic.testing.siphos.be  (IP2)
-build-ldap.siphos.be           (IP3)
-build-ldap.testing.siphos.be   (IP4)</programlisting>
+        <programlisting>build-basic.internal.genfic.com          (IP1)
+build-basic.testing.internal.genfic.com  (IP2)
+build-ldap.internal.genfic.com           (IP3)
+build-ldap.testing.internal.genfic.com   (IP4)</programlisting>
 
         <para>These aliases are used for the packages (and tree) for the build
         profiles "basic" and "ldap" (you can generate as many as you want).

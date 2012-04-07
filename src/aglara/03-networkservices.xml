@@ -11,18 +11,50 @@
   <section>
     <title>Getting a grip on IP addresses</title>
 
-    <para/>
+    <para>When you're dealing with a larg(er) network, you'll quickly run into
+    the wonderful challenge of properly defining network segments and the
+    allowed interaction between them. I personally like to keep segments based
+    on its accessibility: internal business services, management services,
+    customer business services, internal users, etc. Based on these
+    accessibility patterns it is then easier to define the settings (and
+    security measurements) for each.</para>
+
+    <section>
+      <title>Example network segment</title>
+
+      <para>In this reference architecture, we will be using IPv6 (as it
+      proves to be a nice exercise, but also to show that IPv6 is not
+      something to be afraid of).</para>
+
+      <programlisting/>
+    </section>
   </section>
 
   <section>
     <title>DNS</title>
 
-    <para/>
+    <para>Use logical names, like gc02n01.hosts.genfic.com -&gt; ganeti
+    cluster 02, node 01 on the hosts.genfic.com (production network). Or
+    gc04n02.testing.hosts.genfic.com (testing network).</para>
   </section>
 
   <section>
     <title>DHCP</title>
 
     <para/>
+  </section>
+
+  <section>
+    <title>Resources</title>
+
+    <para>IP addresses and segmentation exercises:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link
+        xlink:href="http://www.sans.org/reading_room/whitepapers/hsoffice/design-secure-network-segmentation-approach_1645">Design
+        Secure Network Segmentation Approach</link>, article on SANS</para>
+      </listitem>
+    </itemizedlist>
   </section>
 </chapter>

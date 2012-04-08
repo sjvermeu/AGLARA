@@ -44,7 +44,7 @@
         similar). However, because we will only use free software solutions,
         this requirement is not valid in our case. But it is understandable
         that companies that do run propriatary software choose a distribution
-        that is supported by their vendors. </para>
+        that is supported by their vendors.</para>
       </listitem>
 
       <listitem>
@@ -495,7 +495,7 @@ Max kernel policy version:      26</programlisting>
       <title>Installation choices</title>
 
       <para>During the initial installation of Gentoo, a few choices will
-      already need to be made. </para>
+      already need to be made.</para>
 
       <section>
         <title>Partitioning and LVM</title>
@@ -554,7 +554,7 @@ Max kernel policy version:      26</programlisting>
     another without having too much impact on the loaded drivers. We can build
     one kernel configuration and reuse that for all virtual guests in the
     architecture. Our udev rules can be tested once and then deployed with
-    high confidence across all other guest systems. </para>
+    high confidence across all other guest systems.</para>
 
     <para>It also supports better availability models. A hardware failure in a
     physical system is disastrous for the services hosted on that system. In
@@ -712,10 +712,11 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
         across the nodes in the cluster, and the administrator manages the
         cluster remotely.</para>
 
-        <para>In this reference architecture, I will be using ganeti as it
-        looks to be a better match for Gentoo (better support through the
-        community). But the two (libvirt and ganeti) are equally
-        strong.</para>
+        <para>In this reference architecture, I will be using ganeti, but
+        depending on how it works out, I might switch to the other later. The
+        two (libvirt and ganeti) are equally strong, although libvirt has a
+        much more active development community. On the other hand, Ganeti
+        looks to be simpler in its design.</para>
       </section>
 
       <section>
@@ -733,6 +734,42 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
       <title>Using Ganeti</title>
 
       <section>
+        <title>Architectural information</title>
+
+        <para>There are a few things you need to know before starting off with
+        Ganeti, especially in light of architecturing its use.</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Ganeti uses SSH and specific TCP (over SSL) connections. The
+            use of SSH here might be something worth knowing, since it is used
+            to support remote root activities on the nodes. You might want to
+            take additional precautions to protect abuse of remote root
+            logons. In the future, I will be providing a SELinux user specific
+            for ganeti, and have remote root logons automatically assigned to
+            this user, so it remains confined. There is also a <link
+            xlink:href="https://code.google.com/p/ganeti/issues/detail?id=197">patch</link>
+            circulating on the Internet that would support non-root
+            logons.</para>
+          </listitem>
+
+          <listitem>
+            <para>The use of DRBD (for replication) within Ganeti is best kept
+            for synchronisation within a single network segment (so "local"
+            high availability). It is not the intention to use this across
+            larger distances. DRBD by itself can still be used for that, but
+            not in combination with booting the guest images. This is
+            partially because the guest images will expect the same network
+            environment when they boot up as previous.</para>
+
+            <para>In our reference architecture, we will be using application
+            fail-over when large-distance high availability is
+            necessary.</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+
+      <section>
         <title>Preparing DRBD</title>
 
         <para>Because high available virtual guests will be used in this
@@ -744,8 +781,8 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
         speaking, we will have 3 network channels: one for the data flow of
         the services, one for the management activities and one for the
         back-end synchronisation. You can have all these channels on a single
-        Ethernet if you want, but logically speaking, they are separate.
-        </para>
+        Ethernet if you want, but logically speaking, they are
+        separate.</para>
 
         <para>In our architecture, we will be putting DRBD on top of LVM, and
         then use LVM again based on DRBD devices. This stacking of
@@ -911,6 +948,11 @@ hostname="gc01n01.hosts.genfic.com"</programlisting>
         <para><link
         xlink:href="http://docs.ganeti.org/ganeti/current/html/">Ganeti
         documentation</link></para>
+      </listitem>
+
+      <listitem>
+        <para><link xlink:href="http://notes.ceondo.com/ganeti/">Ganeti
+        deployment notes</link> (Céondo)</para>
       </listitem>
     </itemizedlist>
   </section>

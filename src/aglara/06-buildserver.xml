@@ -226,6 +226,14 @@ grp/packages: lighttpd nginx cvechecker bind apache ...</programlisting>
         want to use, and then call catalyst to generate a snapshot for you
         from it:</para>
 
+        <warning>
+          <para>The grSecurity chroot restrictions that are enabled in the
+          kernel will prohibit catalyst from functioning properly. It is
+          advisable to disable the chroot restrictions when building through
+          catalyst. You can toggle them through <command>sysctl</command>
+          commands.</para>
+        </warning>
+
         <programlisting># <command>catalyst -c catalyst-basic_bp.conf -s 20120406</command></programlisting>
 
         <para>Next, we have the two catalyst runs executed to generate the new

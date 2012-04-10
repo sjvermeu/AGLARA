@@ -549,53 +549,227 @@ Max kernel policy version:      26</programlisting>
   <section>
     <title>Virtualization using Ganeti and KVM</title>
 
-    <para>When possible, we will use virtualization. This offers a hardware
-    abstraction so that we can move guests from one hardware platform to
-    another without having too much impact on the loaded drivers. We can build
-    one kernel configuration and reuse that for all virtual guests in the
-    architecture. Our udev rules can be tested once and then deployed with
-    high confidence across all other guest systems.</para>
-
-    <para>It also supports better availability models. A hardware failure in a
-    physical system is disastrous for the services hosted on that system. In
-    case of virtualized systems, when the underlying hardware fails, we can
-    reboot the virtual guest on a new hardware platform. As long as it is
-    hosted in the same subnet, the virtual guest hardly notices it (beyond
-    that it was suddenly down of course). With the proper supporting
-    frameworks, the downtime of the guests can be as low as a few
-    minutes.</para>
-
-    <para>Virtualization also offers improved resource usage. A physical
-    system usually has a low resource consumption (with a CPU usage of less
-    than 10%) even though the system is taking up floor/rack space, providing
-    heat, taking electricity etc. In a virtualized system, we have a much more
-    condense situation. Properly balanced virtual hosts have a CPU consumption
-    of about 80%, which results in more optimized resource consumption. This
-    has a positive impact on the cost of running these servers.</para>
-
-    <para>As virtualization platform, we will choose KVM as it offers many
-    interesting features (both for development as well as larger enterprise
-    usability) and is quite popular in the Linux development (and user)
-    community. Other virtualization techniques that can be used are Xen or
-    Virtualbox. Within Gentoo Linux however, KVM is most known.</para>
+    <para>When possible, we will use virtualization. As virtualization
+    platform, we will choose KVM as it offers many interesting features (both
+    for development as well as larger enterprise usability) and is quite
+    popular in the Linux development (and user) community. Other
+    virtualization techniques that can be used are Xen or Virtualbox. Within
+    Gentoo Linux however, KVM is most known.</para>
 
     <section>
-      <title>Hypervisor kernel configuration</title>
+      <title>Why virtualize</title>
 
-      <para>A hypervisor<indexterm>
-          <primary>hypervisor</primary>
-        </indexterm> is the general term given to the host operating system
-      that offers virtualization services, so in effect is running the virtual
-      guests as processes (or groups of processes). In case of KVM<indexterm>
-          <primary>KVM</primary>
-        </indexterm>, this means that the Linux kernel will be configured with
-      KVM enabled (and with the proper virtualization improvements on various
-      drivers) as well as userland utilities to support KVM guests.</para>
+      <para>Virtualization has been around for quite some time. Early
+      mainframe installations already had a sort of isolation that is not far
+      off from virtualization nowadays. However, virtualization is not just a
+      mainframe concept anymore - most larger enterprises are already fully
+      working on the virtualization of their stacks. Products like
+      VMWare<indexterm>
+          <primary>VMWare</primary>
+        </indexterm> have popularized virtualization in the enterprise, and
+      other hypervisors like KVM, VirtualBox, Xen and more are trying to get a
+      piece of the cacke.</para>
 
-      <para>Below you can find a subset of kernel configuration settings that
-      can be used as a base for the configuration:</para>
+      <para>To help administrators manage the virtual guests that are running
+      on dozens of hosts, frameworks have emerged that lift some of the
+      management tasks to a higher level. These frameworks offer automated
+      generation of new guests, simplified configuration of the instances,
+      remote management of guests. Some of them even support maintenance
+      activities, such as moving guests from one host to another, or monitor
+      the resource consumption of guests to find a good balance between
+      running guests and available hosts.</para>
 
-      <programlisting># <command>zgrep -E '(KVM|VIRT)' /proc/config.gz</command>
+      <para>In Gentoo, many of these virtualization frameworks are
+      supported.</para>
+
+      <para>The first one is <package>app-emulation/libvirt</package> and is
+      RedHat's virtualization management platform. The hypervisor systems run
+      the libvirt daemon which manages the virtual guests as well as storage
+      and other settings, and the administrator remotely connects to the
+      various hypervisor systems through the
+      <package>app-emulation/virt-manager</package> application. It has
+      support for SELinux through its s(ecure)Virt(ualization) feature. To do
+      so, it does require the MCS SELinux policy. Libvirt is also being used
+      by many other frameworks (like oVirt, Archipel, Abiquo and more).</para>
+
+      <para>Another one that is gaining momentum is
+      <package>app-emulation/ganeti</package> and is backed by Google. It is
+      foremost a command-line driven method but is well capable of handling
+      dozens and dozens of hypervisor systems. It supports simplified
+      fail-over on top of DRBD and makes an abstraction of the running hosts
+      versus the guests. It bundles a set of hosts (which it calls nodes) in
+      logical groups called clusters. The guests (instances) are then spread
+      across the nodes in the cluster, and the administrator manages the
+      cluster remotely.</para>
+
+      <para>In this reference architecture, I will be using ganeti, but
+      depending on how it works out, I might switch to the other later. The
+      two (libvirt and ganeti) are equally strong, although libvirt has a much
+      more active development community. On the other hand, Ganeti looks to be
+      simpler in its design.</para>
+
+      <para>Using virtualization has a whole set of advantages of which I'll
+      try to mention a few in the next paragraphs. I will use the term
+      <emphasis>host</emphasis> when talking about the host operating system
+      (the one running or directly managing the hypervisor software) and
+      <emphasis>guest</emphasis> for the virtualized operating system
+      instances (that are running on the host).</para>
+
+      <section>
+        <title>High Availability</title>
+
+        <para>In a virtualized environment, guests can be quickly restarted
+        when needed. The host is still up and running, so rebooting a system
+        is a matter of restarting a process. This has the advantage that
+        caching and other performance measures taken by the hypervisor are
+        still available, which makes bootup times of guests quite fast.
+        </para>
+
+        <para>But even in case of host downtime, given the right architecture,
+        guests can be quickly started up again. By providing a hardware
+        abstraction in the virtualization layer, these technologies are able
+        to start a guest on a different hardware environment (even with
+        different hardware, although there are limits to this - the most
+        obvious one being that the new hardware must support the same
+        architecture and virtualization). Many virtualization solutions can
+        host guest storage (the guests' disks) in image files which can be
+        made highly available through high-performance NFS shares, cluster
+        filesystem or storage synchronisation. If the host crashes, the guest
+        storage is quickly made available on a different host and the guest is
+        restarted.</para>
+      </section>
+
+      <section>
+        <title>Resource optimization</title>
+
+        <para>For most organizations, virtualization is one of the most
+        effective ways to optimize resources in their data rooms. Regular
+        Unix/Windows servers generally consume lots of power, cooling and
+        floor space while still only offering 15% (or less) of actual resource
+        consumption (CPU cycles). 85% of the time, the system is literally
+        doing nothing but waiting. With virtualization, you can have resources
+        utilized better, going towards a healthy 80% while still allowing room
+        for sudden resource burst demands.</para>
+      </section>
+
+      <section>
+        <title>Flexible change management</title>
+
+        <para>The virtualization layer also offers a way to do flexible change
+        management. Because guests are now more tangible, it is easier to make
+        snapshots of entire guests, copy them around, upgrade one instance
+        and, if necessary, roll back to the previous snapshot - all this in
+        just a few minutes or less. You can't do this with dedicated
+        installations.</para>
+      </section>
+
+      <section>
+        <title>"Secure" isolation</title>
+
+        <para>In a security-sensitive environment, isolation is a very
+        important concept. It ensures that a system or service can only access
+        those resources it needs to, while disallowing (and even hiding) the
+        other resources. Virtualization allows architects to design the system
+        so that it runs in its own operating system, so from the viewpoint of
+        the service, it has access to those resources it needs, but sees no
+        other. On the host layer, the guests can then be properly isolated so
+        they cannot influence each other.</para>
+
+        <para>Having separate operating systems is often seen as a thorough
+        implementation of "isolation". Yes, there are a lot of other means to
+        isolate services. Still, running a service in a virtualized operating
+        system is not the summum of isolation. <link
+        xlink:href="http://blog.nelhage.com/2011/08/breaking-out-of-kvm/">Breaking
+        out of KVM</link> has been done in the past, and will most likely
+        happen again. Other virtualization have seen their share of security
+        vulnerabilities to this level as well.</para>
+      </section>
+
+      <section>
+        <title>Simplified backup/restore</title>
+
+        <para>For many organizations, a bare-metal backup/restore routine is
+        much more resource hungry than regular file-based backup/restore. By
+        using virtualization, bare-metal backup/restore of the guests is a
+        breeze, as it is now back a matter of working with files (and
+        processes). Ok, the name "bare-metal" might not work anymore here -
+        and you'll still need to backup your hypervisor. But if your
+        hypervisor (host) installation is very standardized, this is much
+        faster and easier than before.</para>
+      </section>
+
+      <section>
+        <title>Fast deployment</title>
+
+        <para>By leveraging the use of guest images, it is easy to create a
+        single image and then use it as a master template for other instances.
+        Need a web serving cluster? Set up on, replicate and boot. Need a few
+        more during high load? Replicate and boot a few more. It becomes just
+        that easy.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Ganeti and KVM</title>
+
+      <para>In this reference architecture, we will be using KVM as the
+      hypervisor software, and Ganeti as the management software that allows
+      us to manage the instances running on multiple systems.</para>
+
+      <section>
+        <title>All the virtualization advantages</title>
+
+        <para>The use of Ganeti and KVM offers us with all the virtualization
+        advantages mentioned before...</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>By using DRBD (which is a network-based disk replication
+            feature of Linux) we can offer high available hosts which are
+            capable of quickly starting up guests if the primary system
+            fails.</para>
+          </listitem>
+
+          <listitem>
+            <para>Because we will use LVM with DRBD, we can support
+            snapshotting to simplify backup and restore routines, or even
+            change management activities that have a higher risk associated
+            with them.</para>
+          </listitem>
+
+          <listitem>
+            <para>Ganeti offers cluster rebalancing, making it easier to
+            optimize resource consumption across the cluster (Ganeti calls a
+            combination of nodes, which run a given set of guests, a
+            cluster).</para>
+          </listitem>
+
+          <listitem>
+            <para>With the help of some simple scripts, Ganeti allows us to
+            quickly add more instances, using other images as master.</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+
+      <section>
+        <title>Hypervisor kernel configuration</title>
+
+        <para>A hypervisor<indexterm>
+            <primary>hypervisor</primary>
+          </indexterm> is the general term given to the host operating system
+        that offers virtualization services, so in effect is running the
+        virtual guests as processes (or groups of processes). In case of
+        KVM<indexterm>
+            <primary>KVM</primary>
+          </indexterm>, this means that the Linux kernel will be configured
+        with KVM enabled (and with the proper virtualization improvements on
+        various drivers) as well as userland utilities to support KVM
+        guests.</para>
+
+        <para>Below you can find a subset of kernel configuration settings
+        that can be used as a base for the configuration:</para>
+
+        <programlisting># <command>zgrep -E '(KVM|VIRT)' /proc/config.gz</command>
 # CONFIG_PARAVIRT_GUEST is not set
 CONFIG_VIRT_TO_BUS=y
 CONFIG_VIRTIO_BLK=m
@@ -622,11 +796,11 @@ CONFIG_KVM=m
 CONFIG_KVM_INTEL=m
 # CONFIG_KVM_AMD is not set</programlisting>
 
-      <para>Make sure that your hardware systems support hardware-assisted
-      virtualization. For Intel processors, this means that vmx must be
-      available; on AMD processors, this is svm:</para>
+        <para>Make sure that your hardware systems support hardware-assisted
+        virtualization. For Intel processors, this means that vmx must be
+        available; on AMD processors, this is svm:</para>
 
-      <programlisting># <command>egrep '(vmx|svm)' /proc/cpuinfo | head -1</command>
+        <programlisting># <command>egrep '(vmx|svm)' /proc/cpuinfo | head -1</command>
 flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat \
                   pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe syscall nx \
                   rdtscp lm constant_tsc arch_perfmon pebs bts rep_good nopl \
@@ -634,16 +808,13 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
                   est tm2 ssse3 cx16 xtpr pdcm sse4_1 sse4_2 popcnt lahf_lm ida \
                   arat dts tpr_shadow vnmi flexpriority ept vpid</programlisting>
 
-      <para>Because we are aiming for a hypervisor kernel, it is best to
-      remove all drivers not needed by the host. I am not directly opposed to
-      using kernel modules versus a monolithic kernel, but if the
-      configuration allows it, my preference goes to monolithic builds. This
-      also has the advantage that the initramfs does not need to take care of
-      kernel module loading.</para>
-    </section>
-
-    <section>
-      <title>Software packages</title>
+        <para>Because we are aiming for a hypervisor kernel, it is best to
+        remove all drivers not needed by the host. I am not directly opposed
+        to using kernel modules versus a monolithic kernel, but if the
+        configuration allows it, my preference goes to monolithic builds. This
+        also has the advantage that the initramfs does not need to take care
+        of kernel module loading.</para>
+      </section>
 
       <section>
         <title>Installing KVM Utilities</title>
@@ -674,49 +845,6 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
      -net nic,model=virtio,macaddr=00:11:22:33:44:b1,vlan=0 \
      -net vde,vlan=0 -drive file=/srv/virt/gentoo/test.img,if=virtio,boot=on \
      -usb -usbdevice tablet -smp 4 -cpu kvm64 -k nl-be -m 1536</command></programlisting>
-      </section>
-
-      <section>
-        <title>Selecting a virtualization framework</title>
-
-        <para>To help administrators manage the virtual guests that are
-        running on dozens of hosts, frameworks have emerged that lift some of
-        the management tasks to a higher level. These frameworks offer
-        automated generation of new guests, simplified configuration of the
-        instances, remote management of guests. Some of them even support
-        maintenance activities, such as moving guests from one host to
-        another, or monitor the resource consumption of guests to find a good
-        balance between running guests and available hosts.</para>
-
-        <para>In Gentoo, many of these virtualization frameworks are
-        supported.</para>
-
-        <para>The first one is <package>app-emulation/libvirt</package> and is
-        RedHat's virtualization management platform. The hypervisor systems
-        run the libvirt daemon which manages the virtual guests as well as
-        storage and other settings, and the administrator remotely connects to
-        the various hypervisor systems through the
-        <package>app-emulation/virt-manager</package> application. It has
-        support for SELinux through its s(ecure)Virt(ualization) feature. To
-        do so, it does require the MCS SELinux policy. Libvirt is also being
-        used by many other frameworks (like oVirt, Archipel, Abiquo and
-        more).</para>
-
-        <para>Another one that is gaining momentum is
-        <package>app-emulation/ganeti</package> and is backed by Google. It is
-        foremost a command-line driven method but is well capable of handling
-        dozens and dozens of hypervisor systems. It supports simplified
-        fail-over on top of DRBD and makes an abstraction of the running hosts
-        versus the guests. It bundles a set of hosts (which it calls nodes) in
-        logical groups called clusters. The guests (instances) are then spread
-        across the nodes in the cluster, and the administrator manages the
-        cluster remotely.</para>
-
-        <para>In this reference architecture, I will be using ganeti, but
-        depending on how it works out, I might switch to the other later. The
-        two (libvirt and ganeti) are equally strong, although libvirt has a
-        much more active development community. On the other hand, Ganeti
-        looks to be simpler in its design.</para>
       </section>
 
       <section>
@@ -775,7 +903,9 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
         <para>Because high available virtual guests will be used in this
         reference architecture, we will be configuring DRBD.</para>
 
-        <para>DRBD uses the network to synchronise block devices. It is
+        <para>DRBD<indexterm>
+            <primary>DRBD</primary>
+          </indexterm> uses the network to synchronise block devices. It is
         adviseable to have a different network for this back-end communication
         versus the network used for front-end (business) activity. Logically
         speaking, we will have 3 network channels: one for the data flow of

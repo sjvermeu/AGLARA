@@ -19,23 +19,176 @@
     accessibility patterns it is then easier to define the settings (and
     security measurements) for each.</para>
 
+    <para>Within this reference architecture, I will be using IPv6 (as it
+    proves to be a nice exercise, but also to show that IPv6 is not something
+    to be afraid of) and a logical way of naming the hosts and services using
+    DNS names. In this book, the used DNS names will reflect the function and
+    "position" of the services in the architecture, but you are not required
+    to follow this. Some organizations even want to keep the naming
+    conventions of their services (including DNS) as obscure as possible, not
+    to give too much information available when a leak occurs.</para>
+
     <section>
       <title>Example network segment</title>
 
-      <para>In this reference architecture, we will be using IPv6 (as it
-      proves to be a nice exercise, but also to show that IPv6 is not
-      something to be afraid of).</para>
+      <para>The following code listing gives a high-level impression on the
+      network segments identified for use in this book. I will be using the
+      IPv6<indexterm>
+          <primary>IPv6</primary>
+        </indexterm> documentation range (2001:db8::/32) but this too is not
+      something you need to follow. If your organization is assigned a proper
+      IPv6 block, there is no reason to still use local addresses in your
+      organization: the number of IPv6 addresses is
+      <emphasis>currently</emphasis> sufficiently large to give each
+      server/service in your organization its own address which, through
+      routers, gateways and firewalls, is either accessible or not from
+      anyplace.</para>
+    </section>
 
-      <programlisting/>
+    <section>
+      <title>IPv6 Addresses and DNS naming</title>
+
+      <para>As we will be using IPv6, a quick run-down of how our network will
+      be structured...</para>
+
+      <section>
+        <title>IPv6 address scheme</title>
+
+        <para>First, below you'll find an example IPv6 address that could be
+        used for a workstation</para>
+
+        <programlisting>2001:0db8:0081:00e2:0000:0204:de89:330f</programlisting>
+
+        <para>In abbreviated form, this becomes</para>
+
+        <programlisting>2001:db8:81:e2::204:de89:330f</programlisting>
+
+        <para>If we use a 64-bit host identifier (which, in IPv6 parlance, is
+        called the EUI-64 address) and use the NIC's MAC address (which is 48
+        bits), this means that our address can be seen roughly as
+        follows:</para>
+
+        <programlisting>2001:0db8:0081:00e2:0000:0204:de89:330f
+&lt;------+------&gt;&lt;-+-&gt;&lt;--------+---------&gt;
+       |         |           `- 64 bits host identifier
+       |         `- 16 bits subnetwork identifier
+       `- 48 bits prefix</programlisting>
+
+        <para>In this case,</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>2001:db8:81 is the prefix assigned to us by our ISP</para>
+          </listitem>
+
+          <listitem>
+            <para>00e2 is our 16-bits subnet identifier (which we use to
+            "regulate" our internal segmentation)</para>
+          </listitem>
+
+          <listitem>
+            <para>0000:0204:de89:330f is our host identification (which is the
+            MAC address + "0000" as padding to make it 64-bit wide).</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>This gives us plenty of room to create network segmentation
+        rules. So for the remainder of this book, we will use the following
+        subnet scheme. I have little experience with network segmentation
+        rules or design, so if I'm totally missing a point somewhere here,
+        please do tell me - I'm eager to learn more about this.</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>The first 4 bits are set to 0 (and left as a possible
+            extension later)</para>
+          </listitem>
+
+          <listitem>
+            <para>The next 4 bits provide feedback on the environment:
+            production (0), testing (1) or lab (2)</para>
+          </listitem>
+
+          <listitem>
+            <para>The next 4 bits give information about the system or device
+            purpose. For instance, networking device (0), storage device (1),
+            management server (2), business server (3), DMZ (8), workstation
+            VPN (c), portable device (d), internal workstation (e)</para>
+          </listitem>
+
+          <listitem>
+            <para>The last 4 bits are used for subnets within the defined
+            location</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>So the subnetwork identifier 00e2 given earlier gives us a
+        production internal workstation on subnet "2".</para>
+      </section>
+
+      <section>
+        <title>DNS Naming</title>
+
+        <para>We will use logical names for our components. The domain
+        "genfic.com" is used for the organization, "internal.genfic.com" is
+        for all internal services.</para>
+
+        <para>For instance, la00010.workstation.internal.genfic.com is an
+        internal workstation; rtr01e2.network.internal.genfic.com is a router
+        for the network, etc. I just let my imagination free - but keep the
+        names consistent so that, if I talk about a server called
+        gc01n01.virt.internal.genfic.com, it doesn't make you frown when I say
+        it is the ganeti cluster 01, node 01 within the production virtualized
+        network of the organization.</para>
+      </section>
     </section>
   </section>
 
   <section>
     <title>DNS</title>
 
-    <para>Use logical names, like gc02n01.hosts.genfic.com -&gt; ganeti
-    cluster 02, node 01 on the hosts.genfic.com (production network). Or
-    gc04n02.testing.hosts.genfic.com (testing network).</para>
+    <para>So with our IP address range in place and a imaginative domain name
+    structure in place, let's start the setup of our next component -
+    DNS<indexterm>
+        <primary>DNS</primary>
+      </indexterm>.</para>
+
+    <section>
+      <title>Domain name servers</title>
+
+      <para>Many organizations will host their own domain name servers. In our
+      reference architecture, we will be using djbdns as a worthy opponent to
+      the tried and true BIND<indexterm>
+          <primary>BIND</primary>
+        </indexterm>. Note that BIND works just as well in Gentoo Linux and is
+      well supported there as well. However, there are very positive critics
+      regarding djbdns, both regarding ease of use, performance as well as
+      security.</para>
+
+      <section>
+        <title>On djbdns</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Active/active architecture</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Installing djbdns</title>
+
+        <para/>
+      </section>
+    </section>
+
+    <section>
+      <title>Using djbdns</title>
+
+      <para/>
+    </section>
   </section>
 
   <section>

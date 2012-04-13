@@ -317,7 +317,7 @@ view "local" {
         <filename>pri/com.genfic</filename> file (which is our "zone" file
         that will contain the DNS records) and
         <filename>pri/inv.com.genfic</filename>" for the reverse lookups. We
-        will also create a cache </para>
+        will also create a cache</para>
 
         <para>For the slave server, the setup is fairly similar:</para>
 
@@ -417,7 +417,186 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.IP6.ARPA.
   <section>
     <title>DHCP</title>
 
-    <para/>
+    <para>When you have systems that require dynamically allocated IP
+    addresses, you will need a DHCP service.</para>
+
+    <para>DHCP<indexterm>
+        <primary>DHCP</primary>
+      </indexterm> stands for Dynamic Host Configuration Protocol and is the
+    de-facto standard for dynamic IP allocation. In our architecture, we will
+    be using DHCP for the workstations, VPN and other devices that are in the
+    "bring your own device" pool, because all those devices might be started
+    on different locations and as such are difficult to manage with fixed IP
+    addresses.</para>
+
+    <section>
+      <title>DHCP Architecture</title>
+
+      <para>Within our architecture, we will be positioning two DHCP servers
+      internally, in an active/active setup. The systems will get information
+      about the leases given by the other DHCP server so that it can take over
+      when the other one is down. We also implement DHCP relay daemons within
+      the target subnets where the workstations and other devices will need
+      one.</para>
+
+      <section>
+        <title>General architecture</title>
+
+        <para>The next figure displays the general architecture being put in
+        place for our needs.</para>
+
+        <figure>
+          <title>General DHCP architecture</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/03-dhcp.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>The given architecture is fairly simple:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>The workstation requests a dynamic IP address
+            (<emphasis>DHCP-REQ</emphasis>) which gets captured by the relay
+            server.</para>
+          </listitem>
+
+          <listitem>
+            <para>The relay server forwards the request
+            (<emphasis>DHC-FWD</emphasis>) to the DHCP servers. They
+            eventually complete the DHCP handshake through the relay
+            server</para>
+          </listitem>
+
+          <listitem>
+            <para>Synchronisation and communication between DHCP servers is
+            also done (<emphasis>DHCP-SYNC</emphasis>).</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+    </section>
+
+    <section>
+      <title>Installation and configuration</title>
+
+      <para>The installation and configuration of DHCP is fairly simple and,
+      similar to BIND, uses flat files for its configuration.</para>
+
+      <section>
+        <title>Installation</title>
+
+        <para>First install the DHCP server. We will use ISC's DHCP server
+        here.</para>
+
+        <programlisting># <command>emerge dhcp</command></programlisting>
+
+        <para>Do the same on the relay servers. We will, however, not start
+        the main server there but the relay service only.</para>
+      </section>
+
+      <section>
+        <title>Master DHCP server</title>
+
+        <para>On the master DHCP server, configure the
+        <filename>/etc/dhcp/dhcpd.conf</filename> file similar to the
+        following:</para>
+
+        <programlisting># <command>cat /etc/dhcp/dhcpd.conf</command>
+option domain-name genfic.com;
+option domain-name-servers 2001:db8:81:21::1bac:98ad:5fe1, 2001:db8:81:22::7aae:6b01:e3d8;
+ddns-update-style interim;
+ddns-rev-domainname "in-addr.arpa";
+
+authorative;
+
+default-lease-time 600;
+max-lease-time 7200;
+
+key primaryserver {
+  algorithm hmac-md5;
+  secret "nope";
+};
+
+omapi-key primaryserver;
+omapi-port 7911;
+
+failover peer "genfic" {
+  primary;
+  address 2001:db8:81:21::19f4:3303:40f4;
+  port 519;
+  peer address 2001:db8:81:22::a05f:3853:fe78;
+  peer port 519;
+  max-response-delay 30;
+  max-unacked-updates 10;
+  load balance max seconds 3;
+  mclt 600;
+  split 128;
+};
+
+subnet6 2001:db8:81:e2::/64 {
+  range6 2001:db8:81:e2::0f00 2001:db8:81:e2:f:0fff;
+  option dhcp6.name-servers 2001:db8:81:21::1bac:98ad:5fe1, 2001:db8:81:22::7aae:6b01:e3d8;
+  option dhcp6.domain-search "workstation.internal.genfic.com";
+}</programlisting>
+
+        <para>The key in the configuration file is to be generated using the
+        dnssec-keygen command:</para>
+
+        <programlisting># <command>dnssec-keygen -a HMAC-MD5 -b 512 -n HOST primaryserver</command></programlisting>
+
+        <para>This command creates two files, one ending in
+        <filename>.key</filename> and one in <filename>.private</filename>.
+        The one ending with <filename>.key</filename> is the one you need. Its
+        last column contains the secret of this particular system and is the
+        one you need to use (instead of "nope" in the example above).</para>
+
+        <para>Finally, start the service and register it to automatically
+        start during boot.</para>
+
+        <programlisting># <command>rc-update add dhcpd default</command>
+# <command>rc-service dhcpd start</command></programlisting>
+
+        <para>You might be wondering why we call it a master in an
+        active/active setup. That's what the <parameter>split</parameter>
+        statement is for. With it set to 128, the DHCP servers will decide
+        which server takes on the allocation of the requested IP address. Only
+        when the other node is down will the system handle all DHCP
+        requests.</para>
+      </section>
+
+      <section>
+        <title>Secundary DHCP server</title>
+
+        <para>The configuration of the secundary DHCP server is similar. Just
+        substitute "primaryserver" with "secondaryserver" (its just a name,
+        not a mandatory string), use "<parameter>secondary;</parameter>" as
+        option in the failover setting and <emphasis>do not</emphasis> place
+        <parameter>mclt</parameter> and <parameter>split</parameter> in
+        it.</para>
+
+        <para>Don't forget to generate the key for this server as well, using
+        "secondaryserver" as the name now.</para>
+      </section>
+
+      <section>
+        <title>Relay services</title>
+
+        <para>When you configure a relay service, edit /etc/conf.d/dhcrelay
+        and set the DHCRELAY_OPTS accordingly.</para>
+
+        <programlisting># <command>cat /etc/conf.d/dhcrelay</command>
+DHCRELAY_OPTS="-6 -l eth0 -u 2001:db8:81:21::19f4:3303:40f4%eth0 -u 2001:db8:81:22::a05f:3853:fe78%eth0"</programlisting>
+
+        <para>Then start up the relay service and make sure it starts at boot
+        time as well.</para>
+
+        <programlisting># <command>rc-update add dhcrelay default</command>
+# <command>rc-service dhcrelay start</command></programlisting>
+      </section>
+    </section>
   </section>
 
   <section>

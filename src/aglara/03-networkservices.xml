@@ -43,6 +43,16 @@
       server/service in your organization its own address which, through
       routers, gateways and firewalls, is either accessible or not from
       anyplace.</para>
+
+      <figure>
+        <title>Example network structure</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/03-networkservices.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
     </section>
 
     <section>
@@ -157,37 +167,250 @@
       <title>Domain name servers</title>
 
       <para>Many organizations will host their own domain name servers. In our
-      reference architecture, we will be using djbdns as a worthy opponent to
-      the tried and true BIND<indexterm>
+      reference architecture, we will be using BIND, although I am hoping to
+      support djbdns very soon (as a worthy opponent to the tried and true
+      BIND<indexterm>
           <primary>BIND</primary>
-        </indexterm>. Note that BIND works just as well in Gentoo Linux and is
-      well supported there as well. However, there are very positive critics
-      regarding djbdns, both regarding ease of use, performance as well as
-      security.</para>
+        </indexterm>). The djbdns implementation has very positive critics,
+      both regarding ease of use, performance as well as security. However,
+      its main downside currently is that it doesn't fully support IPv6 yet -
+      most functionality is supported, but as long as things like dnstrace,
+      NS/MX records etc. do not support IPv6, I will be using BIND.</para>
 
       <section>
-        <title>On djbdns</title>
+        <title>On BIND</title>
 
-        <para/>
+        <para>On the Internet, Berkeleys Internet Name Domain (BIND) server is
+        the most popular DNS server to date. It has been plagued by its set of
+        security issues, but is still very well supported on Gentoo (and
+        other) platforms. The software was originally developed at Berkeley in
+        the early 80s in an open source model. Since 2010, the software is
+        maintained by the Internet Systems Consortium.</para>
+
+        <para>Because it has such a large history, it has also seen quite a
+        few updates and even rewrites. The current major version (BIND 9) is a
+        rewrite that was tailored to answer the various secrity-related
+        concerns that came from earlier versions. Sadly, even BIND 9 has seen
+        its set of security vulnerabilities. Although a new major is in the
+        making (BIND 10) it is not expected to be released anytime
+        soon.</para>
+
+        <para>To support a higher security within BIND, we will of course be
+        running it confined within a SELinux domain and using chroot (which,
+        together with grSecurity's chroot restrictions, offer a fairly good
+        jail for this service). I am not enabling DNSSEC</para>
       </section>
 
       <section>
-        <title>Active/active architecture</title>
+        <title>Chrooted master-slave architecture</title>
 
-        <para/>
+        <para>Naming services are an important part in an architecture. If
+        your systems cannot resolve a hostname to an IP address, they will
+        most likely not function correctly. We will implement a master-slave
+        architecture, but where we can "upgrade" the slave to the master role
+        if necessary. We will be using BIND's master/slave functionality,
+        chrooted into <filename>/var/named/chroot</filename>.</para>
+
+        <figure>
+          <title>High-level BIND architecture</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/03-BIND.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>For the BIND architecture, we see the following feeds or
+        activities involved:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>XFER-PULL</emphasis> is initiated from the
+            secundary name server (the slave) which periodically connects to
+            the master to get changes on the zone files</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis>SIGNAL-XFER</emphasis> is initiated by the master
+            name server and is a feature in BIND9 to signal its slave servers
+            when changes have occurred</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis>CMDB-FEED</emphasis> is a file transfer initiated
+            from the central configuration management system (Puppet) which
+            contains node information (IP address versus expected hostname and
+            domain name) and is used to locally regenerate the zone
+            files.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>We explicitly mention the system logger here as it will be
+        configured to read log entries from the log socket in the chrooted
+        environment.</para>
       </section>
 
       <section>
-        <title>Installing djbdns</title>
+        <title>Installing bind</title>
 
-        <para/>
+        <para>First, install net-dns/bind.</para>
+
+        <programlisting># <command>emerge net-dns/bind net-dns/bind-tools</command>
+# <command>rc-update add named default</command></programlisting>
+
+        <para>Next, edit <filename>/etc/conf.d/named</filename> and set the
+        CHROOT variable. Make sure that this destination directory doesn't
+        exists, or is empty otherwise:</para>
+
+        <programlisting>CHROOT="/var/named/chroot"</programlisting>
+
+        <para>Finally, run the configuration steps provided by our friendly
+        package maintainer:</para>
+
+        <programlisting># <command>emerge --config =net-dns/bind-9.8.1_p1</command></programlisting>
+
+        <para>This will prepare the chroot for you. At the end of the steps,
+        it will ask you to edit your system logger configuration to capture
+        logging events from the chrooted environment as well.</para>
+
+        <programlisting># <command>vim /etc/syslog-ng/syslog-ng.conf</command>
+(... Add the next line ...)
+source jail { unix-stream("/var/named/chroot/dev/log"); };</programlisting>
+      </section>
+
+      <section>
+        <title>Initial configuration</title>
+
+        <para>We will start with an initial configuration of BIND.</para>
+
+        <para>Let's start with
+        <filename>/var/named/chroot/etc/named.conf</filename><indexterm>
+            <primary>named.conf</primary>
+          </indexterm>:</para>
+
+        <programlisting>options {
+  directory "/var/bind";
+  pid-file "/var/run/named/named.pid";
+  statistics-file "/var/run/named/named.stats";
+  listen-on { 127.0.0.1; };
+  listen-on-v6 { 2001:db8:81:21::1bac:98ad:5fe1; };
+  allow-query { any; };
+  zone-statistics yes;
+  allow-transfer { 2001:db8:81:22::7aae:6b01:e3d8; };
+  notify yes;
+  recursion no;
+  version "[nope]";
+}
+
+# Access to DNS for local addresses (i.e. genfic-owned)
+view "local" {
+  match-clients { 2001:db8:81::/48; };
+  recursion yes;
+  zone "genfic.com" { type master; file "pri/com.genfic"; };
+  zone "1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa" { type master; fiel "pri/inv.com.genfic"; };
+}</programlisting>
+
+        <para>That's it. The configuration will have this installation work as
+        the master DNS server and will (only) accept DNS requests from IPv6
+        addresses within our IP range. For these requests, we use the
+        <filename>pri/com.genfic</filename> file (which is our "zone" file
+        that will contain the DNS records) and
+        <filename>pri/inv.com.genfic</filename>" for the reverse lookups. We
+        will also create a cache </para>
+
+        <para>For the slave server, the setup is fairly similar:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>do not set the <parameter>allow-transfer</parameter> though.
+            It is a slave server.</para>
+          </listitem>
+
+          <listitem>
+            <para>set the type of the zone's to "<parameter>slave</parameter>"
+            instead and add in <userinput>masters {
+            2001:db8:81:21::1bac:98ad:5fe1; }</userinput> to each zone. That
+            will tell BIND what the master is of this particular zone.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>Finally, set the initial zone files for the organization.</para>
+
+        <programlisting># <command>cat /var/named/chroot/var/bind/pri/com.genfic</command>
+$ORIGIN genfic.com.;
+$TTL 1h;
+genfic.com. IN SOA ns.genfic.com. (
+  2012041101  ; serial
+  1d          ; slave refresh
+  2h          ; slave retry
+  4w          ; slave expiration
+  1h          ; max caching time
+)
+
+genfic.com.  NS  ns;
+genfic.com.  NS  ns2.genfic.com;
+genfic.com.  MX  10  mail.genfic.com.;
+genfic.com.  MX  20  mail2.genfic.com.;
+
+genfic.com.  AAAA 2001:db8:81:80::41dd:13ed:c49e;
+ns           AAAA 2001:db8:81:21::1bac:98ad:5fe1;
+ns2          AAAA 2001:db8:81:22::7aae:6b01:e3d8;
+www          CNAME genfic.com.;
+mail         AAAA 2001:db8:81:21::d3b0:0738:8ad5;
+mail2        AAAA 2001:db8:81:22::d850:5e9f:e569;
+; (...)</programlisting>
+
+        <programlisting># <command>cat /var/named/chroot/var/bind/pri/inv.com.genfic</command>
+$TTL 1h;
+$ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.IP6.ARPA.
+@   IN   SOA   ns.genfic.com. (
+  2012041101;
+  1d;
+  2h;
+  4w;
+  1h;
+)
+
+   IN    NS    ns.genfic.com.
+   IN    NS    ns2.genfic.com.
+1.e.f.5.d.a.8.9.c.a.b.1.0.0.0.0    IN   PTR    ns.genfic.com.
+; (...)</programlisting>
+      </section>
+
+      <section>
+        <title>Automatically generating zone files</title>
+
+        <para>Managing the zone files can be done using regular text files,
+        but for larger environments, it is interesting to have an interface
+        that does it for you. Later in the reference architecture, we will be
+        setting up a central management location for our server management.
+        This central configuration management database (well, it might not be
+        a database by itself, but the term is correct) will be used to
+        automatically generate zone files and push them to the name
+        servers.</para>
       </section>
     </section>
 
     <section>
-      <title>Using djbdns</title>
+      <title>Using bind</title>
 
-      <para/>
+      <para>The bind server is started as an init script.</para>
+
+      <programlisting># <command>rc-service named start</command></programlisting>
+
+      <section>
+        <title>Validating configurations</title>
+
+        <para>The installed utilities can help you troubleshoot configuration
+        issues.</para>
+
+        <para>The <command>named-checkconf</command> tool will verify the
+        syntax of your named.conf file and report any issues it finds.</para>
+
+        <para>With <command>named-checkzone</command>, you can validate the
+        syntax of your zone files.</para>
+      </section>
     </section>
   </section>
 

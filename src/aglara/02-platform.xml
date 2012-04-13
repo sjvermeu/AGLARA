@@ -543,6 +543,106 @@ Max kernel policy version:      26</programlisting>
         recover even when initramfs is unable to. It also allows me to install
         additional verification tools like memtest and the like.</para>
       </section>
+
+      <section>
+        <title>System logger</title>
+
+        <para>For system logging, we will use syslog-ng, a well-supported
+        advanced logging daemon.</para>
+
+        <programlisting># <command>emerge syslog-ng</command></programlisting>
+      </section>
+    </section>
+
+    <section>
+      <title>Generic architecture</title>
+
+      <para>In the next graphic, you can see the generic architecture used for
+      any Gentoo Linux deployment used further in this reference
+      architecture.</para>
+
+      <figure>
+        <title>Generic architecture for Gentoo Linux deployments</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-gentoo.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>A bit of information on the used symbols might be in
+      place...</para>
+
+      <para>The parallellograms give information on particular use cases or
+      activities involved with the architecture. To keep things simple, I am
+      not going to make much differentiation in the notations between
+      different types. The orange-colored blocks are specific components that
+      are used, most of the time software titles (and sometimes drivers) that
+      will be used to support particular functions or capabilities in the
+      architecture.</para>
+
+      <section>
+        <title>Administration of the operating system</title>
+
+        <para>Administration will be done through OpenSSH (for performing
+        operational changes) and is shown by the activity
+        <emphasis>ADMIN-SYSTEM</emphasis>. You can see that OpenSSH will also
+        trigger an activity called <emphasis>AUTH-USER</emphasis>. This is
+        because we will be using a central repository for authentication and
+        authorization services (an OpenLDAP, which we will see later). The use
+        of OpenSSH here is because it is the most obvious and well supported
+        remote administration tool used for Unix and Linux around. The
+        software also supports many additional features like X11 tunneling,
+        advanced logging capabilities, and is also SELinux-aware.</para>
+
+        <para>Mass changes will be triggered through
+        <emphasis>CONFIG-SYSTEM</emphasis>, using Puppet. Puppet is a
+        cross-platform, central configuration tool, where you define the state
+        of the system (how it should be) and let Puppet decide how to change
+        the system from the existing state to the "to-be" state. We will use
+        Puppet to store the master configuration settings, and either have
+        Puppet push the changes or use the Puppet configuration as master for
+        further changes.</para>
+
+        <para>When necessary, we will trigger a <emphasis>RESTORE</emphasis>
+        of one or more files through the (TODO decide which one) backup
+        solution.</para>
+      </section>
+
+      <section>
+        <title>Outgoing connections</title>
+
+        <para>By default, the system will have the following outgoing
+        flows:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>SEND-LOG</emphasis> is the system logger sending
+            out the system logs of the most important components (including
+            audit entries) towards a central logging service to make sure that
+            malicious cannot modify any log entries on the host they might
+            have obtained (illegal) administrative rights</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis>SEND-EVENT</emphasis> is the monitoring system
+            (TODO decide which one) sending out availability and performance
+            events towards the monitoring service.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis>SEND-MAIL</emphasis> is the local mail transport
+            system sending out e-mails. These can originate from local running
+            jobs or status changes that we configure sending mails for.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis>SEND-BACKUP</emphasis> is the feed of local backup
+            data being sent out to the central backup repository.</para>
+          </listitem>
+        </itemizedlist>
+      </section>
     </section>
   </section>
 
@@ -622,8 +722,7 @@ Max kernel policy version:      26</programlisting>
         when needed. The host is still up and running, so rebooting a system
         is a matter of restarting a process. This has the advantage that
         caching and other performance measures taken by the hypervisor are
-        still available, which makes bootup times of guests quite fast.
-        </para>
+        still available, which makes bootup times of guests quite fast.</para>
 
         <para>But even in case of host downtime, given the right architecture,
         guests can be quickly started up again. By providing a hardware
@@ -714,7 +813,40 @@ Max kernel policy version:      26</programlisting>
 
       <para>In this reference architecture, we will be using KVM as the
       hypervisor software, and Ganeti as the management software that allows
-      us to manage the instances running on multiple systems.</para>
+      us to manage the instances running on multiple systems. High-level, we
+      will be using Ganeti as described in the next figure.</para>
+
+      <figure>
+        <title>General Ganeti architecture</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-ganeti.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>Within Ganeti, we will define a cluster that has a number of
+      nodes. Per cluster, we will keep the number of nodes manageble (although
+      the figure shows just two nodes, we aim for a cluster of about 12 nodes
+      each). Within the cluster, one or more instances can be defined as being
+      "highly available", which means that they will use DRBD storage
+      synchronisation towards a second node. In case of failure, those
+      instances can then be restarted on this secundary system.</para>
+
+      <figure>
+        <title>Fail over of high available instance</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-ganeti2.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>Instances that are not defined as highly available (like "Instance
+      1" in the drawings) cannot be easily restarted on a secundary
+      system.</para>
 
       <section>
         <title>All the virtualization advantages</title>
@@ -895,6 +1027,49 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
             necessary.</para>
           </listitem>
         </itemizedlist>
+
+        <figure>
+          <title>High-level Ganeti host architecture</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/02-kvmops.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>A ganeti node will be managed through the regular management
+        channels like OpenSSH and Puppet, just as described earlier. In the
+        above drawing, we make a bit of differentiation on the interfaces
+        through which traffic will flow</para>
+
+        <itemizedlist>
+          <listitem>
+            <para><emphasis>SERVICE-LAN</emphasis> is the operational
+            (business) service activities, both for the instances themselves
+            (which will be aggregated through a bridge interface) as well as
+            the ganeti node.</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis>MGMT-LAN</emphasis> is for management activities
+            as described earlier</para>
+          </listitem>
+
+          <listitem>
+            <para><emphasis>DRBD-SYNC</emphasis> is one of the back-end
+            specific data flows (others, such as logging output, have been
+            described earlier) for this particular description.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>By properly segregating the service flows (which are SLA bound)
+        from the administrative ones (which should be limited to known
+        changes) and back-end (which are expected to be more heavy but better
+        manageable, perhaps using QoS) we should be able to provide good
+        monitoring on the used services, improve management and bandwidth
+        usage and perhaps even improve security without losing or hindering
+        administrators and engineers in their day-to-day tasks.</para>
       </section>
 
       <section>

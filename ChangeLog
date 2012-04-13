@@ -1,3 +1,9 @@
+** (2012-04-12) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Adding some images and architecturing information
+
+** (2012-04-11) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Added info on BIND
+
 ** (2012-04-10) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- More info regarding virtualization
 	- Start networking services (small explanation on IPv6)

@@ -1,3 +1,9 @@
+** (2012-04-14) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Update DNS (BIND), update on IPv6-specifics
+	- Revert DHCP back to a "normal" setup, failover in IPv6 is not
+	  supported yet
+	- Start writing up on certificates
+
 ** (2012-04-12) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Adding some images and architecturing information
 	- Add information on DHCP

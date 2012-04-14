@@ -12,6 +12,298 @@
   <section>
     <title>Why we need it</title>
 
+    <para>Now that some of the basic network services have been installed, it
+    is time to look at certificate management.</para>
+
+    <para>Certificates are used to either authentication people or clients to
+    a service, or to support encryption of data sent across the network. For
+    small networks, administrators usually create self-signed
+    certificates<indexterm>
+        <primary>certificate</primary>
+      </indexterm>, but the problem with self-signed certificates is that
+    every client that wants to communicate with a service using a self-signed
+    certificate needs to include this certificate in its trust store.</para>
+
+    <para>What is that you say? Let's give a quick explanation on certificates
+    then.</para>
+
+    <section>
+      <title>How do certificates work</title>
+
+      <para>Assume there are two parties (Alice and Bob are the two names
+      often used in encryption fields) willing to communicate with each other
+      over a secured, encrypted channel. They generally need to use an
+      encryption key which only those two parties know. Once they have such an
+      encryption key, they can use it to communicate with each other
+      securely:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>because they are the only two with the key, others cannot
+          decrypt the information being sent between the two</para>
+        </listitem>
+
+        <listitem>
+          <para>because no-one else has the key, each of those parties is
+          certain that information received from the other one is indeed from
+          the other party (as it would otherwise not be properly
+          encrypted)</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>The major difficulty comes from getting a "shared" encryption key
+      without having to send it over the (clear) network so that a malicious
+      person (Carol or Charles, I'll use the gender-neutral "Chris" ;-) cannot
+      obtain it.</para>
+
+      <section>
+        <title>Symmetric keys</title>
+
+        <para>Most secure communication uses a symmetric key, often called a
+        session key.</para>
+
+        <para>A symmetric key is an encryption key which is used for
+        encryption and decryption. In our example of a secure communication,
+        the symmetric key is the secret encryption key that the two parties
+        (and only those two parties) should have a hold off. Such a symmetric
+        key is usually used with an algorithm that is fairly simple (and thus
+        has good performance) in regard of encryption and decryption.</para>
+
+        <para>This good performance requirement is needed because it will be
+        used to encrypt and decrypt all traffic sent between the two services,
+        which can be a fair amount of data. If the encryption and decryption
+        algorithms used would be very CPU intensive, the communication would
+        be far too slow (or use too many resources on the systems).</para>
+
+        <para>A way to get both parties to know a common, secret key is to
+        each use a secret algorithm (or known algorithm with secret data)
+        which has the property that, whatever order you use to apply the
+        algorithms, the result is always the same. Extremely simple examples
+        are addition or multiplication, but far more complex ones exist as
+        well. A non-mathematical example would be to add in colored paint to a
+        pre-agreed color: if you first add in blue and then red, or first red
+        and then blue, the result is always the same.</para>
+
+        <para>Well, in our case (let's use addition), both Alice and Bob have
+        such a secret and will exchange the results of their
+        algorithms:</para>
+
+        <programlisting>   Alice                 Bob
+  "1000"                "1000"
+  +7428                 +5879
+ = 8428                = 6879
+ -------&lt;--exchange-&gt;--------
+   6879                  8428
+  +7428                 +5879
+= 14307               = 14307  &lt;-- the symmetric key</programlisting>
+
+        <para>The number to begin with may be made public (although it is
+        safer when its not) because, even with Chris knowing the numbers
+        "1000, 8428, 6879", if that person does not know the algorithm (or
+        data) used, it will be difficult for him to find out what the common
+        secret key will be. Of course, in our example, addition is quite
+        simple, but at least it gives the idea on what such key exchange can
+        be like.</para>
+      </section>
+
+      <section>
+        <title>Public and private keys</title>
+
+        <para>What are public/private keys then? Well, the idea behind
+        public-key cryptography<indexterm>
+            <primary>public-key cryptography</primary>
+          </indexterm> is that, unlike a symmetric key, there are now two keys
+        in play:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>the private key is only known by the target service (say
+            Alice)</para>
+          </listitem>
+
+          <listitem>
+            <para>the public key is known by everyone who wants to communicate
+            with the target</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The two keys play such that encryption of data happens with the
+        public key, but you cannot decrypt that data with the public key. To
+        decrypt it, you need the private key. But another aspect is that you
+        can encrypt with the private key and decrypt with the public, allowing
+        people to verify that data was indeed encrypted by that person (in
+        reality this is used to "sign" data, which is to make a checksum of
+        the file and then encrypt this checksum).</para>
+
+        <para>In our communication problem from before, this would make it a
+        whole lot easier: Bob just takes Alice' public key, encrypts the data
+        he wants to send to Alice using the public key, and he's done. Alice
+        can do the same with Bob's public key so that two-way communication is
+        possible. However, there are a few drawbacks here:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Public-key cryptographic functions are quite resource
+            intensive.</para>
+
+            <para>For this reason, they are only used to exchange a symmetric
+            key or part of a symmetric key (like the initial number "1000"
+            used in our previous example). </para>
+          </listitem>
+
+          <listitem>
+            <para>A malicious person could create his own public/private key
+            pair and tell the world that his public key is the public key of
+            Alice. If Bob would want to communicate with Alice but uses Chris'
+            public key, he would encrypt the data so that Chris can only read
+            it. Chris then decrypts the data, encrypts it with Alice' real
+            public key and sends it to Alice. A communication channel between
+            Alice and Bob come forth, but Chris is "in the middle" reading
+            (and perhaps even manipulating) the data. This is called a
+            <emphasis>Man-In-The-Middle</emphasis><indexterm>
+                <primary>man-in-the-middle</primary>
+              </indexterm> or MITM<indexterm>
+                <primary>MITM attack</primary>
+              </indexterm> attack.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The second part is the major "downside" of a public key - how
+        are you certain that this public key is actually of the target person
+        or service you want to communicate with? This is where certificates
+        come into play...</para>
+      </section>
+
+      <section>
+        <title>Certificates</title>
+
+        <para>A certificate is this same public key, together with data that
+        identifies who the public/private key belongs to. This certificate
+        also has signatures attached that are generated by other certificates.
+        The idea is that, if both Alice and Bob know a public key
+        (certificate) of a party they <emphasis>both</emphasis> trust (and
+        know that this public key is indeed of the trusted party), then Alice
+        can send her own certificate, signed by this trusted party, to
+        Bob.</para>
+
+        <para>Bob then validates the signature on this certificate (using the
+        public key he has of the trusted party). If the signature indeed pans
+        out, then Bob knows that the certificate he got is indeed from Alice
+        (because the trusted party sais so).</para>
+
+        <para>A malicious person now has a more difficult task. If a wrong
+        certificate is generated, then the trusted party will probably not
+        sign it. As a result, Chris cannot "fake" a certificate because both
+        Alice and Bob will check the signature of the certificate before they
+        agree that it is a valid certificate.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Certificates in organizations</title>
+
+      <para>In a larger organization or network, certificates play an
+      important role. Many servers use SSL (or TLS) encryption. In this case,
+      the client connects to the server and receives that servers' certificate
+      information. The client validates this certificate with the keys he has
+      of trusted "authorative" actors. If the certificate is valid, then the
+      client knows he is communicating with the correct service. Some magic
+      occurs then to generate a session key only the client and the server
+      know (if you're interested, search on the internet for "ssl handshake
+      pre-master") so they can then use symmetric encryption algorithms for
+      the rest of the communication.</para>
+
+      <para>If we were to use self-signed certificates, then all the clients
+      should have the public keys of all these systems in their own list of
+      trusted keys (this combination is called the <emphasis>trust
+      store</emphasis>), which is a nightmare to manage. And if you had to do
+      that, why not just keep the symmetric keys then and do not use public
+      key infrastructure... Or you could have your clients accept self-signed
+      certificates, but then you are vulnerable for MITM attacks.</para>
+
+      <para>This is where good certificate management comes into play. Serious
+      organizations need a way to "sign" certificates used in the architecture
+      with a single key (or very limited set of keys) and distribute this
+      (trusted) public key to all the clients. The trust store of these
+      clients is then much smaller. </para>
+
+      <para>The service that signs certificates is called the
+      <emphasis>Certificate Authority</emphasis><indexterm>
+          <primary>certificate authority</primary>
+        </indexterm> or CA<indexterm>
+          <primary>CA</primary>
+        </indexterm>. Often, a chain of keys is used: a top key called the
+      <emphasis>Root CA</emphasis> which is extremely heavily protected and is
+      used to sign a small set of subkeys or signing keys. These signing keys
+      are then used to sign the certificates. Often, these signing keys have a
+      different purpose (keys for signing certificates that will be used for
+      code signing, keys for signing certificates that will be used for
+      authenticating people or clients, keys for signing certificates that
+      will be used for internet-facing services, etc.)</para>
+
+      <section>
+        <title>Problems with Certificate Authorities</title>
+
+        <para>On the Internet, many popular CA services exist, like
+        CACert.org, Verizon, Geotrust, and more. All these companies try to
+        become this "trusted party" that others seek and offer signing
+        services: they will sign certificates you create (some of them even
+        generate public/private key pairs if you want). These services try to
+        protect their own keys and only sign certificates from customers they
+        can validate are proper customers (with correct identities).</para>
+
+        <para>Although this seems like a valid model, it does have its
+        flaws:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Such popular services are more likely target for hackers and
+            crackers. Once their keys are compromised, you should actively
+            revoke their public keys from your trust stores. However, that
+            also means that all certificates you use for your services that
+            are signed by these companies will effectively stop working as
+            your clients will not trust the certificates anymore.</para>
+          </listitem>
+
+          <listitem>
+            <para>These services have a financial incentive to sign
+            certificates. If they do not do proper validation of the
+            certificate requests they get, they might sign a certificate from
+            a malicious person (who is pretending to be a valid
+            customer).</para>
+          </listitem>
+
+          <listitem>
+            <para>The more of these keys that are in your clients' trust
+            store, the more chance that a malicious certificate is seen by
+            your client as valid. </para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The latter is important to remember. Assume that your clients'
+        truststore has 100 certificates that it "trusts", even though your
+        organization only uses a single one. If a malicious user creates a
+        certificate that identifies itself as one of your services and gets it
+        signed by one of those 100 CAs, then your client will trust the
+        connection if it uses this (malicious) certificate (because it is
+        signed with one of the trusted keys).</para>
+      </section>
+
+      <section>
+        <title>Keeping a lid on CAs</title>
+
+        <para>To keep the risk sufficiently low that a malicious certificate
+        is being used, you need to find a CA that you trust fully, and keep
+        your trust store limited to that CA. </para>
+
+        <para>And who else to trust better than yourself ;-)</para>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>CA Service Software</title>
+
     <para/>
   </section>
 </chapter>

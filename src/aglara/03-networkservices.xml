@@ -198,7 +198,8 @@
         <para>To support a higher security within BIND, we will of course be
         running it confined within a SELinux domain and using chroot (which,
         together with grSecurity's chroot restrictions, offer a fairly good
-        jail for this service). I am not enabling DNSSEC</para>
+        jail for this service). I am not enabling DNSSEC currently though -
+        that might follow in the (near) future.</para>
       </section>
 
       <section>
@@ -261,18 +262,39 @@
 
         <para>Next, edit <filename>/etc/conf.d/named</filename> and set the
         CHROOT variable. Make sure that this destination directory doesn't
-        exists, or is empty otherwise:</para>
+        exists, or is empty otherwise. Also set CHROOT_NOMOUNT as we will be
+        manging the files directly inside the chroot:</para>
 
-        <programlisting>CHROOT="/var/named/chroot"</programlisting>
+        <programlisting>CHROOT="/var/named/chroot"
+CHROOT_NOMOUNT="1"</programlisting>
 
-        <para>Finally, run the configuration steps provided by our friendly
-        package maintainer:</para>
+        <para>Finally, we will set up the chroot environment so that BIND can
+        run in it. Now, our friendly package maintainer at Gentoo has made
+        this easier for non-SELinux users:</para>
 
         <programlisting># <command>emerge --config =net-dns/bind-9.8.1_p1</command></programlisting>
 
-        <para>This will prepare the chroot for you. At the end of the steps,
-        it will ask you to edit your system logger configuration to capture
-        logging events from the chrooted environment as well.</para>
+        <para>With SELinux enabled though, you either need to (temporarily)
+        allow the following privileges:</para>
+
+        <programlisting>## SELinux allow rule
+allow portage_t var_t:chr_file { create getattr setattr };</programlisting>
+
+        <para>or you can opt to temporarily run portage_t in permissive
+        mode:</para>
+
+        <programlisting># <command>semanage permissive -a portage_t</command>
+(... run emerge --config ...)
+# <command>semanage permissive -d portage_t</command></programlisting>
+
+        <para>This will prepare the chroot for you. Finish off by resetting
+        the right SELinux file contexts on the chroot:</para>
+
+        <programlisting># <command>setfiles -r /var/named/chroot /etc/selinux/strict/contexts/files/file_contexts /var/named/chroot</command></programlisting>
+
+        <para>At the end of the steps, emerge will ask you to edit your system
+        logger configuration to capture logging events from the chrooted
+        environment as well.</para>
 
         <programlisting># <command>vim /etc/syslog-ng/syslog-ng.conf</command>
 (... Add the next line ...)
@@ -285,7 +307,7 @@ source jail { unix-stream("/var/named/chroot/dev/log"); };</programlisting>
         <para>We will start with an initial configuration of BIND.</para>
 
         <para>Let's start with
-        <filename>/var/named/chroot/etc/named.conf</filename><indexterm>
+        <filename>/var/named/chroot/etc/bind/named.conf</filename><indexterm>
             <primary>named.conf</primary>
           </indexterm>:</para>
 
@@ -294,22 +316,22 @@ source jail { unix-stream("/var/named/chroot/dev/log"); };</programlisting>
   pid-file "/var/run/named/named.pid";
   statistics-file "/var/run/named/named.stats";
   listen-on { 127.0.0.1; };
-  listen-on-v6 { 2001:db8:81:21::1bac:98ad:5fe1; };
+  listen-on-v6 { 2001:db8:81:21::ac:98ad:5fe1; };
   allow-query { any; };
   zone-statistics yes;
-  allow-transfer { 2001:db8:81:22::7aae:6b01:e3d8; };
+  allow-transfer { 2001:db8:81:22::ae:6b01:e3d8; };
   notify yes;
   recursion no;
   version "[nope]";
-}
+};
 
 # Access to DNS for local addresses (i.e. genfic-owned)
 view "local" {
   match-clients { 2001:db8:81::/48; };
   recursion yes;
   zone "genfic.com" { type master; file "pri/com.genfic"; };
-  zone "1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa" { type master; fiel "pri/inv.com.genfic"; };
-}</programlisting>
+  zone "1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa" { type master; file "pri/inv.com.genfic"; };
+};</programlisting>
 
         <para>That's it. The configuration will have this installation work as
         the master DNS server and will (only) accept DNS requests from IPv6
@@ -330,7 +352,7 @@ view "local" {
           <listitem>
             <para>set the type of the zone's to "<parameter>slave</parameter>"
             instead and add in <userinput>masters {
-            2001:db8:81:21::1bac:98ad:5fe1; }</userinput> to each zone. That
+            2001:db8:81:21::ac:98ad:5fe1; }</userinput> to each zone. That
             will tell BIND what the master is of this particular zone.</para>
           </listitem>
         </itemizedlist>
@@ -338,43 +360,44 @@ view "local" {
         <para>Finally, set the initial zone files for the organization.</para>
 
         <programlisting># <command>cat /var/named/chroot/var/bind/pri/com.genfic</command>
-$ORIGIN genfic.com.;
-$TTL 1h;
-genfic.com. IN SOA ns.genfic.com. (
-  2012041101  ; serial
-  1d          ; slave refresh
-  2h          ; slave retry
-  4w          ; slave expiration
-  1h          ; max caching time
-)
+$TTL 1h ;
+$ORIGIN genfic.com.
+@       IN      SOA     ns.genfic.com. ns.genfic.com. (
+                        2012041101
+                        1d      
+                        2h
+                        4w
+                        1h )
 
-genfic.com.  NS  ns;
-genfic.com.  NS  ns2.genfic.com;
-genfic.com.  MX  10  mail.genfic.com.;
-genfic.com.  MX  20  mail2.genfic.com.;
+        IN      NS      ns.genfic.com.
+        IN      NS      ns2.genfic.com.
+        IN      MX      10      mail.genfic.com.
+        IN      MX      20      mail2.genfic.com.
 
-genfic.com.  AAAA 2001:db8:81:80::41dd:13ed:c49e;
-ns           AAAA 2001:db8:81:21::1bac:98ad:5fe1;
-ns2          AAAA 2001:db8:81:22::7aae:6b01:e3d8;
-www          CNAME genfic.com.;
-mail         AAAA 2001:db8:81:21::d3b0:0738:8ad5;
-mail2        AAAA 2001:db8:81:22::d850:5e9f:e569;
+genfic.com.     IN      AAAA    2001:db8:81:80::dd:13ed:c49e;
+ns              IN      AAAA    2001:db8:81:21::ac:98ad:5fe1;
+ns2             IN      AAAA    2001:db8:81:22::ae:6b01:e3d8;
+www             IN      CNAME   genfic.com.;
+mail            IN      AAAA    2001:db8:81:21::b0:0738:8ad5;
+mail2           IN      AAAA    2001:db8:81:22::50:5e9f:e569;
 ; (...)</programlisting>
 
         <programlisting># <command>cat /var/named/chroot/var/bind/pri/inv.com.genfic</command>
-$TTL 1h;
-$ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.IP6.ARPA.
-@   IN   SOA   ns.genfic.com. (
-  2012041101;
-  1d;
-  2h;
-  4w;
-  1h;
-)
+$TTL 1h ;
+@       IN      SOA     1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa ns.genfic.com. (
+                        2012041101
+                        1d
+                        2h
+                        4w
+                        1h )
 
-   IN    NS    ns.genfic.com.
-   IN    NS    ns2.genfic.com.
-1.e.f.5.d.a.8.9.c.a.b.1.0.0.0.0    IN   PTR    ns.genfic.com.
+        IN      NS      ns.genfic.com.
+        IN      NS      ns2.genfic.com.
+
+$ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
+
+1.e.f.5.d.a.8.9.c.a.0.0.0.0.0.0.1.2.0.0         IN      PTR     ns.genfic.com.
+8.d.3.e.1.0.b.6.e.a.0.0.0.0.0.0.2.2.0.0         IN      PTR     ns2.genfic.com.
 ; (...)</programlisting>
       </section>
 
@@ -411,6 +434,33 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.IP6.ARPA.
         <para>With <command>named-checkzone</command>, you can validate the
         syntax of your zone files.</para>
       </section>
+
+      <section>
+        <title>Checking named results</title>
+
+        <para>A good tool to query your name servers (to make sure they
+        function correctly) is dig.</para>
+
+        <para>First, let's see if the name server is up and running:</para>
+
+        <programlisting># <command>ping6 -n -c 1 ns.genfic.com</command></programlisting>
+
+        <para>If the host resolves (locally) and replies, then at least your
+        local network is working. Let's query the name server then, asking for
+        the IP address of mail.genfic.com:</para>
+
+        <programlisting># <command>dig @ns.genfic.com mail.genfic.com AAAA</command></programlisting>
+
+        <para>To get a reverse lookup, use -n -x:</para>
+
+        <programlisting># <command>dig -x 2001:db8:81:22::ae:6b01:e3d8 @ns.genfic.com </command></programlisting>
+
+        <para>If you do not want to see all the output of dig, but just the
+        answer, add in "+short".</para>
+
+        <programlisting># <command>dig mail.genfic.com AAAA @ns.genfic.com +short</command>
+2001:db8:81:21:0:b0:738:8ad5</programlisting>
+      </section>
     </section>
   </section>
 
@@ -433,11 +483,13 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.IP6.ARPA.
       <title>DHCP Architecture</title>
 
       <para>Within our architecture, we will be positioning two DHCP servers
-      internally, in an active/active setup. The systems will get information
-      about the leases given by the other DHCP server so that it can take over
-      when the other one is down. We also implement DHCP relay daemons within
-      the target subnets where the workstations and other devices will need
-      one.</para>
+      internally, in an active/standby setup. Because ISC's DHCP (which we
+      will use here) does not support high-available mode for IPv6 yet, we are
+      forced to use a "standard" setup. When ISC supports failover mode for
+      IPv6 as well, I will update the architecture accordingly.</para>
+
+      <para>We also implement DHCP relay daemons within the target subnets
+      where the workstations and other devices will need one.</para>
 
       <section>
         <title>General architecture</title>
@@ -470,11 +522,6 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.IP6.ARPA.
             eventually complete the DHCP handshake through the relay
             server</para>
           </listitem>
-
-          <listitem>
-            <para>Synchronisation and communication between DHCP servers is
-            also done (<emphasis>DHCP-SYNC</emphasis>).</para>
-          </listitem>
         </itemizedlist>
       </section>
     </section>
@@ -495,6 +542,12 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.IP6.ARPA.
 
         <para>Do the same on the relay servers. We will, however, not start
         the main server there but the relay service only.</para>
+
+        <para>Next, edit <filename>/etc/conf.d/dhcpd</filename> to configure
+        the DHCP daemon to use IPv6.</para>
+
+        <programlisting># <command>cat /etc/conf.d/dhcpd</command>
+DHCPD_OPTS="-6"</programlisting>
       </section>
 
       <section>
@@ -505,53 +558,22 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.IP6.ARPA.
         following:</para>
 
         <programlisting># <command>cat /etc/dhcp/dhcpd.conf</command>
-option domain-name genfic.com;
-option domain-name-servers 2001:db8:81:21::1bac:98ad:5fe1, 2001:db8:81:22::7aae:6b01:e3d8;
 ddns-update-style interim;
-ddns-rev-domainname "in-addr.arpa";
 
 authorative;
 
 default-lease-time 600;
 max-lease-time 7200;
 
-key primaryserver {
-  algorithm hmac-md5;
-  secret "nope";
-};
-
-omapi-key primaryserver;
-omapi-port 7911;
-
-failover peer "genfic" {
-  primary;
-  address 2001:db8:81:21::19f4:3303:40f4;
-  port 519;
-  peer address 2001:db8:81:22::a05f:3853:fe78;
-  peer port 519;
-  max-response-delay 30;
-  max-unacked-updates 10;
-  load balance max seconds 3;
-  mclt 600;
-  split 128;
-};
-
 subnet6 2001:db8:81:e2::/64 {
-  range6 2001:db8:81:e2::0f00 2001:db8:81:e2:f:0fff;
-  option dhcp6.name-servers 2001:db8:81:21::1bac:98ad:5fe1, 2001:db8:81:22::7aae:6b01:e3d8;
+  range6 2001:db8:81:e2::f00 2001:db8:81:e2::fff;
+  option dhcp6.name-servers 2001:db8:81:21::ac:98ad:5fe1, 2001:db8:81:22::ae:6b01:e3d8;
   option dhcp6.domain-search "workstation.internal.genfic.com";
+}
+
+subnet6 2001:db8:81:21::/64 {
+  # Empty but must be declared so DHCPd starts
 }</programlisting>
-
-        <para>The key in the configuration file is to be generated using the
-        dnssec-keygen command:</para>
-
-        <programlisting># <command>dnssec-keygen -a HMAC-MD5 -b 512 -n HOST primaryserver</command></programlisting>
-
-        <para>This command creates two files, one ending in
-        <filename>.key</filename> and one in <filename>.private</filename>.
-        The one ending with <filename>.key</filename> is the one you need. Its
-        last column contains the secret of this particular system and is the
-        one you need to use (instead of "nope" in the example above).</para>
 
         <para>Finally, start the service and register it to automatically
         start during boot.</para>
@@ -559,36 +581,30 @@ subnet6 2001:db8:81:e2::/64 {
         <programlisting># <command>rc-update add dhcpd default</command>
 # <command>rc-service dhcpd start</command></programlisting>
 
-        <para>You might be wondering why we call it a master in an
-        active/active setup. That's what the <parameter>split</parameter>
-        statement is for. With it set to 128, the DHCP servers will decide
-        which server takes on the allocation of the requested IP address. Only
-        when the other node is down will the system handle all DHCP
-        requests.</para>
-      </section>
-
-      <section>
-        <title>Secundary DHCP server</title>
-
-        <para>The configuration of the secundary DHCP server is similar. Just
-        substitute "primaryserver" with "secondaryserver" (its just a name,
-        not a mandatory string), use "<parameter>secondary;</parameter>" as
-        option in the failover setting and <emphasis>do not</emphasis> place
-        <parameter>mclt</parameter> and <parameter>split</parameter> in
-        it.</para>
-
-        <para>Don't forget to generate the key for this server as well, using
-        "secondaryserver" as the name now.</para>
+        <para>Our secundary system will have a similar setup, but will use a
+        separate range (say :1000 to :10ff).</para>
       </section>
 
       <section>
         <title>Relay services</title>
 
-        <para>When you configure a relay service, edit /etc/conf.d/dhcrelay
-        and set the DHCRELAY_OPTS accordingly.</para>
+        <para>When you configure a relay service, edit
+        <filename>/etc/conf.d/dhcrelay</filename> and set the DHCRELAY_OPTS
+        accordingly.</para>
 
         <programlisting># <command>cat /etc/conf.d/dhcrelay</command>
-DHCRELAY_OPTS="-6 -l eth0 -u 2001:db8:81:21::19f4:3303:40f4%eth0 -u 2001:db8:81:22::a05f:3853:fe78%eth0"</programlisting>
+DHCRELAY_OPTS="-6 -l eth0 -u 2001:db8:81:21::f4:3303:40f4%eth0 -u 2001:db8:81:22::5f:3853:fe78%eth0"</programlisting>
+
+        <para>You also need to edit <filename>/etc/init.d/dhcrelay</filename>
+        currently as it forces two options that are only valid for
+        IPv4:</para>
+
+        <programlisting># <command>vim /etc/init.d/dhcrelay</command>
+(... 1. look for $(printf " -i %s" ${IFACE}) and delete it ...)
+(... 2. look for DHCRELAY_SERVERS and remove it ...)
+(... End result should be something like:)
+start-stop-daemon --start --exec /usr/sbin/dhcrelay \
+  -- -q ${DHCRELAY_OPTS}</programlisting>
 
         <para>Then start up the relay service and make sure it starts at boot
         time as well.</para>
@@ -602,13 +618,45 @@ DHCRELAY_OPTS="-6 -l eth0 -u 2001:db8:81:21::19f4:3303:40f4%eth0 -u 2001:db8:81:
   <section>
     <title>Resources</title>
 
-    <para>IP addresses and segmentation exercises:</para>
+    <para>IP addresses, segmentation and IPv6:</para>
 
     <itemizedlist>
       <listitem>
         <para><link
         xlink:href="http://www.sans.org/reading_room/whitepapers/hsoffice/design-secure-network-segmentation-approach_1645">Design
         Secure Network Segmentation Approach</link>, article on SANS</para>
+      </listitem>
+
+      <listitem>
+        <para><link
+        xlink:href="http://ipv6.com/articles/general/IPv6-Addressing.htm">IPv6
+        Addressing</link> (IPv6.com)</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>On ISC BIND:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link
+        xlink:href="http://en.gentoo-wiki.com/wiki/BIND">BIND</link>
+        (Gentoo-wiki.com)</para>
+      </listitem>
+
+      <listitem>
+        <para><link
+        xlink:href="http://www.zytrax.com/books/dns/ch7/xfer.html">DNS BIND
+        Zone Transfers and Updates</link> (Zytrax.com)</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>On ISC DHCP:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link
+        xlink:href="http://www.madboa.com/geek/dhcp-failover/">High-available
+        DHCP with failover</link> (IPv4 only) (Madboa.com)</para>
       </listitem>
     </itemizedlist>
   </section>

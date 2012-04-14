@@ -552,6 +552,34 @@ Max kernel policy version:      26</programlisting>
 
         <programlisting># <command>emerge syslog-ng</command></programlisting>
       </section>
+
+      <section>
+        <title>Network settings</title>
+
+        <para>We will be using IPv6 exclusively in this architecture, but for
+        some applications, we still need to support IPv4. When this is the
+        case, we will try to only use 127.0.0.1.</para>
+
+        <para>To setup a system with IPv6, first set the /etc/conf.d/net file
+        accordingly. For instance, for one of our name servers (which we'll
+        describe later):</para>
+
+        <programlisting># <command>cat /etc/conf.d/net</command>
+config_eth0="2001:db8:81:21::ac:98ad:5fe1/64";</programlisting>
+
+        <para>Our hostname will be set in a fully qualified way (primarily for
+        use by puppet later):</para>
+
+        <programlisting># <command>cat /etc/conf.d/hostname</command>
+hostname="ns.genfic.com"
+
+# <command>cat /etc/hosts</command>
+::1                             localhost
+2001:db8:81:21::ac:98ad:5fe1  ns.genfic.com  ns</programlisting>
+
+        <para>As a quick hint, if you want to ping hosts using IPv6, use
+        <command>ping6</command>.</para>
+      </section>
     </section>
 
     <section>

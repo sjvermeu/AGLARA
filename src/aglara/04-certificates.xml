@@ -148,7 +148,7 @@
 
             <para>For this reason, they are only used to exchange a symmetric
             key or part of a symmetric key (like the initial number "1000"
-            used in our previous example). </para>
+            used in our previous example).</para>
           </listitem>
 
           <listitem>
@@ -185,6 +185,16 @@
         know that this public key is indeed of the trusted party), then Alice
         can send her own certificate, signed by this trusted party, to
         Bob.</para>
+
+        <figure>
+          <title>Certificates and CAs in a nutshell</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/04-ca_certificate.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
 
         <para>Bob then validates the signature on this certificate (using the
         public key he has of the trusted party). If the signature indeed pans
@@ -225,7 +235,7 @@
       organizations need a way to "sign" certificates used in the architecture
       with a single key (or very limited set of keys) and distribute this
       (trusted) public key to all the clients. The trust store of these
-      clients is then much smaller. </para>
+      clients is then much smaller.</para>
 
       <para>The service that signs certificates is called the
       <emphasis>Certificate Authority</emphasis><indexterm>
@@ -276,7 +286,7 @@
           <listitem>
             <para>The more of these keys that are in your clients' trust
             store, the more chance that a malicious certificate is seen by
-            your client as valid. </para>
+            your client as valid.</para>
           </listitem>
         </itemizedlist>
 
@@ -294,9 +304,58 @@
 
         <para>To keep the risk sufficiently low that a malicious certificate
         is being used, you need to find a CA that you trust fully, and keep
-        your trust store limited to that CA. </para>
+        your trust store limited to that CA.</para>
 
         <para>And who else to trust better than yourself ;-)</para>
+
+        <figure>
+          <title>Use of a CA management service</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/04-ejbca.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>By using management software for certificates internally, many
+        important activities can be handled without having to seek for and pay
+        a large CA vendor:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>You can create your own CA store</para>
+          </listitem>
+
+          <listitem>
+            <para>You can sign requests of certificate requests that users
+            have sent to you</para>
+          </listitem>
+
+          <listitem>
+            <para>You can revoke certificates (or at least, signatures you
+            made on certificates) for end user certificates that you should
+            not allow to trust anymore (for instance because they have been
+            compromised)</para>
+          </listitem>
+
+          <listitem>
+            <para>You can have users create a certificate (in case they don't
+            have the proper tools on their systems, although I seriously don't
+            recommend to generate private and public keys on a remote
+            server)</para>
+          </listitem>
+
+          <listitem>
+            <para>You can have users submit a certificate signing request to
+            you for processing, and then download the signed certificate from
+            the site</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The use of a webbased software allows you to fully isolate the
+        service so that the number of attack vectors against the system is
+        very limited.</para>
       </section>
     </section>
   </section>
@@ -304,6 +363,47 @@
   <section>
     <title>CA Service Software</title>
 
-    <para/>
+    <para>As CA management software, we will use EJBCA. EJBCA is a free
+    software PKI<indexterm>
+        <primary>PKI</primary>
+      </indexterm> (<emphasis>public key infrastructure</emphasis><indexterm>
+        <primary>public key infrastructure</primary>
+      </indexterm>) management solution built upon Java Enterprise Edition
+    (abbreviated JEE). It runs on the free software JBoss application server,
+    which we will configure first.</para>
+
+    <section>
+      <title>JBoss</title>
+
+      <para>JBoss<indexterm>
+          <primary>JBoss</primary>
+        </indexterm> is a family of free software products developed mainly by
+      RedHat and which focuses on the middleware components many organizations
+      need. Right now, what we need is the JBoss Application Server,
+      abbreviated as JBoss AS. The JBoss Application Server implements the
+      Java Enterprise Edition (Java EE or JEE) stack.</para>
+
+      <section>
+        <title>Installing JBoss</title>
+
+        <para>In Gentoo, JBoss is not available in the default tree so you
+        will need to TODO</para>
+      </section>
+    </section>
+
+    <section>
+      <title>EJBCA</title>
+
+      <para>The EJBCA<indexterm>
+          <primary>EJBCA</primary>
+        </indexterm> software is a certificate management software suite that
+      supports CA-like functions for medium to large enterprises.</para>
+
+      <section>
+        <title>Installing EJBCA</title>
+
+        <para>TODO</para>
+      </section>
+    </section>
   </section>
 </chapter>

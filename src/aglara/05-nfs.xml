@@ -12,6 +12,196 @@
   <section>
     <title>Introduction</title>
 
-    <para/>
+    <para>For some applications or services, you will need a high available
+    file server. Although clustering file systems exist (like OCFS and GFS),
+    in this chapter, we focus on providing a high-available, secure file
+    server based on NFS v4.</para>
+
+    <para>Users that are interested in providing network file systems across a
+    heterogenous network of Unix, Linux and Windows systems might want to read
+    about Samba instead.</para>
+  </section>
+
+  <section>
+    <title>NFS v4</title>
+
+    <para>NFS stands for <emphasis>Network File System</emphasis> and is a
+    well-known distributed file system in Unix/Linux. NFS (and its versions,
+    like NFSv2, NFSv3 and NFSv4) are open standards and defined in various
+    RFCs. It provides an easy, integrated way for sharing files between
+    Unix/Linux systems as systems that have access to NFS mounts see them as
+    part of the (local) file system tree. In other words, /home can very well
+    be an NFS-provided, remote mount rather than a locally mounted file
+    system.</para>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>NFS at first might seem a bit difficult to master. In the past
+      (NFSv3 and earlier), this might have been true, but with NFSv4, its
+      architecture has become greatly simplified, especially when you use TCP
+      rather than UDP.</para>
+
+      <figure>
+        <title>NFSv3 versus NFSv4</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/05-nfs.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>When you used NFS v3, next to the NFS daemon
+      (<command>nfsd</command>), the following services need to run as
+      well:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para><command>rpcbind</command><indexterm>
+              <primary>rpcbind</primary>
+            </indexterm>, which is responsible for dynamically assigning ports
+          for RPC services. The NFS server tells the
+          <command>rpcbind</command> daemon on which address it is listening
+          and which RPC program numbers it is prepared to serve. A client
+          connects to the <command>rpcbind</command> daemon and informs it
+          about the RPC program number the client wants to connect with. The
+          <command>rpcbind</command> daemon then replies with the address that
+          NFS listens on.</para>
+
+          <para>It is the <command>rpcbind</command> daemon which is
+          responsible for handling access control (through the tcp wrappers
+          interface - using the <filename>/etc/hosts.allow</filename> and
+          <filename>hosts.deny</filename> files) - for the service "rpcbind".
+          Note though that this access control is then applied to all
+          RPC-enabled services, not only NFS.</para>
+        </listitem>
+
+        <listitem>
+          <para><command>rpc.mountd</command><indexterm>
+              <primary>rpc.mountd</primary>
+            </indexterm> implements the NFS mount protocol and exposes itself
+          as an RPC service as well. A client issues a MOUNT request to the
+          <command>rpc.mountd</command> daemon, which checks its list of
+          exported file systems and access controls to see if the client can
+          mount the requested directory. Access controls can both be mentioned
+          within the list of exported file systems as well as through
+          <command>rpc.mountd</command>' tcp wrappers support (for the service
+          "mountd").</para>
+        </listitem>
+
+        <listitem>
+          <para><command>rpc.lockd</command><indexterm>
+              <primary>rpc.lockd</primary>
+            </indexterm> supports file locking on NFS, so that concurrent
+          access to the same resource can be streamlined.</para>
+        </listitem>
+
+        <listitem>
+          <para><command>rpc.statd</command><indexterm>
+              <primary>rpc.statd</primary>
+            </indexterm> interacts with the <command>rpc.lockd</command>
+          daemon and provides crash and recovery for the locking
+          services.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>With NFSv4, mount and locking services have been integrated in the
+      NFS daemon itself. The rpc.mountd daemon is still needed to handle the
+      exports, but is not involved with network communication anymore (in
+      other words, the client connects directly with the NFS daemon).</para>
+
+      <para>Although the high-level architecture is greatly simplified (and
+      especially for the NFS client, since all accesses are now done through
+      the NFS daemon), other daemons are being introduced to further enhance
+      the functionalities offered by NFSv4.</para>
+
+      <section>
+        <title>ID Mapping</title>
+
+        <para>The first daemon is <command>rpc.idmapd</command><indexterm>
+            <primary>rpc.idmapd</primary>
+          </indexterm>, which is responsible for translating user and group
+        IDs to names and vice-versa. It runs on both the server and client so
+        that communication between the two can use user names (rather than
+        possibly mismatching user IDs).</para>
+      </section>
+
+      <section>
+        <title>Kerberos support</title>
+
+        <para>The second daemon (well, actually set of daemons) is
+        <command>rpc.gssd</command><indexterm>
+            <primary>rpc.gssd</primary>
+          </indexterm> (client) and <command>rpc.svcgssd</command><indexterm>
+            <primary>rpc.svcgssd</primary>
+          </indexterm> (server). These daemons are responsible for handling
+        the kerberos authentication mechanism for NFS.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Installation</title>
+
+      <para>On both server as well as clients you will need to install the
+      necessary supporting tools (and perhaps kernel settings).</para>
+
+      <section>
+        <title>Server-side installation</title>
+
+        <para>On the server, first make sure that the following kernel
+        configuration settings are at least met:</para>
+
+        <programlisting>CONFIG_NFS_FS=y
+CONFIG_NFSD_V4=y
+CONFIG_NFSD_V4_ACL=y</programlisting>
+
+        <para>Next install the NFS server (which is provided through the
+        <package>nfs-utils</package> package) while making sure that USE="ipv6
+        nfsv4 nfsv41" are at least set</para>
+
+        <programlisting># <command>emerge nfs-utils</command></programlisting>
+      </section>
+
+      <section>
+        <title>Client-side installation</title>
+
+        <para>On the clients, make sure that the following kernel
+        configuration settings are at least met:</para>
+
+        <programlisting>CONFIG_NFS_FS=y
+CONFIG_NFS_V4=y
+CONFIG_NFS_V4_ACL=y</programlisting>
+
+        <para>Next, install the NFS utilities while making sure that USE="ipv6
+        nfsv4 nfsv41" are at least set:</para>
+
+        <programlisting># <command>emerge nfs-utils</command></programlisting>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>High Available Setup</title>
+
+    <para>DRBD</para>
+  </section>
+
+  <section>
+    <title>Resources</title>
+
+    <para>NFS</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link xlink:href="https://tools.ietf.org/html/rfc3530">Network
+        File System version 4 protocol</link> (RFC 3530 on IETF.org)</para>
+      </listitem>
+
+      <listitem>
+        <para><link xlink:href="https://tools.ietf.org/html/rfc5661">Network
+        File System version 4.1 protocol</link> (RFC 5661 on IETF.org)</para>
+      </listitem>
+    </itemizedlist>
   </section>
 </chapter>

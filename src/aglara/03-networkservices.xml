@@ -227,19 +227,19 @@
 
         <itemizedlist>
           <listitem>
-            <para><emphasis>XFER-PULL</emphasis> is initiated from the
+            <para><emphasis>XFER PULL</emphasis> is initiated from the
             secundary name server (the slave) which periodically connects to
             the master to get changes on the zone files</para>
           </listitem>
 
           <listitem>
-            <para><emphasis>SIGNAL-XFER</emphasis> is initiated by the master
+            <para><emphasis>SIGNAL XFER</emphasis> is initiated by the master
             name server and is a feature in BIND9 to signal its slave servers
             when changes have occurred</para>
           </listitem>
 
           <listitem>
-            <para><emphasis>CMDB-FEED</emphasis> is a file transfer initiated
+            <para><emphasis>CMDB FEED</emphasis> is a file transfer initiated
             from the central configuration management system (Puppet) which
             contains node information (IP address versus expected hostname and
             domain name) and is used to locally regenerate the zone
@@ -355,6 +355,13 @@ view "local" {
             2001:db8:81:21::ac:98ad:5fe1; }</userinput> to each zone. That
             will tell BIND what the master is of this particular zone.</para>
           </listitem>
+
+          <listitem>
+            <para>on the slave, you will also need to set the
+            <parameter>named_write_master_zones</parameter> SELinux boolean to
+            "on" so that the named_t domain can write to the cache
+            location.</para>
+          </listitem>
         </itemizedlist>
 
         <para>Finally, set the initial zone files for the organization.</para>
@@ -413,6 +420,36 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         automatically generate zone files and push them to the name
         servers.</para>
       </section>
+
+      <section>
+        <title>Additional hardening</title>
+
+        <para>You can perform additional hardening on the BIND system by
+        introducing transaction signatures (TSIG<indexterm>
+            <primary>TSIG</primary>
+          </indexterm>). To do so, create a shared secret (key) with
+        <command>dnssec-keygen</command>. The generated key is then added to
+        the named.conf file like so:</para>
+
+        <programlisting># <command>dnssec-keygen -a HMAC-MD5 -b 128 -n HOST secundary</command>
+(... Use the Key entry from the .key file ...)</programlisting>
+
+        <programlisting>(... In named.conf ...)
+key secundary { algorithm hmac-md5; secret "d8fhe2frgY24WFedx348=="; };
+
+(... In named.conf's zone definition ...)
+allow-update { key secundary; };</programlisting>
+
+        <para>In the slave's configuration, add in an entry for the master and
+        refer to this key as well.</para>
+
+        <programlisting>(... In named.conf ...)
+key secundary { algorithm hmac-md5; secret "d8fhe2frgY24WFedx348=="; };
+server 2001:db8:81:21::ac:98ad:5fe1 { keys { secundary; }; };</programlisting>
+
+        <para>You cannot use the TSIG together with an IP address list though,
+        so either use the keys or use IP addresses.</para>
+      </section>
     </section>
 
     <section>
@@ -460,6 +497,24 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 
         <programlisting># <command>dig mail.genfic.com AAAA @ns.genfic.com +short</command>
 2001:db8:81:21:0:b0:738:8ad5</programlisting>
+      </section>
+
+      <section>
+        <title>Pushing changes</title>
+
+        <para>You can push changes to BIND using the
+        <command>nsupdate</command><indexterm>
+            <primary>nsupdate</primary>
+          </indexterm> application. You'll need to make sure the system from
+        which you run this has the proper rights in BIND (through the
+        <parameter>allow-update</parameter> directive). Once set up though,
+        you can use this to create the feed from, for instance, a
+        configuration management database.</para>
+
+        <programlisting>$ <command>cat changes.txt</command>
+server 2001:db8:81:21::ac:98ad:5fe1 53
+update add mail2.internal.genfic.com 3600 AAAA 2001:db8:81:22::50:5e9f:e569
+$ <command>nsupdate ./changes.txt</command></programlisting>
       </section>
     </section>
   </section>
@@ -512,15 +567,14 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         <itemizedlist>
           <listitem>
             <para>The workstation requests a dynamic IP address
-            (<emphasis>DHCP-REQ</emphasis>) which gets captured by the relay
+            (<emphasis>Request IP</emphasis>) which gets captured by the relay
             server.</para>
           </listitem>
 
           <listitem>
-            <para>The relay server forwards the request
-            (<emphasis>DHC-FWD</emphasis>) to the DHCP servers. They
-            eventually complete the DHCP handshake through the relay
-            server</para>
+            <para>The relay server forwards the request (<emphasis>Forward
+            request</emphasis>) to the DHCP servers. They eventually complete
+            the DHCP handshake through the relay server</para>
           </listitem>
         </itemizedlist>
       </section>
@@ -647,6 +701,12 @@ start-stop-daemon --start --exec /usr/sbin/dhcrelay \
         <para><link
         xlink:href="http://www.zytrax.com/books/dns/ch7/xfer.html">DNS BIND
         Zone Transfers and Updates</link> (Zytrax.com)</para>
+      </listitem>
+
+      <listitem>
+        <para><link
+        xlink:href="http://www.cyberciti.biz/faq/unix-linux-bind-named-configuring-tsig/">Transaction
+        Signatures Configuration</link> (Cyberciti.biz)</para>
       </listitem>
     </itemizedlist>
 

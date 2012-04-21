@@ -1,3 +1,10 @@
+** (2012-04-21) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Start on NFSv4
+
+** (2012-04-20) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Use diagram.ly drawings from now on
+	- Update on BIND and certificate management
+
 ** (2012-04-14) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Update DNS (BIND), update on IPv6-specifics
 	- Revert DHCP back to a "normal" setup, failover in IPv6 is not

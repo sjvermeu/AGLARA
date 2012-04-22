@@ -384,10 +384,129 @@
       Java Enterprise Edition (Java EE or JEE) stack.</para>
 
       <section>
+        <title>Architecture</title>
+
+        <para>To help in the administration and management of JBoss, a few
+        interesting points on its architecture.</para>
+
+        <para>JBoss AS supports two management modes, one is
+        <emphasis>standalone mode</emphasis> and the other is <emphasis>domain
+        mode</emphasis>.</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>In standalone mode, the JBoss AS application installation on
+            the server is managed through the same JBoss AS
+            installation.</para>
+          </listitem>
+
+          <listitem>
+            <para>In domain mode, you have a set of JBoss AS application
+            installations which are managed as a single set. </para>
+          </listitem>
+        </itemizedlist>
+
+        <para>For now, we will use JBoss AS in standalone mode. </para>
+
+        <para>We will use /var/lib/jboss as JBoss' base directory (in which
+        the instance can write and have its applications installed in).</para>
+      </section>
+
+      <section>
         <title>Installing JBoss</title>
 
-        <para>In Gentoo, JBoss is not available in the default tree so you
-        will need to TODO</para>
+        <para>In Gentoo, JBoss is not available in the default tree. Luckily,
+        it is well supported upstream through simple packaging.</para>
+
+        <para>First, we install <package>virtual/jdk</package>, a meta-package
+        in Gentoo which will pull in a Java Development Kit suite (probably
+        icedtea):</para>
+
+        <programlisting># <command>emerge virtual/jdk</command></programlisting>
+
+        <para>We need to install a jdk rather than a jre (Java Runtime
+        Environment) as the JBoss Application Server can require a working
+        java compiler (for instance to compile JSP pages into executable
+        code). You probably want to check your USE flags as well here - there
+        is a significant difference in number of installed packages when you
+        tweak your USE flags. I ran this with <parameter>USE="-alsa -cups
+        -X"</parameter> to start with.</para>
+
+        <para>Next create the jboss user and group:</para>
+
+        <programlisting># <command>groupadd jboss</command>
+# <command>useradd -m -g jboss jboss</command>
+# <command>passwd -l jboss</command></programlisting>
+
+        <para>Next we download the binary distribution for RedHat JBoss AS. In
+        this guide, I'll use JBoss AS 7.1.</para>
+
+        <programlisting># <command>cd /opt</command>
+# <command>mkdir redhat</command>
+# <command>cd redhat</command>
+# <command>wget http://download.jboss.org/jbossas/7.1/jboss-as-7.1.0.CR1b/jboss-as-7.1.0.CR1b.tar.gz</command>
+# <command>tar xzf jboss-as-7.1.0.CR1b.tar.gz</command>
+# <command>chown -R root:root /opt/redhat</command>
+# </programlisting>
+
+        <para>Create the following init script and configuration files to
+        manage the startup of the application server:</para>
+
+        <programlisting># <command>cat /etc/init.d/jboss-as</command>
+#!/sbin/runscript
+# Copyright 1999-2008 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header$
+
+PIDFILE=/var/run/jboss-as.pid
+LOGFILE=/var/log/jboss-as.log
+
+depend() {
+        need net
+        use logger
+}
+
+start() {
+        ebegin "Starting JBoss AS"
+                start-stop-daemon --start --quiet --background \
+                --make-pidfile --pidfile ${PIDFILE} \
+                --stdout ${LOGFILE} --stderr ${LOGFILE} \
+                --exec /opt/redhat/jboss-as-7.1.0.CR1b/bin/standalone.sh \
+                --user=${JBOSS_AS_USER} --group=${JBOSS_AS_GROUP} \
+                -- ${JBOSS_AS_OPTS}
+        eend $?
+}
+
+stop() {
+        ebegin "Stopping JBoss AS"
+                start-stop-daemon --stop --quiet \
+                --pidfile ${PIDFILE}
+        eend $?
+}</programlisting>
+
+        <programlisting># <command>cat /etc/conf.d/jboss-as</command>
+JBOSS_AS_USER="jboss"
+JBOSS_AS_GROUP="jboss"
+JBOSS_AS_OPTS="-Djboss.server.base.dir=/var/lib/jboss"</programlisting>
+
+        <para>Next, create <filename>/var/lib/jboss</filename> and copy the
+        contents of the JBoss AS standalone directory to it.</para>
+
+        <programlisting># <command>mkdir /var/lib/jboss</command>
+# <command>rsync /opt/redhat/jboss-as-7.1.0.CR1b/standalone/ /var/lib/jboss</command>
+# <command>mkdir /var/lib/jboss/data</command>
+# <command>chown -R jboss:jboss /var/lib/jboss/data</command>
+# </programlisting>
+      </section>
+
+      <section>
+        <title>Enabling SELinux</title>
+
+        <para>Currently, no SELinux policy for JBoss AS exists yet. I have
+        made a simple one, which is available on my development page and which
+        i'll use in this document. </para>
+
+        <para>TODO</para>
       </section>
     </section>
 

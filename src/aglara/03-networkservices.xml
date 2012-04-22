@@ -450,6 +450,12 @@ server 2001:db8:81:21::ac:98ad:5fe1 { keys { secundary; }; };</programlisting>
         <para>You cannot use the TSIG together with an IP address list though,
         so either use the keys or use IP addresses.</para>
       </section>
+
+      <section>
+        <title>Security Benchmark</title>
+
+        <para>On CISecurity, a BIND benchmark is readily available.</para>
+      </section>
     </section>
 
     <section>
@@ -707,6 +713,12 @@ start-stop-daemon --start --exec /usr/sbin/dhcrelay \
         <para><link
         xlink:href="http://www.cyberciti.biz/faq/unix-linux-bind-named-configuring-tsig/">Transaction
         Signatures Configuration</link> (Cyberciti.biz)</para>
+      </listitem>
+
+      <listitem>
+        <para><link
+        xlink:href="http://benchmarks.cisecurity.org/en-us/?route=downloads.show.single.bind.200">CISecurity
+        BIND Benchmark</link> (CISecurity.org)</para>
       </listitem>
     </itemizedlist>
 

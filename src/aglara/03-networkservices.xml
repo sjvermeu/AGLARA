@@ -450,12 +450,6 @@ server 2001:db8:81:21::ac:98ad:5fe1 { keys { secundary; }; };</programlisting>
         <para>You cannot use the TSIG together with an IP address list though,
         so either use the keys or use IP addresses.</para>
       </section>
-
-      <section>
-        <title>Security Benchmark</title>
-
-        <para>On CISecurity, a BIND benchmark is readily available.</para>
-      </section>
     </section>
 
     <section>

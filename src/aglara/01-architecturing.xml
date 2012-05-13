@@ -348,7 +348,7 @@
           LDAP, etc. By properly documenting these feeds or flows, you are
           quickly able to find possible attention points (storage volume
           requirements, network traffic shaping needs, heavy I/O timeframes,
-          ...) that need to be tackled. </para>
+          ...) that need to be tackled.</para>
 
           <para>In many cases, integration-requirements can also be found from
           this. A flow of log entries towards a central log server will help
@@ -391,8 +391,8 @@
           (integration) architecture, but more about understanding what the
           service is actually doing. Usually, you can find this information
           from the products' project page (or vendor), but it never hurts to
-          verify this yourself and draw it so you understand it yourself.
-          </para>
+          verify this yourself and draw it so you understand it
+          yourself.</para>
 
           <para>An example operational flow could be the high-level working of
           Apache (with a master process bound to port 80, but that is
@@ -699,60 +699,5 @@
         also drive other decisions.</para>
       </section>
     </section>
-  </section>
-
-  <section>
-    <title>Security benchmarks</title>
-
-    <para>To support a hardened approach on the servers, I advise to use the
-    Gentoo Security Benchmarks which I have written using XCCDF<indexterm>
-        <primary>XCCDF</primary>
-      </indexterm> and OVAL<indexterm>
-        <primary>OVAL</primary>
-      </indexterm>. This has the advantage that you can have your system
-    "verified" by XCCDF/OVAL-capable tools like openscap<indexterm>
-        <primary>openscap</primary>
-      </indexterm>. As I go along with this book, such benchmarks will be
-    created and referenced. The link towards the benchmark will be shown
-    together with the other resources of each chapter.</para>
-
-    <para><emphasis>XCCDF</emphasis> is part of a standard for documenting the
-    settings of a system for a particular subject (that standard is called
-    SCAP<indexterm>
-        <primary>SCAP</primary>
-      </indexterm>).. The document is primarily written in XHTML (but can be
-    exported to PDF or other formats) but contains references to checks that
-    can be done on a system to verify if it complies with what is documented.
-    Because of this functionality, XCCDF documents are widely popular in the
-    security world as they offer a standard method for building benchmarks
-    (best practices). Example organizations that offer XCCDF-based benchmarks
-    are <link xlink:href="http://www.cisecurity.org">CISecurity</link> and
-    <link
-    xlink:href="http://web.nvd.nist.gov/view/ncp/repository">NIST</link>.
-    Providers of a particular product also offer XCCDF content for their
-    products (like <link
-    xlink:href="https://fedorahosted.org/scap-security-guide/">Fedora</link>).</para>
-
-    <para><emphasis>OVAL</emphasis> is a part of SCAP as well, and contains
-    the instructions to check for a particular setting. The OVAL language is
-    quite extensible, but also quite difficult to read. However, once defined,
-    it allows administrators to check for a particular setting (or installed
-    software, or missing configuration entry) in an automated manner and
-    report on the state. For instance, <link
-    xlink:href="https://www.redhat.com/security/data/oval/">RedHat</link>
-    provides OVAL definitions for each of its security advisories, allowing
-    administrators to automatically validate if their system is vulnerable or
-    not. In Gentoo Linux, <command>glsa-check</command><indexterm>
-        <primary>glsa-check</primary>
-      </indexterm> does something similar but without OVAL (currently).</para>
-
-    <para>The benchmarks that will be made available throughout the
-    development of this book can be validated with openscap, so it might be a
-    good idea to install the tool already.</para>
-
-    <programlisting># <command>emerge openscap</command></programlisting>
-
-    <para>The instructions to validate a benchmark on a given system will be
-    shown per chapter.</para>
   </section>
 </chapter>

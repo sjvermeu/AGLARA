@@ -402,14 +402,28 @@
 
           <listitem>
             <para>In domain mode, you have a set of JBoss AS application
-            installations which are managed as a single set. </para>
+            installations which are managed as a single set.</para>
           </listitem>
         </itemizedlist>
 
-        <para>For now, we will use JBoss AS in standalone mode. </para>
+        <para>For now, we will use JBoss AS in standalone mode.</para>
 
         <para>We will use /var/lib/jboss as JBoss' base directory (in which
         the instance can write and have its applications installed in).</para>
+      </section>
+
+      <section>
+        <title>Enabling SELinux</title>
+
+        <para>Currently, no SELinux policy for JBoss AS exists yet. I have
+        made a simple one, which is available in my overlay (called
+        3p-selinux-jbossas, "3rd party SELinux jbossas module" for those
+        wondering ;-) and which I'll use in this architecture.</para>
+
+        <programlisting># <command>emerge 3p-selinux-jbossas</command></programlisting>
+
+        <para>With this module installed, we can now install JBoss Application
+        Server (immediately with the correct file contexts).</para>
       </section>
 
       <section>
@@ -447,6 +461,7 @@
 # <command>wget http://download.jboss.org/jbossas/7.1/jboss-as-7.1.0.CR1b/jboss-as-7.1.0.CR1b.tar.gz</command>
 # <command>tar xzf jboss-as-7.1.0.CR1b.tar.gz</command>
 # <command>chown -R root:root /opt/redhat</command>
+# <command>restorecon -R /opt/redhat</command>
 # </programlisting>
 
         <para>Create the following init script and configuration files to
@@ -496,17 +511,43 @@ JBOSS_AS_OPTS="-Djboss.server.base.dir=/var/lib/jboss"</programlisting>
 # <command>rsync /opt/redhat/jboss-as-7.1.0.CR1b/standalone/ /var/lib/jboss</command>
 # <command>mkdir /var/lib/jboss/data</command>
 # <command>chown -R jboss:jboss /var/lib/jboss/data</command>
+# <command>restorecon -R /var/lib/jboss</command>
 # </programlisting>
+      </section>
+    </section>
+
+    <section>
+      <title>PostgreSQL</title>
+
+      <para>The EJBCA software we will install later requires a database to
+      store its information in. We will use a PostgreSQL database for
+      this.</para>
+
+      <section>
+        <title>PostgreSQL Architecture</title>
+
+        <para>In PostgreSQL, a <emphasis>database</emphasis> is the physical
+        representation of structured data. Or in other words, the files that
+        the PostgreSQL RDBMS (Relational Database Management System) uses for
+        storing, querying and manipulating the related data. One or more
+        databases are hosted in a PostgreSQL database cluster. A
+        <emphasis>database cluster</emphasis> contains all the databases that
+        a PostgreSQL instance manages.</para>
+
+        <para>PostgreSQL stores all data in the <emphasis>data
+        directory</emphasis> or <emphasis>data area</emphasis>.</para>
       </section>
 
       <section>
-        <title>Enabling SELinux</title>
+        <title>Installing PostgreSQL</title>
 
-        <para>Currently, no SELinux policy for JBoss AS exists yet. I have
-        made a simple one, which is available on my development page and which
-        i'll use in this document. </para>
+        <para/>
+      </section>
 
-        <para>TODO</para>
+      <section>
+        <title>Preparing PostgreSQL for EJBCA</title>
+
+        <para/>
       </section>
     </section>
 

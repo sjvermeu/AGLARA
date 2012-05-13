@@ -459,23 +459,6 @@ accesslog.filename      = log_root + "/basic.testing/access.log"
         files. In the near future, we will reconfigure this towards a central
         logging configuration.</para>
       </section>
-
-      <section>
-        <title>Security benchmark</title>
-
-        <para>TODO:</para>
-
-        <programlisting>server.username and server.groupname must not be root
-server.tag = "webserver" to not disclose version information
-index-ffle.names = ( "index.php", "index.html" ) -&gt; which files to use for directory listings
-dir-listing.activate = "disabled" -&gt; disable generation of directory listings
-enable mod_access + url.access-deny = ("~", ".inc") -&gt; disable access to backup files
-enable ssl
-ssl.use-sslv2 = "disable"
-access log only writable for user, readable by group (is group membership ok for the rest?)
-same for error log
-</programlisting>
-      </section>
     </section>
   </section>
 

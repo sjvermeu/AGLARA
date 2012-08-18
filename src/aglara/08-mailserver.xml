@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="mailserver"
+         xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <title>Mail Server</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>Most organizations have internal mail servers or even an entire mail
+    infrastructure. This is not surprising, as much of todays' communication
+    is done over electronic mail systems. In this chapter, we'll look at the
+    postfix mail infrastructure, covering a few common cases such as internal
+    mail, external mail gateways, virtual domains and more.</para>
+  </section>
+
+  <section>
+    <title>Postfix</title>
+
+    <para>The postfix mail infrastructure is a popular open source mail
+    daemon. It supports a wide area of configurations, including
+    database-backends, mail filtering, advanced authentication schemes and
+    more.</para>
+
+    <section>
+      <title>Architecture </title>
+
+      <para>The Postfix architecture looks like so:</para>
+
+      <figure>
+        <title>High-level architecture for Postfix</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/08-postfix.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>This is purely for the postfix mail server (managing incoming and
+      outgoing e-mails). In most cases, you want the e-mails to be "disclosed"
+      so that users do not (need to) log on to the machine to read their
+      e-mails. Later in this chapter, we will use the Courier-IMAP mail server
+      to provide access to the mail boxes.</para>
+    </section>
+
+    <section>
+      <title>Installation</title>
+
+      <para>The installation of Postfix is quite easy: <command>emerge
+      postfix</command> and you're almost completely set. There are a few
+      settings worth mentioning from the start though.</para>
+
+      <para>Install the postfix mailer daemon, and then go to the /etc/postfix
+      location and edit the main.cf file. In the examples below, I always put
+      the full content, but you can safely use variables as well, so:</para>
+
+      <programlisting>myorigin = genfic.com
+mydestination = genfic.com</programlisting>
+
+      <para>is the same as</para>
+
+      <programlisting>myorigin = genfic.com
+mydestination = $myorigin</programlisting>
+
+      <section>
+        <title>myorigin - What does Postfix use for outgoing mails?</title>
+
+        <para>When locally delivered mails (i.e. mails that originate from the
+        local system) are handed over to the postfix infrastructure, Postfix
+        will rewrite the origination of the mails to become "user@$myorigin".
+        In most cases, you want to have myorigin set to the domain for which
+        you are sending out e-mails.</para>
+
+        <programlisting>myorigin = genfic.com</programlisting>
+      </section>
+
+      <section>
+        <title>mydestination - What does Postfix accept to deliver
+        locally?</title>
+
+        <para>An e-mail that is received by Postfix is validated against the
+        mydestination parameter to see if the mail needs to be forwarded
+        further (relayed) or delivered locally. </para>
+
+        <programlisting>mydestination = genfic.com</programlisting>
+      </section>
+
+      <section>
+        <title>mynetworks - From which locations does Postfix accept mails to
+        be routed further?</title>
+
+        <para>E-mails received from the networks identified in mynetworks are
+        accepted to be routed by this Postfix daemon. Mails that originate
+        from elsewhere are handled by the relay_domains parameter. You
+        definitely want to have mynetworks set to the networks for which you
+        accept mails:</para>
+
+        <programlisting>mynetworks = ::1 2001:db8:81::1/80</programlisting>
+      </section>
+
+      <section>
+        <title>relay_domains - For which other domains does Postfix act as a
+        relay server?</title>
+
+        <para>E-mails that are not meant to be delivered locally will be
+        checked against the relay_domains parameter to see if Postfix is
+        allowed to route them further or not. By explicitly making this
+        variable empty, we tell Postfix it should not route e-mails that are
+        not meant for him explicitly.</para>
+
+        <programlisting>relay_domains = </programlisting>
+      </section>
+
+      <section>
+        <title>relayhost - Through which server will Postfix send out
+        e-mails?</title>
+
+        <para>If the relayhost parameter is set, Postfix will send all
+        outgoing e-mails through this server. When unset, Postfix will send
+        outgoing e-mails directly to the destination server (as seen through
+        the MX DNS records). By surrounding the target with brackets ([...])
+        Postfix will not perform an MX record lookup for the given
+        destination.</para>
+
+        <programlisting>relayhost = [mail-out.internal.genfic.com]</programlisting>
+      </section>
+    </section>
+
+    <section>
+      <title>Managing Postfix</title>
+
+      <para>When Postfix is configured, the real work starts. Administering a
+      mail infrastructure is about capacity management, queue management,
+      integration support (with filters, anti-virus scanning, ...),
+      scalability and more. Mail administration is not to be misunderstood: it
+      is an entire IT field of its own. In this chapter, we'll take a look at
+      only a few of these aspects...</para>
+
+      <section>
+        <title>Standard operations</title>
+
+        <para>Regular operations, being the stop, start and reload of the
+        configuration, are best done through the service script:</para>
+
+        <programlisting># <command>/etc/init.d/postfix stop|start|reload</command></programlisting>
+
+        <para>This will ensure proper transitioning (SELinux-wise) and, thanks
+        to the dependency support within the init scripts, it will also handle
+        potential depending services. For instance, if an anti-virus scanning
+        service requires postfix to be running, then bringing postfix down
+        will first bring the anti-virus scanning service down and then
+        postfix. If you would do this through the postfix command itself, the
+        anti-virus scanning service will remain running which might cause
+        headaches in the future (or just throw many errors/events).</para>
+      </section>
+
+      <section>
+        <title>Queue management</title>
+
+        <para>As can be seen from the architecture overview, Postfix uses a
+        number of internal queues for processing e-mails. Physically, you will
+        find these queues as directories inside /var/spool/postfix, together
+        with quite a few others (of which some of them we'll encounter later).
+        However, managing these queues is not done at the file level, but
+        through the <command>postqueue</command> and
+        <command>postsuper</command> commands.</para>
+
+        <para>Generally, as a Postfix administrator, you want the incoming /
+        active queues to be processed swiftly (as those are the queues where
+        incoming or outgoing messages live until they are handled) and the
+        deferred queue to be monitored (this is where mails that couldn't be
+        delivered for now live until they expire). You can look at the
+        deferred queue using postqueue:</para>
+
+        <programlisting># <command>postqueue -p</command>
+-Queue ID- -Size- --Arrival Time--     --Sender/Recipient--
+13A383C42  4522   Tue Aug 22 00:02:33  MAILER-DAEMON
+(connect to smtp.trefolka.com[12.34.56.78]: Connection timed out)
+smitt@trefolka.com</programlisting>
+
+        <para>If needed, you can delete this e-mail:</para>
+
+        <programlisting># <command>postsuper -d 13A383C42</command></programlisting>
+
+        <para>However, if you rather put those e-mails on hold, you can move
+        them to the hold queue. This is a specific operator queue where
+        postfix doesn't look at (except when told through the postsuper
+        commands) so that operators can temporarily move them to the hold
+        queue, and later put them back ("requeued") on the active one:</para>
+
+        <programlisting># <command>postsuper -h ALL</command>
+...
+# <command>postsuper -r ALL</command></programlisting>
+      </section>
+    </section>
+
+    <section>
+      <title>Scaling Postfix</title>
+
+      <para>A single system is also a single point of failure. Building a mail
+      infrastructure that is redundant is probably your best bet, and if done
+      properly, it also provides proper scale-out (multiple systems)
+      possibilities for your architecture. But it also requires a good idea of
+      how the architecture should look like.</para>
+
+      <para>Consider, for instance, the use of a remote backup mail
+      infrastructure - if your own data center or computer room is down, then
+      mails will not be delivered to your system. If you do not configure a
+      backup mail server available in a different location, mails might get
+      lost (they will be deferred for some time in the queue's of the sender,
+      but will eventually time-out). An available backup mail server will
+      ensure that mails get queued there (with a potentially much larger
+      timeout value) giving you time to get back on your feet within your data
+      center or computer room (or even initiate a contingency for your users
+      to access their e-mails outside).</para>
+
+      <para>For a high available mail service, I will be using a
+      high-available file server (which is discussed prior in this book) to
+      which the postfix systems have access to, and setup a Courier-IMAP
+      infrastructure (also high-available) to access the mailboxes for the
+      users.</para>
+    </section>
+  </section>
+</chapter>

@@ -12,19 +12,20 @@
     <title>Gentoo Linux</title>
 
     <para>Within the reference architecture, we standardize on Gentoo Linux.
-    Standardization on a single platform is needed to keep costs sufficiently
-    low, but also offers the advantage that you can use solutions specific for
-    this platform, rather than having to look for solutions that must support
-    a multitude of platforms. Of course, the choice of picking Gentoo Linux
-    here might seem weird - why not CentOS (as that has a possible commercial
-    backing towards RedHat Enterprise Linux when needed)?</para>
+    Standardization on a single platform allows organizations to keep the cost
+    sufficiently low, but also offers the advantage that you can use solutions
+    specific for the platform, rather than having to look for solutions that
+    must support a multitude of platforms. Of course, the choice of picking
+    Gentoo Linux here might seem weird - why not CentOS (as that has a
+    possible commercial backing towards RedHat Enterprise Linux when
+    needed)?</para>
 
     <itemizedlist>
       <listitem>
         <para>First of all - I'm a Gentoo Linux developer. Its the
         distribution I know the best.</para>
 
-        <para>But in light of our fictional company, it might also be because
+        <para>But in light of a (fictional) company, it might also be because
         its current (fictional) engineers are all Gentoo Linux developers, or
         because it has ties with regional Gentoo Linux supporting services. In
         light of many organizations, when there is choice between Linux
@@ -42,9 +43,9 @@
         <para>The reason to use CentOS (RHEL) could be to have certified
         hosting of certain products which are only supported on RHEL (or
         similar). However, because we will only use free software solutions,
-        this requirement is not valid in our case. But it is understandable
-        that companies that do run propriatary software choose a distribution
-        that is supported by their vendors.</para>
+        this is no requirement for our case. But it is understandable that
+        companies that do run propriatary software choose a distribution that
+        is supported by their vendors.</para>
       </listitem>
 
       <listitem>
@@ -61,21 +62,21 @@
 
       <listitem>
         <para>Gentoo uses rolling upgrades. That might not seem like a good
-        way in enterprises, but trust me - it is. If an organization is doing
-        things right, it is already distributing and rolling out patches and
-        minor upgrades regularly. With Gentoo, this process is a bit more
-        intrusive (as it might contain larger changes as well) but because the
-        administrators are used to it, it is very much under control. As a
-        result, whereas other organizations have to schedule large (expensive
-        and time-consuming) upgrades every 3 to 5 years, Gentoo just moves
-        along...</para>
+        way in enterprises, but allow me to convince you - it is. If an
+        organization is doing things right, it is already distributing and
+        rolling out patches and minor upgrades regularly. With Gentoo, this
+        process is a bit more intrusive (as it might contain larger changes as
+        well) but because the administrators are used to it, it is very much
+        under control. As a result, whereas other organizations have to
+        schedule large (expensive and time-consuming) upgrades every 3 to 5
+        years, Gentoo just moves along...</para>
       </listitem>
 
       <listitem>
         <para>Gentoo has a subproject called Gentoo Hardened who strives to
-        provide security-improving patches on the base system. This project
-        has always been a fore-runner in security mitigation
-        strategies.</para>
+        provide, implement and support security-improving patches on the base
+        system. This project has always been a fore-runner in security-related
+        risk mitigation strategies.</para>
       </listitem>
     </itemizedlist>
 
@@ -96,8 +97,9 @@
         it offers many tools out-of-the-box to support every possible
         requirement.</para>
 
-        <para>To reduce the impact of its source-only stigma, we will be using
-        build servers and binhost support for improved manageability.</para>
+        <para>To reduce the impact of its source-only stigma, I will dedicate
+        a chapter in this book on the use of build servers and binhost support
+        for improved manageability.</para>
       </listitem>
 
       <listitem>
@@ -112,8 +114,8 @@
         applications) towards the system then.</para>
 
         <para>To reduce possible impact here, we will be using a Mandatory
-        Access Control system which isolates processes and even users very
-        tightly.</para>
+        Access Control system which isolates processes and even users,
+        confining them to just what they need to get their job done.</para>
       </listitem>
     </itemizedlist>
 
@@ -129,20 +131,20 @@
     Linux. Systems need to be fully x86_64 driven, partially for
     standardization as well, but also to make debugging easier. The fewer
     special cases you need to think about, the faster you can resolve
-    problems. Generally though, this gives little (to no) additinoal advantage
+    problems. Generally though, this gives little (to no) additional advantage
     towards a multilib profile. But as this is a reference architecture, I'll
     stick with this.</para>
 
     <section>
       <title>Gentoo Hardened</title>
 
-      <para>To increase security of the deployments, all systems will use a
-      Gentoo Hardened deployment. Within the Gentoo Linux community, Gentoo
-      Hardened is a project that oversees the research, implementation and
-      maintenance of security-oriented projects in Gentoo Linux. It focuses on
-      delivering viable security strategies for high stability production
-      environments and is therefor absolutely suitable for this reference
-      architecture.</para>
+      <para>To increase security of the deployments, all systems in this
+      reference architecture will use a Gentoo Hardened deployment. Within the
+      Gentoo Linux community, Gentoo Hardened is a project that oversees the
+      research, implementation and maintenance of security-oriented projects
+      in Gentoo Linux. It focuses on delivering viable security strategies for
+      high stability production environments and is therefor absolutely
+      suitable for this reference architecture.</para>
 
       <para>Within our scope, we will implement all services on a Gentoo
       Hardened deployment with the following security measures in
@@ -168,8 +170,8 @@
 
       <para>The installation of a Gentoo Hardened system is similar to a
       regular Gentoo Linux one. You can find all necessary information on the
-      Gentoo Hardened project page. Later, we'll use images of a (succesful)
-      installation for seeding new servers and systems.</para>
+      Gentoo Hardened project page. Later, we'll describe how to use images of
+      a (succesful) installation for seeding new servers and systems.</para>
 
       <section>
         <title>PaX</title>
@@ -515,97 +517,6 @@ hostname="ns.genfic.com"
         <command>ping6</command>.</para>
       </section>
     </section>
-
-    <section>
-      <title>Generic architecture</title>
-
-      <para>In the next graphic, you can see the generic architecture used for
-      any Gentoo Linux deployment used further in this reference
-      architecture.</para>
-
-      <figure>
-        <title>Generic architecture for Gentoo Linux deployments</title>
-
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="images/02-gentoo.png"/>
-          </imageobject>
-        </mediaobject>
-      </figure>
-
-      <para>A bit of information on the used symbols might be in
-      place...</para>
-
-      <para>The parallellograms give information on particular use cases or
-      activities involved with the architecture. To keep things simple, I am
-      not going to make much differentiation in the notations between
-      different types. The orange-colored blocks are specific components that
-      are used, most of the time software titles (and sometimes drivers) that
-      will be used to support particular functions or capabilities in the
-      architecture.</para>
-
-      <section>
-        <title>Administration of the operating system</title>
-
-        <para>Administration will be done through OpenSSH (for performing
-        operational changes) and is shown by the activity
-        <emphasis>ADMIN-SYSTEM</emphasis>. You can see that OpenSSH will also
-        trigger an activity called <emphasis>AUTH-USER</emphasis>. This is
-        because we will be using a central repository for authentication and
-        authorization services (an OpenLDAP, which we will see later). The use
-        of OpenSSH here is because it is the most obvious and well supported
-        remote administration tool used for Unix and Linux around. The
-        software also supports many additional features like X11 tunneling,
-        advanced logging capabilities, and is also SELinux-aware.</para>
-
-        <para>Mass changes will be triggered through
-        <emphasis>CONFIG-SYSTEM</emphasis>, using Puppet. Puppet is a
-        cross-platform, central configuration tool, where you define the state
-        of the system (how it should be) and let Puppet decide how to change
-        the system from the existing state to the "to-be" state. We will use
-        Puppet to store the master configuration settings, and either have
-        Puppet push the changes or use the Puppet configuration as master for
-        further changes.</para>
-
-        <para>When necessary, we will trigger a <emphasis>RESTORE</emphasis>
-        of one or more files through the (TODO decide which one) backup
-        solution.</para>
-      </section>
-
-      <section>
-        <title>Outgoing connections</title>
-
-        <para>By default, the system will have the following outgoing
-        flows:</para>
-
-        <itemizedlist>
-          <listitem>
-            <para><emphasis>SEND-LOG</emphasis> is the system logger sending
-            out the system logs of the most important components (including
-            audit entries) towards a central logging service to make sure that
-            malicious cannot modify any log entries on the host they might
-            have obtained (illegal) administrative rights</para>
-          </listitem>
-
-          <listitem>
-            <para><emphasis>SEND-EVENT</emphasis> is the monitoring system
-            (TODO decide which one) sending out availability and performance
-            events towards the monitoring service.</para>
-          </listitem>
-
-          <listitem>
-            <para><emphasis>SEND-MAIL</emphasis> is the local mail transport
-            system sending out e-mails. These can originate from local running
-            jobs or status changes that we configure sending mails for.</para>
-          </listitem>
-
-          <listitem>
-            <para><emphasis>SEND-BACKUP</emphasis> is the feed of local backup
-            data being sent out to the central backup repository.</para>
-          </listitem>
-        </itemizedlist>
-      </section>
-    </section>
   </section>
 
   <section>
@@ -616,7 +527,7 @@ hostname="ns.genfic.com"
     for development as well as larger enterprise usability) and is quite
     popular in the Linux development (and user) community. Other
     virtualization techniques that can be used are Xen or Virtualbox. Within
-    Gentoo Linux however, KVM is most known.</para>
+    Gentoo Linux, KVM is very well supported.</para>
 
     <section>
       <title>Why virtualize</title>
@@ -663,12 +574,6 @@ hostname="ns.genfic.com"
       logical groups called clusters. The guests (instances) are then spread
       across the nodes in the cluster, and the administrator manages the
       cluster remotely.</para>
-
-      <para>In this reference architecture, I will be using ganeti, but
-      depending on how it works out, I might switch to the other later. The
-      two (libvirt and ganeti) are equally strong, although libvirt has a much
-      more active development community. On the other hand, Ganeti looks to be
-      simpler in its design.</para>
 
       <para>Using virtualization has a whole set of advantages of which I'll
       try to mention a few in the next paragraphs. I will use the term
@@ -807,8 +712,9 @@ hostname="ns.genfic.com"
       </figure>
 
       <para>Instances that are not defined as highly available (like "Instance
-      1" in the drawings) cannot be easily restarted on a secundary
-      system.</para>
+      1" in the drawings) cannot be easily restarted on a secundary system.
+      Their data files will need to be restored from backup before they can be
+      rebooted.</para>
 
       <section>
         <title>All the virtualization advantages</title>
@@ -944,9 +850,10 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
       <section>
         <title>Installing ganeti</title>
 
-        <para>The installation of ganeti is quite simple: install ganeti and
-        ganeti-htools. If you are planning on providing a high-available
-        virtualization platform, install drbd as well.</para>
+        <para>The installation of ganeti is quite simple: install
+        <package>ganeti</package> and <package>ganeti-htools</package>. If you
+        are planning on providing a high-available virtualization platform,
+        install drbd as well.</para>
 
         <programlisting># <command>emerge ganeti ganeti-htools drbd</command></programlisting>
       </section>
@@ -990,19 +897,9 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
           </listitem>
         </itemizedlist>
 
-        <figure>
-          <title>High-level Ganeti host architecture</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/02-kvmops.png"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-
         <para>A ganeti node will be managed through the regular management
         channels like OpenSSH and Puppet, just as described earlier. In the
-        above drawing, we make a bit of differentiation on the interfaces
+        architecture, we make a bit of differentiation on the interfaces
         through which traffic will flow</para>
 
         <itemizedlist>
@@ -1015,13 +912,15 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
 
           <listitem>
             <para><emphasis>MGMT-LAN</emphasis> is for management activities
-            as described earlier</para>
+            (such as SSH access, but also (re)configuration events through
+            Puppet and the like).</para>
           </listitem>
 
           <listitem>
             <para><emphasis>DRBD-SYNC</emphasis> is one of the back-end
-            specific data flows (others, such as logging output, have been
-            described earlier) for this particular description.</para>
+            specific data flows (the back-end network will be used for higher
+            throughput, QoS'ed data flows, including backup/restore and disk
+            synchronization).</para>
           </listitem>
         </itemizedlist>
 
@@ -1038,7 +937,16 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
         <title>Preparing DRBD</title>
 
         <para>Because high available virtual guests will be used in this
-        reference architecture, we will be configuring DRBD.</para>
+        reference architecture, we will be configuring DRBD. </para>
+
+        <note>
+          <para>When talking about high availability, I mean to provide a good
+          service availability in case of smaller calamities. If your entire
+          data center or computer room is broken, other measures might need to
+          be taken which I prefer to put under the "disaster recovery" flag.
+          Later, when I talk about the various setups, I will cover disaster
+          recovery as well.</para>
+        </note>
 
         <para>DRBD<indexterm>
             <primary>DRBD</primary>
@@ -1054,8 +962,9 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
         <para>In our architecture, we will be putting DRBD on top of LVM, and
         then use LVM again based on DRBD devices. This stacking of
         technologies has the downside of some complexity (and perhaps even
-        performance impact) but has advantages that imo win against the
-        downsides.</para>
+        performance impact) but has advantages that, in my opinion, win
+        against the downsides (a few specific use cases
+        notwithstanding).</para>
 
         <itemizedlist>
           <listitem>
@@ -1082,8 +991,8 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
 
         <para>In the near future, I might include clustering file systems as
         well. However, for now, I am less convinced about the maturity of
-        these file systems whereas I have read good reviews (and specifically
-        many) on DRBD in production scenarios.</para>
+        these file systems whereas I have read many good reviews on DRBD in
+        production scenarios.</para>
 
         <para>To properly have DRBD for Ganeti, it is mandatory to run it with
         the following two options. The listing shows them as kernel
@@ -1111,7 +1020,8 @@ flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov 
 
         <para>Make sure that the hostname setting in
         <filename>/etc/conf.d/hostname</filename> provides a fully qualified
-        hostname. Ganeti will otherwise refuse to function properly.</para>
+        hostname. Ganeti will otherwise refuse to function properly (and we'll
+        also need this for Puppet later).</para>
 
         <programlisting># <command>cat /etc/conf.d/hostname</command>
 ## Ganeti Cluster 01 Node 01 in production hosts.genfic.com network

@@ -368,275 +368,316 @@
   <section>
     <title>CA Service Software</title>
 
-    <para>As CA management software, we will use the command line interface of
-    <command>openssl</command>. Although more user friendly interfaces seem to
-    exist, they are either not properly maintained or very difficult to manage
-    in the long term. For this reason, we stick with the
-    <command>openssl</command> interface.</para>
+    <para>As CA management software, we will use EJBCA. EJBCA is a free
+    software PKI<indexterm>
+        <primary>PKI</primary>
+      </indexterm> (<emphasis>public key infrastructure</emphasis><indexterm>
+        <primary>public key infrastructure</primary>
+      </indexterm>) management solution built upon Java Enterprise Edition
+    (abbreviated JEE). It runs on the free software JBoss application server,
+    which we will configure first.</para>
 
     <section>
-      <title>OpenSSL as CA</title>
+      <title>JBoss</title>
 
-      <para>The OpenSSL stack is a very common, well maintained library for
-      handling encryption and encryption-related functions, including
-      certificate handling. Most, if not all Linux/Unix systems have it
-      installed, so you should be good to go. </para>
+      <para>JBoss<indexterm>
+          <primary>JBoss</primary>
+        </indexterm> is a family of free software products developed mainly by
+      RedHat and which focuses on the middleware components many organizations
+      need. Right now, what we need is the JBoss Application Server,
+      abbreviated as JBoss AS. The JBoss Application Server implements the
+      Java Enterprise Edition (Java EE or JEE) stack.</para>
 
       <section>
-        <title>Setting the defaults</title>
+        <title>Architecture</title>
 
-        <para>The default settings for using OpenSSL are stored in the
-        /etc/ssl/openssl.cnf file. Below shows a few changes I suggest when
-        dealing with CA certificates.</para>
+        <para>To help in the administration and management of JBoss, a few
+        interesting points on its architecture.</para>
 
-        <programlisting>[CA_default]
-dir = ./genficCA
-default_days = 7305 # 20 years
+        <para>JBoss AS supports two management modes, one is
+        <emphasis>standalone mode</emphasis> and the other is <emphasis>domain
+        mode</emphasis>.</para>
 
-[req]
-default_bits = 2048</programlisting>
+        <itemizedlist>
+          <listitem>
+            <para>In standalone mode, the JBoss AS application installation on
+            the server is managed through the same JBoss AS
+            installation.</para>
+          </listitem>
+
+          <listitem>
+            <para>In domain mode, you have a set of JBoss AS application
+            installations which are managed as a single set.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>For now, we will use JBoss AS in standalone mode.</para>
+
+        <para>We will use /var/lib/jboss as JBoss' base directory (in which
+        the instance can write and have its applications installed in).</para>
       </section>
 
       <section>
-        <title>Setting up the root CA</title>
+        <title>Enabling SELinux</title>
 
-        <para>The root CA is the top-level key, which will be "ultimately
-        trusted". If you would use an HSM device, this key would be stored in
-        the HSM device itself and never leave. But in case this isn't
-        possible, you can create a root CA yourself:</para>
+        <para>Currently, no SELinux policy for JBoss AS exists yet. I have
+        made a simple one, which is available in my overlay (called
+        3p-selinux-jbossas, "3rd party SELinux jbossas module" for those
+        wondering ;-) and which I'll use in this architecture.</para>
 
-        <programlisting># <command>cd /etc/ssl/private</command>
-# <command>openssl genrsa -des3 -out root-genfic.key 2048</command></programlisting>
+        <programlisting># <command>emerge 3p-selinux-jbossas</command></programlisting>
 
-        <para>This generates root-genfic.key, which is the private key and
-        will be used as the root key.</para>
-
-        <para>Next, create a certificate from this key. In the example, I'll
-        use a 20-year lifespan, but you should check what is the best lifespan
-        in your case. The shorter the lifespan, the faster you'll need to
-        refresh the key stores within your (entire) organization, which can be
-        a costly activity. However, the longer the period, the more time
-        malicious persons have to get to the key before you generate a new
-        one.</para>
-
-        <programlisting># <command>openssl req -new -x509 -days 7205 -key root-genfic.key -out root-genfic.crt</command>
-Country Name (2 letter code) [AU]:<command>BE</command>
-State or Province Name (full name) [Some-State]:<command>Antwerp</command>
-Locality Name (eg, city) []:<command>Mechelen</command>
-Organization Name (eg, company) [Internet Widgits Pty Ltd]:<command>Gentoo Fictional, Inc.</command>
-Organizational Unit Name (eg, section) []:
-Common Name (e.g. server FQDN or YOUR name) []:<command>GenFic Root CA</command>
-Email Address []:</programlisting>
-
-        <para>This provides us with the root-genfic.crt file, which is the
-        certificate (public key of the keypair created before, together with
-        identity information and key information). If you want to take a look
-        at what the certificate contains, use openssl x509:</para>
-
-        <programlisting># <command>openssl x509 -noout -text -in root-genfic.crt</command></programlisting>
-
-        <para>Finally, create the certificate revocation list (which is empty
-        for now):</para>
-
-        <programlisting># <command>mkdir genficCA</command>
-# <command>touch genficCA/index.txt</command>
-# <command>echo 01 &gt; genficCA/crlnumber</command>
-# <command>openssl ca -gencrl -crldays 365 -keyfile root-genfic.key -cert root-genfic.crt -out root-genfic.crl</command></programlisting>
-
-        <para>Now put all files in the location(s) as defined in
-        openssl.cnf.</para>
+        <para>With this module installed, we can now install JBoss Application
+        Server (immediately with the correct file contexts).</para>
       </section>
 
       <section>
-        <title>Multilevel (or hierarchical) certificate authorities</title>
+        <title>Installing JBoss</title>
 
-        <para>In many environments, the root key itself isn't used to sign
-        "end" user (or system) certificates: a hierarchy is established to
-        support a more flexible approach on certificates. Often, this
-        hierarchy is to reflect the use of the certificates (end user
-        certificates, system certificates) and, if the organization has
-        multiple companies, these companies often have an intermediate
-        certificate authority. In our example, we'll use a simple hierarchy:
-        below the root certificate, we use signing certificates for end users
-        and for systems:</para>
+        <para>In Gentoo, JBoss is not available in the default tree. Luckily,
+        it is well supported upstream through simple packaging.</para>
 
-        <programlisting>root CA
-+- user CA
-`- system CA</programlisting>
+        <para>First, we install <package>virtual/jdk</package>, a meta-package
+        in Gentoo which will pull in a Java Development Kit suite (probably
+        icedtea):</para>
 
-        <para>The root certificate (which was created earlier) will be stored
-        offline (not reachable through the network, and preferably in a shut
-        down state or on a HSM device) together with the certificates created
-        for the user and system CA's. This is needed in case you need to
-        revoke these certificates, since the process of revoking a certificate
-        (see later) requires the certificate.</para>
+        <programlisting># <command>emerge virtual/jdk</command></programlisting>
 
-        <para>To support the two additional CA's, edit openssl.cnf
-        accordingly. Add sections for each CA you want to support - you can
-        copy the "[ CA_default ]" settings and edit the directory and other
-        settings where necessary. I use CA_root, CA_user and CA_system to
-        identify the different certificate authorities.</para>
+        <para>We need to install a jdk rather than a jre (Java Runtime
+        Environment) as the JBoss Application Server can require a working
+        java compiler (for instance to compile JSP pages into executable
+        code). You probably want to check your USE flags as well here - there
+        is a significant difference in number of installed packages when you
+        tweak your USE flags. I ran this with <parameter>USE="-alsa -cups
+        -X"</parameter> to start with.</para>
 
-        <para>Then, create the keys:</para>
+        <para>Next create the jboss user and group:</para>
 
-        <programlisting># <command>openssl genrsa -des3 -out user-genfic.key 2048</command>
-# <command>openssl genrsa -des3 -out system-genfic.key 2048</command></programlisting>
+        <programlisting># <command>groupadd jboss</command>
+# <command>useradd -m -g jboss jboss</command>
+# <command>passwd -l jboss</command></programlisting>
 
-        <para>Next, create certificate requests. Unlike the root CA, we will
-        not sign the certificate request with the same key, but rather with
-        the root CA key.</para>
+        <para>Next we download the binary distribution for RedHat JBoss AS. In
+        this guide, I'll use JBoss AS 7.1.</para>
 
-        <programlisting># <command>openssl req -new -days 1095 -key user-genfic.key -out user-genfic.csr</command>
-# <command>openssl req -new -days 1109 -key system-genfic.key -out system-genfic.csr</command></programlisting>
+        <programlisting># <command>cd /opt</command>
+# <command>mkdir redhat</command>
+# <command>cd redhat</command>
+# <command>wget http://download.jboss.org/jbossas/7.1/jboss-as-7.1.0.CR1b/jboss-as-7.1.0.CR1b.tar.gz</command>
+# <command>tar xzf jboss-as-7.1.0.CR1b.tar.gz</command>
+# <command>chown -R root:root /opt/redhat</command>
+# <command>restorecon -R /opt/redhat</command>
+# </programlisting>
 
-        <para>If the command asks for a challenge password, you can leave that
-        empty. The purpose of the challenge password is that, if the
-        certificate is to be revoked, the challenge password needs to be given
-        again as well. This gives some assurance that rogue administrators
-        can't revoke certificates that they don't own, but in our case we will
-        store the root key offline (rather than a service) so that revocation
-        of the certificates requires (physical) access to the keys
-        anyhow.</para>
+        <para>Create the following init script and configuration files to
+        manage the startup of the application server:</para>
 
-        <para>The .csr files (Certificate Signing Request) contain the public
-        key of the keypair generated, as well as identity information. Based
-        on the CSR, the root CA will sign and create a certificate:</para>
+        <programlisting># <command>cat /etc/init.d/jboss-as</command>
+#!/sbin/runscript
+# Copyright 1999-2008 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header$
 
-        <programlisting># <command>openssl ca -name CA_root -days 1095 -extensions v3_ca -out system-genfic.crt -infiles system-genfic.csr</command>
-# <command>openssl ca -name CA_root -days 1109 -extensions v3_ca -out user-genfic.crt -infiles user-genfic.csr</command></programlisting>
+PIDFILE=/var/run/jboss-as.pid
+LOGFILE=/var/log/jboss-as.log
 
-        <para>You might have noticed I have different validation periods for
-        the certificates. This is to support the (plausible) management
-        activites that result when certificates are suddenly expired. If the
-        organization "forgets" that the certificates expire, their user
-        certificates will expire first, and two weeks later the system
-        certificates. Not only will this allow the continued servicing of the
-        various systems while the user CA certificate is being updated, but
-        will also allow the organization to prepare for the system CA update
-        in time (since they now have 14 days since they "noticed" that the
-        user CA certificate was expired until the system CA certificate
-        expires).</para>
+depend() {
+        need net
+        use logger
+}
 
-        <para>When the certificate signing requests are handled, you will
-        notice that the genficCA/newcerts directory contains the two
-        certificates. This allows for the CA to revoke the certificates when
-        needed.</para>
+start() {
+        ebegin "Starting JBoss AS"
+                start-stop-daemon --start --quiet --background \
+                --make-pidfile --pidfile ${PIDFILE} \
+                --stdout ${LOGFILE} --stderr ${LOGFILE} \
+                --exec /opt/redhat/jboss-as-7.1.0.CR1b/bin/standalone.sh \
+                --user=${JBOSS_AS_USER} --group=${JBOSS_AS_GROUP} \
+                -- ${JBOSS_AS_OPTS}
+        eend $?
+}
 
-        <para>Finally, we copy the signed certificates and prepare the
-        directory structure for the two certificate authorities as
-        well.</para>
+stop() {
+        ebegin "Stopping JBoss AS"
+                start-stop-daemon --stop --quiet \
+                --pidfile ${PIDFILE}
+        eend $?
+}</programlisting>
 
-        <programlisting># <command>mkdir genficSystemCA</command>
-# <command>cd genficSystemCA</command>
-# <command>touch index.txt</command>
-# <command>echo 01 &gt; serial</command>
-# <command>echo 01 &gt; crlnumber</command>
-# <command>mkdir newcerts crl private</command>
-# <command>mv ../system-genfic.key private/</command></programlisting>
-      </section>
+        <programlisting># <command>cat /etc/conf.d/jboss-as</command>
+JBOSS_AS_USER="jboss"
+JBOSS_AS_GROUP="jboss"
+JBOSS_AS_OPTS="-Djboss.server.base.dir=/var/lib/jboss"</programlisting>
 
-      <section>
-        <title>Protecting the root CA</title>
+        <para>Next, create <filename>/var/lib/jboss</filename> and copy the
+        contents of the JBoss AS standalone directory to it.</para>
 
-        <para>As mentioned before, it is good practice to protect the root CA.
-        You can do so by handling the system as a separate, offline system (no
-        network connection) although, with the other CAs in place, there is
-        little reason for the root CA to be permanently "available". In other
-        words, it is fine to move it to some offline medium (you can even
-        print it out if you want) and store this in a (very) safe location.
-        For instance put it on a flash disk (or tape if you have tape drives)
-        and put it in a safe (or better, two flash disks in two safes).</para>
+        <programlisting># <command>mkdir /var/lib/jboss</command>
+# <command>rsync /opt/redhat/jboss-as-7.1.0.CR1b/standalone/ /var/lib/jboss</command>
+# <command>mkdir /var/lib/jboss/data</command>
+# <command>chown -R jboss:jboss /var/lib/jboss/data</command>
+# <command>restorecon -R /var/lib/jboss</command>
+# </programlisting>
       </section>
     </section>
 
     <section>
-      <title>Daily handling</title>
+      <title>PostgreSQL</title>
 
-      <para>With the certificate authority files in place, we can now take
-      care of the daily operations involving certificates.</para>
+      <para>The EJBCA software we will install later requires a database to
+      store its information in. We will use a PostgreSQL database for
+      this.</para>
 
       <section>
-        <title>User certificates</title>
+        <title>PostgreSQL Architecture</title>
 
-        <para>A user certificate is used by a person to identify himself
-        towards services. Such certificates can be used to authenticate a user
-        for operating system access, but a more common use of user
-        certificates is access towards websites: the user has a key (and
-        certificate) loaded in the browser (or to which the browser has access
-        to, in case the key itself is on a smartcard or other HSM) and sites
-        that want the user to identify himself can ask for the user
-        certificate.</para>
+        <para>In PostgreSQL, a <emphasis>database</emphasis> is the physical
+        representation of structured data. Or in other words, the files that
+        the PostgreSQL RDBMS (Relational Database Management System) uses for
+        storing, querying and manipulating the related data. One or more
+        databases are hosted in a PostgreSQL database cluster. A
+        <emphasis>database cluster</emphasis> contains all the databases that
+        a PostgreSQL instance manages.</para>
 
-        <para>A user can create his own key using the following openssl
-        command, and its accompanying certificate signing request:</para>
-
-        <programlisting># <command>openssl req -newkey rsa:2048 -keyout amber.key -out amber.req</command></programlisting>
-
-        <para>The signing request (.req) is sent to the certificate authority,
-        which then validates and signs the request, generating a signed
-        certificate:</para>
-
-        <programlisting># <command>openssl ca -name CA_user -days 396 -out amber.crt -infiles amber.req</command></programlisting>
-
-        <para>This generates a certificate that is valid for 13 months.</para>
+        <para>PostgreSQL stores all data in the <emphasis>data
+        directory</emphasis> or <emphasis>data area</emphasis>.</para>
       </section>
 
       <section>
-        <title>System certificates</title>
+        <title>Installing PostgreSQL</title>
 
-        <para>System certificates are created similarly to the user
-        certificates, but depending on the system that uses it, the key might
-        not be encrypted (-nodes). Encrypting a private key is a useful
-        measure to protect the keys more (especially user keys are best used
-        with encryption or on a HSM device with password protection since they
-        are in many cases "mobile"), but not all hosts that need a system
-        certificate can deal with encrypted keys.</para>
+        <para>We start by installing the
+        <package>dev-db/postgresql-server</package> package on the
+        system.</para>
 
-        <programlisting># <command>openssl req -newkey rsa:2048 -nodes -keyout w03443ad.key -out w03443ad.req</command></programlisting>
+        <programlisting># <command>emerge dev-db/postgresql-server</command></programlisting>
 
-        <para>It is a good practice to use, as e-mail address, the e-mail
-        address of the requestor (or a "shared" e-mail address that is known
-        to remain fixed throughout the lifetime of the system). This
-        information is used later to send e-mails regarding expiration dates
-        or other important news.</para>
+        <para>Next, edit the /etc/conf.d/postgresql-9.1 file to accomodate the
+        settings of the cluster.</para>
 
-        <programlisting># <command>openssl ca -name CA_system -days 3650 -out w03443ad.crt -infiles w03443ad.req</command></programlisting>
+        <programlisting>PGDATA="/etc/postgresql-9.1"
+DATA_DIR="/var/lib/postgresql/9.1/data"
+PG_INITDB_OPTS="--locale=en_US.UTF-8"</programlisting>
+
+        <para>Finally, create the cluster: temporarily assign a password to
+        the postgres user (it will be asked during the configuration), and
+        afterwards lock the account again.</para>
+
+        <programlisting># <command>passwd postgres</command>
+# <command>emerge --config dev-db/postgresql-server:9.1</command>
+# <command>passwd -l postgres</command>
+# <command>restorecon -Rv /var/lib/postgresql/9.1/data</command></programlisting>
       </section>
 
       <section>
-        <title>Listing certificate expirations</title>
+        <title>Securing the cluster</title>
 
-        <para>To list the expiration date(s) of the certificates signed by a
-        CA, you can iterate over the files in the newcerts location, showing
-        the subject and its expiration date:</para>
+        <para>To secure the cluster, we need to edit its configuration files
+        before starting.</para>
 
-        <programlisting># <command>openssl x509 -noout -subject -enddate -in 01.pem</command></programlisting>
+        <para>Let's first make sure that we can connect to the database
+        remotely too (by default, it only works locally). Edit the
+        postgresql.conf file (in /etc/postgresql-9.1) and set the
+        listen_addresses to the interface(s) you want the database to be
+        reachable on.</para>
+
+        <programlisting>listen_addresses=::1 2001:db8:81::204:de89:3312</programlisting>
+
+        <para>Next, edit pg_hba.conf to allow remote connections for
+        IPv6:</para>
+
+        <programlisting>host    all     all      2001:db8:81::1/96    md5</programlisting>
+
+        <para>Start the cluster and set the admin password:</para>
+
+        <programlisting># <command>rc-service postgresql-9.1 start</command>
+# <command>psql -U postgres</command>
+postgres=# <command>\password</command>
+postgres=# <command>\q</command></programlisting>
+
+        <para>With the password set, change the method in pg_hba.conf for the
+        local (socket-based) connections from trust to password and reload the
+        service</para>
+
+        <programlisting># <command>rc-service postgresql-9.1 reload</command></programlisting>
       </section>
 
       <section>
-        <title>Revoking a certificate</title>
+        <title>Preparing PostgreSQL for EJBCA</title>
 
-        <para>Suppose a user reports that his or her private key is lost (or
-        even worse, compromised). </para>
+        <para>With the cluster ready, we now create a database for
+        ejbca:</para>
 
-        <para>First, you need to find this users' (signed) certificate. You
-        can look at the index.txt file within the CA directory to find out
-        what number the certificate has, and then use this number for the
-        revokation:</para>
+        <programlisting># <command>createdb -U postgres ejbca</command></programlisting>
 
-        <programlisting># <command>grep amber genficUserCA/index.txt</command>
-V ... 23    unknown /C=BE/.../CN=Amber McStone/emailAddress=...
-# <command>openssl ca -name CA_user -revoke genficUserCA/newcerts/23.pem</command></programlisting>
+        <para>Next, create two users inside the database: ejbca_owner and
+        ejbca_user.</para>
 
-        <para>As a result, the database is now updated, showing that the
-        certificate itself is revoked. Next, you need to publish the new
-        certificate revocation list:</para>
-
-        <programlisting># <command>openssl ca -name CA_user -gencrl -out genficUserCA/crl/user-genfic.crl</command></programlisting>
-
-        <para>The resulting certificate revocation list then needs to be
-        published where all users can find it.</para>
+        <programlisting># <command>psql -U postgres</command>
+postgres=# CREATE USER ejbca_owner WITH PASSWORD 'ejbca_ownerpass';
+postgres=# CREATE USER ejbca_user WITH PASSWORD 'ejbca_userpass';
+postgres=# GRANT ALL PRIVILEGES ON DATABASE ejbca to ejbca_owner;
+postgres=# GRANT TODO ON DATABASE ejbca to ejbca_user;</programlisting>
       </section>
     </section>
+
+    <section>
+      <title>EJBCA</title>
+
+      <para>The EJBCA<indexterm>
+          <primary>EJBCA</primary>
+        </indexterm> software is a certificate management software suite that
+      supports CA-like functions for medium to large enterprises.</para>
+
+      <section>
+        <title>Installing EJBCA</title>
+
+        <para>The EJBCA installation is a manual approach, where you first
+        download the sources (or binary), extract it in a temporary location,
+        set the necessary configuration files and then run its build tool.
+        This will have EJBCA install itself in the JBoss application
+        server.</para>
+
+        <para>So let's first download and make a few small changes to the
+        configuration:</para>
+
+        <programlisting># <command>wget http://sourceforge.net/projects/ejbca/files/ejbca4/ejbca_4_0_12/ejbca_4_0_12.zip</command>
+# <command>unzip ejbca_4_0_12.zip</command>
+# <command>cd ejbca_4_0_12/conf</command>
+# <command>cp database.properties.sample database.properties</command>
+# <command>cp ejbca.properties.sample ejbca.properties</command>
+# <command>cp install.properties.sample install.properties</command></programlisting>
+
+        <para>In the database.properties file, update the settings so that
+        EJBCA uses the PostgreSQL database (ejbca) that we just created. Use
+        the ejbca_owner user for now, since EJBCA will want to create its own
+        tables. The other files (install.properties and ejbca.properties) are
+        used to inform the product where, for instance, JBoss is installed.
+        Use the /var/lib/jboss location for this.</para>
+
+        <para>Then, run <command>ant install</command> (to install the
+        software) and <command>ant deploy</command> (to set it up in
+        JBoss).</para>
+      </section>
+
+      <section>
+        <title>Configuring EJBCA</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Logging of EJBCA activities</title>
+
+        <para/>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Managing Certificates</title>
+
+    <para>Now that the certificate management software is in place, let's
+    start using it.</para>
   </section>
 </chapter>

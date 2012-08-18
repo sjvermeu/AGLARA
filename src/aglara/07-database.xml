@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="databaseserver"
+         xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <title>Database Server</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>Databases are a prime subject for storing structured data. Be it as
+    a backend for an LDAP system or DNS system, or as a structured storage for
+    user data, or your most vital company secrets - databases offer a
+    standardized method for storing and retrieving data. Thanks to wide driver
+    support, many tools can interact with several database types (Oracle, SQL
+    Server, PostgreSQL, MySQL, ...). </para>
+
+    <para>In this section, we focus on the setup of PostgreSQL.</para>
+  </section>
+
+  <section>
+    <title>PostgreSQL</title>
+
+    <para>Although (somewhat) less popular than MySQL, the PostgreSQL database
+    is in my (humble) opinion a more stable and succesful database platform.
+    It is gaining momentum with vendors and has commercial backing by several
+    companies - just in case you are in dire need for paying for software
+    ;-)</para>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>The PostgreSQL architecture looks like so:</para>
+
+      <figure>
+        <title>High-level architecture for PostgreSQL</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/07-postgresql.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Installation</title>
+
+      <para>The installation of PostgreSQL is quickly done in about three
+      steps:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>installation of the software package</para>
+        </listitem>
+
+        <listitem>
+          <para>securing of the database environment</para>
+        </listitem>
+
+        <listitem>
+          <para>reloading the postgresql environment</para>
+        </listitem>
+      </orderedlist>
+
+      <section>
+        <title>Installation of the software package</title>
+
+        <para>We start by installing the
+        <package>dev-db/postgresql-server</package> package on the
+        system.</para>
+
+        <programlisting># <command>emerge dev-db/postgresql-server</command></programlisting>
+
+        <para>Next, edit the /etc/conf.d/postgresql-9.1 file to accomodate the
+        settings of the cluster.</para>
+
+        <programlisting>PGDATA="/etc/postgresql-9.1"
+DATA_DIR="/var/lib/postgresql/9.1/data"
+PG_INITDB_OPTS="--locale=en_US.UTF-8"</programlisting>
+
+        <para>Finally, create the cluster: temporarily assign a password to
+        the postgres user (it will be asked during the configuration), and
+        afterwards lock the account again.</para>
+
+        <programlisting># <command>passwd postgres</command>
+# <command>emerge --config dev-db/postgresql-server:9.1</command>
+# <command>passwd -l postgres</command>
+# <command>restorecon -Rv /var/lib/postgresql/9.1/data</command></programlisting>
+      </section>
+
+      <section>
+        <title>Securing of the database environment</title>
+
+        <para>To secure the cluster, we need to edit its configuration files
+        before starting.</para>
+
+        <para>Let's first make sure that we can connect to the database
+        remotely too (by default, it only works locally). Edit the
+        postgresql.conf file (in /etc/postgresql-9.1) and set the
+        listen_addresses to the interface(s) you want the database to be
+        reachable on.</para>
+
+        <programlisting>listen_addresses=::1 2001:db8:81::204:de89:3312</programlisting>
+
+        <para>Next, edit pg_hba.conf to allow remote connections for
+        IPv6:</para>
+
+        <programlisting>host    all     all      2001:db8:81::1/96    md5</programlisting>
+
+        <para>Start the cluster and set the admin password:</para>
+
+        <programlisting># <command>rc-service postgresql-9.1 start</command>
+# <command>psql -U postgres</command>
+postgres=# <command>\password</command>
+postgres=# <command>\q</command></programlisting>
+      </section>
+
+      <section>
+        <title>Reloading the postgresql environment</title>
+
+        <para>With the password set, change the method in pg_hba.conf for the
+        local (socket-based) connections from trust to password and reload the
+        service</para>
+
+        <programlisting># <command>rc-service postgresql-9.1 reload</command></programlisting>
+      </section>
+    </section>
+  </section>
+</chapter>

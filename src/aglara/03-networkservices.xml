@@ -145,10 +145,10 @@
 
         <para>For instance, la00010.workstation.internal.genfic.com is an
         internal workstation; rtr01e2.network.internal.genfic.com is a router
-        for the network, etc. I just let my imagination free - but keep the
-        names consistent so that, if I talk about a server called
-        gc01n01.virt.internal.genfic.com, it doesn't make you frown when I say
-        it is the ganeti cluster 01, node 01 within the production virtualized
+        for the network, etc. I tend to prefer having the names consistent
+        with a naming convention so that, if I talk about a server called
+        gc01n01.virt.internal.genfic.com, it sounds believable when I say it
+        is the ganeti cluster 01, node 01 within the production virtualized
         network of the organization.</para>
       </section>
     </section>
@@ -200,6 +200,22 @@
         together with grSecurity's chroot restrictions, offer a fairly good
         jail for this service). I am not enabling DNSSEC currently though -
         that might follow in the (near) future.</para>
+
+        <para>Using chrooted services when you have a mandatory access control
+        system in place might sound like a weird decision. However, this does
+        make perfect sense. The MAC system in use within this architecture is
+        SELinux, which uses a labeled approach on how resources are accessed.
+        A service that has read access to, say, generic system configuration
+        files, is allowed access (as long as the standard Linux access
+        controls allow this too of course) to all files labeled as such. In a
+        non-chrooted environment, it is very probable that many files are
+        labeled with "generic system configuration file". When a vulnerability
+        in the software is exploited, that software can still leak information
+        towards the hacker without the Mandatory Access Control system
+        prohibiting this (as the service was allowed access to begin with).
+        Within a chrooted environment, the number of files that are labeled as
+        such are limited to those needed to run the service - nothing more,
+        nothing less.</para>
       </section>
 
       <section>
@@ -353,7 +369,7 @@ view "local" {
             <para>set the type of the zone's to "<parameter>slave</parameter>"
             instead and add in <userinput>masters {
             2001:db8:81:21::ac:98ad:5fe1; }</userinput> to each zone. That
-            will tell BIND what the master is of this particular zone.</para>
+            will tell BIND what the master of this particular zone is.</para>
           </listitem>
 
           <listitem>
@@ -432,7 +448,8 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
         the named.conf file like so:</para>
 
         <programlisting># <command>dnssec-keygen -a HMAC-MD5 -b 128 -n HOST secundary</command>
-(... Use the Key entry from the .key file ...)</programlisting>
+# <command>cat Ksecundary.*.key</command>
+secundary. IN KEY 512 3 157 d8fhe2frgY24WFedx348==</programlisting>
 
         <programlisting>(... In named.conf ...)
 key secundary { algorithm hmac-md5; secret "d8fhe2frgY24WFedx348=="; };
@@ -516,6 +533,31 @@ server 2001:db8:81:21::ac:98ad:5fe1 53
 update add mail2.internal.genfic.com 3600 AAAA 2001:db8:81:22::50:5e9f:e569
 $ <command>nsupdate ./changes.txt</command></programlisting>
       </section>
+    </section>
+
+    <section>
+      <title>Logging</title>
+
+      <para>In case of DNS services, we want to log at least the following
+      events:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>queries made against the DNS server (timestamp, source
+          address, query itself) and the answers given</para>
+        </listitem>
+
+        <listitem>
+          <para>modifications made on the configuration (timestamp, source
+          address, modification)</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>Whereas the logging of the queries can be done in local log files,
+      modifications need to be sent to a remote location (and might be stored
+      locally too).</para>
+
+      <para>TODO</para>
     </section>
   </section>
 
@@ -629,6 +671,20 @@ subnet6 2001:db8:81:21::/64 {
   # Empty but must be declared so DHCPd starts
 }</programlisting>
 
+        <para>You can also have the DHCP server give a fixed IP address to a
+        system based on its MAC address. This is handled through the host
+        parameter:</para>
+
+        <programlisting>group {
+  use-host-decl-names on;
+
+  host la00010 {
+    hardware ethernet "e8:0c:11:31:9f:0b";
+    fixed-address la00010.workstation.internal.genfic.com;
+    option host-name "la00010";
+  }
+}</programlisting>
+
         <para>Finally, start the service and register it to automatically
         start during boot.</para>
 
@@ -666,6 +722,15 @@ start-stop-daemon --start --exec /usr/sbin/dhcrelay \
         <programlisting># <command>rc-update add dhcrelay default</command>
 # <command>rc-service dhcrelay start</command></programlisting>
       </section>
+    </section>
+
+    <section>
+      <title>Logging</title>
+
+      <para>For the DHCP service, we want to have logs about the DHCP queries
+      made as well as their reply. These logs can be stored locally.</para>
+
+      <para>TODO</para>
     </section>
   </section>
 

@@ -1,3 +1,13 @@
+** (2012-08-17) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Information about Postfix mailinfrastructure
+
+** (2012-08-16) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Finish certificate chapter, start working on database chapter
+	- Dropped JBoss for now (EJBCA was the driver for it, but EJBCA 
+	  doesn't seem to be easily manageable whereas the plain openssl
+	  commands do).
+	- Start working on mail infrastructure chapter
+
 ** (2012-05-13) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Drop references to security benchmark, too little time :-(
 

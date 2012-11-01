@@ -17,9 +17,10 @@
     user data, or your most vital company secrets - databases offer a
     standardized method for storing and retrieving data. Thanks to wide driver
     support, many tools can interact with several database types (Oracle, SQL
-    Server, PostgreSQL, MySQL, ...). </para>
+    Server, PostgreSQL, MySQL, ...).</para>
 
-    <para>In this section, we focus on the setup of PostgreSQL.</para>
+    <para>In this section, we focus on the setup of PostgreSQL and
+    MySQL.</para>
   </section>
 
   <section>
@@ -132,5 +133,14 @@ postgres=# <command>\q</command></programlisting>
         <programlisting># <command>rc-service postgresql-9.1 reload</command></programlisting>
       </section>
     </section>
+  </section>
+
+  <section>
+    <title>MySQL</title>
+
+    <para>The MySQL database platform is a very popular database, especially
+    for web-based applications. Many software titles support MySQL as a
+    database backend natively, so it makes sense to provide support for MySQL
+    in our reference architecture as well.</para>
   </section>
 </chapter>

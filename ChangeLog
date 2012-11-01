@@ -1,3 +1,7 @@
+** (2012-11-01) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Drop Ganeti docs, focus on KVM only for now
+	- Start with MySQL doc
+
 ** (2012-08-17) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Information about Postfix mailinfrastructure
 

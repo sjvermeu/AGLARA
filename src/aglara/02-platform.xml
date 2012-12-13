@@ -33,7 +33,7 @@
         engineers are most likely to work with. I know, asking them will
         probably result in some heavy fighting to see which distribution is
         best (perhaps you can use the <link
-        xlink:href="https://en.wikipedia.org/wiki/Condorcet_method">Condorset
+        xlink:href="https://en.wikipedia.org/wiki/Condorcet_method">Condorcet
         method</link> to find the best selection), but picking a distribution
         your engineers are less eager to support will result in bad
         administration anyhow.</para>
@@ -119,13 +119,12 @@
       </listitem>
     </itemizedlist>
 
-    <para>We will standardize on the x86_64 architecture (or in Gentoo's
-    terms, amd64), partially because it is the widest known in the Gentoo
-    Linux development community, but also because its hardware is widely
-    available and sufficiently cheap. It is also a processor architecture that
-    is constantly evolving and has many vendors working on it (less
-    monopolizing strategies) which makes it a better platform for consumers in
-    my opinion.</para>
+    <para>We will standardize on the x86_64 architecture (amd64), partially
+    because it is the widest known in the Gentoo Linux development community,
+    but also because its hardware is widely available and sufficiently cheap.
+    It is also a processor architecture that is constantly evolving and has
+    many vendors working on it (less monopolizing strategies) which makes it a
+    better platform for consumers in my opinion.</para>
 
     <para>That being said, we'll also use the no-multilib approach in Gentoo
     Linux. Systems need to be fully x86_64 driven, partially for
@@ -527,7 +526,8 @@ hostname="ns.genfic.com"
     for development as well as larger enterprise usability) and is quite
     popular in the Linux development (and user) community. Other
     virtualization techniques that can be used are Xen or Virtualbox. Within
-    Gentoo Linux, KVM is very well supported.</para>
+    Gentoo Linux, KVM is a popular and much-used virtualization
+    technology.</para>
 
     <section>
       <title>Why virtualize</title>

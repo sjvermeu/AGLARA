@@ -142,5 +142,90 @@ postgres=# <command>\q</command></programlisting>
     for web-based applications. Many software titles support MySQL as a
     database backend natively, so it makes sense to provide support for MySQL
     in our reference architecture as well.</para>
+
+    <section>
+      <title>Initial setup</title>
+
+      <para>The initial setup of MySQL on Gentoo is a breeze. Install the
+      <command>dev-db/mysql</command> package on your system and you're good
+      to go. Next, make sure that the following entries are set in your
+      /etc/mysql/my.cnf file:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>local-infile=0 (in the [mysqld] section) to disable loading
+          data from a local file from within MySQL</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>Furthermore, secure the environment through the following
+      actions:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Look in all users' home directories for a file called
+          .mysql_history, and remove it. Next, create a symlink to /dev/null
+          called .mysql_history. This is because the history file contains the
+          history of all commands executed, which can include sensitive
+          information.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>Now, create the initial database with
+      <command>mysql_install_db</command> and start the database:</para>
+
+      <programlisting># <command>rc-service mysql start</command></programlisting>
+
+      <para>Then, call <command>mysql_secure_installation</command> to
+      properly secure the database further.</para>
+    </section>
+
+    <section>
+      <title>User management</title>
+
+      <para>Currently, MySQL uses internal tables for managing user accounts.
+      Work is on the way to support other authentication services, like LDAP,
+      using the MySQL plugin support. But for now, let's stick with the
+      internal user tables.</para>
+
+      <para>For database users, I always tend to make distinction between
+      (personal) accounts and (functional) application accounts.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Personal accounts are tied to a single person, and might even
+          have DBA (or at least more) privileges</para>
+        </listitem>
+
+        <listitem>
+          <para>Functional application accounts are tied to an application
+          server (or set of servers) and are used to access the database
+          data</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>Making the distinction is pretty much for security reasons, but
+      also because functional accounts might be better off with a different
+      authentication approach.</para>
+
+      <section>
+        <title>Authentication methods</title>
+
+        <para>By default, MySQL uses password-based authentication (with the
+        hashes of the database stored in the mysql.user table). The field is a
+        SHA1 checksum of the binary representation of the SHA1 checksum of the
+        password. For instance, if the password is "password", then you can
+        generate the hash from the command line as follows:</para>
+
+        <programlisting>$ <command>echo -n password | openssl dgst -sha1 -binary | sha1sum</command></programlisting>
+
+        <para>Or you can use the mysql function:</para>
+
+        <programlisting>mysql&gt; <command>SELECT PASSWORD('password');</command></programlisting>
+
+        <para>Knowing how the hash works also allows you to manage the hashes
+        remotely if you want.</para>
+      </section>
+    </section>
   </section>
 </chapter>

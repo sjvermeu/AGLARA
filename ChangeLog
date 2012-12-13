@@ -1,3 +1,7 @@
+** (2012-12-13) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Updates on BIND, attempt to use a more structural approach on the
+	  components.
+
 ** (2012-11-01) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Drop Ganeti docs, focus on KVM only for now
 	- Start with MySQL doc

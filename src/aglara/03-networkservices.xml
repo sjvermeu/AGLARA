@@ -31,13 +31,13 @@
     <section>
       <title>Example network segment</title>
 
-      <para>The following code listing gives a high-level impression on the
-      network segments identified for use in this book. I will be using the
+      <para>The following drawing gives a high-level impression on the network
+      segments identified for use in this book. I will be using the
       IPv6<indexterm>
           <primary>IPv6</primary>
         </indexterm> documentation range (2001:db8::/32) but this too is not
       something you need to follow. If your organization is assigned a proper
-      IPv6 block, there is no reason to still use local addresses in your
+      IPv6 block, there is also no reason to still use local addresses in your
       organization: the number of IPv6 addresses is
       <emphasis>currently</emphasis> sufficiently large to give each
       server/service in your organization its own address which, through
@@ -163,12 +163,62 @@
         <primary>DNS</primary>
       </indexterm>.</para>
 
+    <para>DNS, or <emphasis>Domain Name System</emphasis><indexterm>
+        <primary>Domain Name System</primary>
+      </indexterm>, allows resources on your network to be reachable through a
+    human-readable name rather than an obscure ID that is useful for computers
+    and routers. To support human-readable names, a DNS service is positioned
+    which helps in translating these domain names onto IP addresses and vice
+    versa. </para>
+
+    <figure>
+      <title>DNS services</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/03-dnsservice.png"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+    <para>Having a well performing DNS architecture is extremely important as
+    many services you will host will rely on DNS to know how to contact other
+    resources: although it is perfectly possible to use IP-only
+    configurations, this is a lot less flexible and less transparent - and
+    with IPv6, will also hurt your eyes. Because of that, DNS must definitely
+    be high available. Depending on the size and use, you might even introduce
+    DNS caching daemons across the network. </para>
+
+    <figure>
+      <title>Simple DNS architecture</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/03-dns-highlevel.png"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+    <para>In the above architecture, you notice that two DNS servers are
+    positioned in the DMZ<indexterm>
+        <primary>DMZ</primary>
+      </indexterm> (<emphasis>DeMilitarized Zone</emphasis>), set up in a
+    high-available manner (where a slave system pulls in changes from a
+    master), and two internally with a similar setup. The distinction between
+    the DMZ and the internal ones is that the internal DNS servers will host a
+    lot more information needed for our internal architecture, whereas the
+    ones on the DMZ only contain information for the publicly available
+    services.</para>
+
+    <para>In both cases (DMZ and internal), a configuration management
+    database is responsible for providing the addresses and names.</para>
+
     <section>
       <title>Domain name servers</title>
 
       <para>Many organizations will host their own domain name servers. In our
       reference architecture, we will be using BIND, although I am hoping to
-      support djbdns very soon (as a worthy opponent to the tried and true
+      document djbdns very soon (as a worthy opponent to the tried and true
       BIND<indexterm>
           <primary>BIND</primary>
         </indexterm>). The djbdns implementation has very positive critics,
@@ -198,8 +248,7 @@
         <para>To support a higher security within BIND, we will of course be
         running it confined within a SELinux domain and using chroot (which,
         together with grSecurity's chroot restrictions, offer a fairly good
-        jail for this service). I am not enabling DNSSEC currently though -
-        that might follow in the (near) future.</para>
+        jail for this service).</para>
 
         <para>Using chrooted services when you have a mandatory access control
         system in place might sound like a weird decision. However, this does
@@ -210,16 +259,17 @@
         controls allow this too of course) to all files labeled as such. In a
         non-chrooted environment, it is very probable that many files are
         labeled with "generic system configuration file". When a vulnerability
-        in the software is exploited, that software can still leak information
-        towards the hacker without the Mandatory Access Control system
-        prohibiting this (as the service was allowed access to begin with).
-        Within a chrooted environment, the number of files that are labeled as
-        such are limited to those needed to run the service - nothing more,
-        nothing less.</para>
+        in the software is exploited and that software had read access to
+        "generic system configuration file", that software can still leak
+        information towards the hacker without the Mandatory Access Control
+        system prohibiting this (as the service was allowed access to begin
+        with). Within a chrooted environment, the number of files that are
+        labeled as such are limited to those needed to run the service -
+        nothing more, nothing less.</para>
       </section>
 
       <section>
-        <title>Chrooted master-slave architecture</title>
+        <title>Flows</title>
 
         <para>Naming services are an important part in an architecture. If
         your systems cannot resolve a hostname to an IP address, they will
@@ -245,13 +295,11 @@
           <listitem>
             <para><emphasis>XFER PULL</emphasis> is initiated from the
             secundary name server (the slave) which periodically connects to
-            the master to get changes on the zone files</para>
-          </listitem>
-
-          <listitem>
-            <para><emphasis>SIGNAL XFER</emphasis> is initiated by the master
-            name server and is a feature in BIND9 to signal its slave servers
-            when changes have occurred</para>
+            the master to get changes on the zone files. This is used to
+            provide high availability for the service, and to replicate
+            changes sufficiently fast towards all name servers. The BIND
+            master can also signal the slaves that updates are available,
+            offering faster replication of changes.</para>
           </listitem>
 
           <listitem>
@@ -261,12 +309,95 @@
             domain name) and is used to locally regenerate the zone
             files.</para>
           </listitem>
+
+          <listitem>
+            <para><emphasis>BACKUP</emphasis> is what it sais it is - a
+            backup. Having backup (and restore of course) services available
+            allows fast recovery when things go wrong, or when a human error
+            has occurred.</para>
+          </listitem>
         </itemizedlist>
 
         <para>We explicitly mention the system logger here as it will be
         configured to read log entries from the log socket in the chrooted
         environment.</para>
       </section>
+
+      <section>
+        <title>Administration</title>
+
+        <para>Administering the BIND solution is done through two main tracks:
+        puppet, and SSH.</para>
+
+        <figure>
+          <title>BIND administration</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/03-bindadmin.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>Puppet is used as the central configuration management tool in
+        this reference architecture. For the BIND service, two major
+        activities are done through it:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Configuration of BIND is done through the Puppet service by
+            the BIND administrator. This includes initial setup of the BIND
+            service, configuration of BIND (parameters and tuning), updates
+            &amp; patching and more.</para>
+          </listitem>
+
+          <listitem>
+            <para>Creation and removing of (other) services is done by the
+            respective system administrators. Whenever they create an
+            additional server or service in Puppet, a change is pushed to the
+            BIND server with the newly created hostname and IP address.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The second interface, SSH, is used to directly control a BIND
+        service. You will use SSH for performing administrative tasks such as
+        restarting the BIND service, fixing problems and more. SSH is only
+        provided for BIND administrators, not for other roles in the
+        organization.</para>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para>For monitoring the BIND services, we will configure nagios to do
+        DNS lookups against all defined name servers.</para>
+
+        <para>$$$TODO</para>
+      </section>
+
+      <section>
+        <title>Operations</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>User management</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Security</title>
+
+        <para/>
+      </section>
+    </section>
+
+    <section>
+      <title>Installing and configuring BIND</title>
+
+      <para/>
 
       <section>
         <title>Installing bind</title>
@@ -354,8 +485,8 @@ view "local" {
         addresses within our IP range. For these requests, we use the
         <filename>pri/com.genfic</filename> file (which is our "zone" file
         that will contain the DNS records) and
-        <filename>pri/inv.com.genfic</filename>" for the reverse lookups. We
-        will also create a cache</para>
+        <filename>pri/inv.com.genfic</filename> for the reverse
+        lookups.</para>
 
         <para>For the slave server, the setup is fairly similar:</para>
 
@@ -765,7 +896,9 @@ start-stop-daemon --start --exec /usr/sbin/dhcrelay \
       <listitem>
         <para><link
         xlink:href="http://www.zytrax.com/books/dns/ch7/xfer.html">DNS BIND
-        Zone Transfers and Updates</link> (Zytrax.com)</para>
+        Zone Transfers and Updates</link> (Zytrax.com); this is part of a
+        bigger and interesting reference on BIND9 on Linux/Unix
+        systems.</para>
       </listitem>
 
       <listitem>

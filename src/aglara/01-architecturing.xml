@@ -522,4 +522,28 @@
       example design sheets that are referenced further in the book.</para>
     </section>
   </section>
+
+  <section>
+    <title>Notations used in the book</title>
+
+    <para>Throughout this book, some notations, syntax and drawings will be
+    used to provide a consistent view on the subject.</para>
+
+    <section>
+      <title>Drawings</title>
+
+      <para>When an architecture is drawn, the following symbols are
+      used.</para>
+
+      <figure>
+        <title>Legenda of used symbols</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/01-legenda.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+  </section>
 </chapter>

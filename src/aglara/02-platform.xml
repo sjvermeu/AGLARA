@@ -500,7 +500,9 @@ Max kernel policy version:      26</programlisting>
         describe later):</para>
 
         <programlisting># <command>cat /etc/conf.d/net</command>
-config_eth0="2001:db8:81:21::ac:98ad:5fe1/64";</programlisting>
+config_eth0="2001:db8:81:21::ac:98ad:5fe1/64";
+dns_servers="2001:db8:81:21::ac:98ad:5fe1 2001:db8:81:22::ae:6b01:e3d8";
+routes_eth0="2001:db8:81:21::c5:bb33:d902";</programlisting>
 
         <para>Our hostname will be set in a fully qualified way (primarily for
         use by puppet later):</para>

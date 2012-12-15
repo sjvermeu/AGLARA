@@ -157,7 +157,7 @@
   <section>
     <title>DNS</title>
 
-    <para>So with our IP address range in place and a imaginative domain name
+    <para>So with our IP address range in place and a imaginary domain name
     structure in place, let's start the setup of our next component -
     DNS<indexterm>
         <primary>DNS</primary>
@@ -169,7 +169,8 @@
     human-readable name rather than an obscure ID that is useful for computers
     and routers. To support human-readable names, a DNS service is positioned
     which helps in translating these domain names onto IP addresses and vice
-    versa. </para>
+    versa. But next to the name resolving, DNS infrastructure is also
+    positioned for various other purposes.</para>
 
     <figure>
       <title>DNS services</title>
@@ -181,13 +182,33 @@
       </mediaobject>
     </figure>
 
+    <para>For instance, a mail client can interact with the DNS server of a
+    domain to find out where to send e-mails to meant for that domain. This
+    information is stored in the MX records of that domain. Recently,
+    standards are emerging to counter e-mail spoofing, like SPF
+    (<emphasis>Sender Policy Framework</emphasis><indexterm>
+        <primary>Sender Policy Framework</primary>
+      </indexterm>) and DKIM<indexterm>
+        <primary>DKIM</primary>
+      </indexterm> (<emphasis>DomainKey Identified Mail</emphasis><indexterm>
+        <primary>DomainKey Identified Mail</primary>
+      </indexterm>). In case of SPF<indexterm>
+        <primary>SPF</primary>
+      </indexterm>, a DNS record tells whoever asks it which (IP) addresses
+    are allowed to be sending e-mail that seems to originate from its domain.
+    Mail servers will then check this record to see if an incoming e-mail
+    indeed comes from this location and if not, can reject the e-mail. DKIM on
+    the other hand uses digital signatures in the mail itself, where the mail
+    servers then check the signature based on the public key that is stored in
+    a DNS record of the domain that the mail seems to originate from.</para>
+
     <para>Having a well performing DNS architecture is extremely important as
     many services you will host will rely on DNS to know how to contact other
     resources: although it is perfectly possible to use IP-only
     configurations, this is a lot less flexible and less transparent - and
-    with IPv6, will also hurt your eyes. Because of that, DNS must definitely
-    be high available. Depending on the size and use, you might even introduce
-    DNS caching daemons across the network. </para>
+    with IPv6, will also make your head spin. Because of that, DNS must
+    definitely be high available. Depending on the size and use, you might
+    even introduce DNS caching daemons across the network.</para>
 
     <figure>
       <title>Simple DNS architecture</title>
@@ -216,7 +237,8 @@
     <section>
       <title>Domain name servers</title>
 
-      <para>Many organizations will host their own domain name servers. In our
+      <para>Many organizations will host their own domain name servers, and
+      perhaps have a third one outside their premises as a fall-back. In our
       reference architecture, we will be using BIND, although I am hoping to
       document djbdns very soon (as a worthy opponent to the tried and true
       BIND<indexterm>
@@ -226,6 +248,14 @@
       its main downside currently is that it doesn't fully support IPv6 yet -
       most functionality is supported, but as long as things like dnstrace,
       NS/MX records etc. do not support IPv6, I will be using BIND.</para>
+
+      <para>Name servers such as BIND structure their contents in
+      <emphasis>zones</emphasis><indexterm>
+          <primary>zones</primary>
+        </indexterm>. A zone is a set of IP addresses, hostnames and
+      affiliated information, most often for one domain. So genfic.com is one
+      domain (one zone) whereas internal.genfic.com is another domain
+      (zone).</para>
 
       <section>
         <title>On BIND</title>
@@ -242,8 +272,8 @@
         rewrite that was tailored to answer the various secrity-related
         concerns that came from earlier versions. Sadly, even BIND 9 has seen
         its set of security vulnerabilities. Although a new major is in the
-        making (BIND 10) it is not expected to be released anytime
-        soon.</para>
+        making (BIND 10) it is not made generally available for production use
+        yet.</para>
 
         <para>To support a higher security within BIND, we will of course be
         running it confined within a SELinux domain and using chroot (which,
@@ -370,7 +400,22 @@
         <title>Monitoring</title>
 
         <para>For monitoring the BIND services, we will configure nagios to do
-        DNS lookups against all defined name servers.</para>
+        DNS lookups against all defined name servers. From an availability
+        perspective, there are most likely two things we need to keep an eye
+        on:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Is the BIND service still available, and</para>
+          </listitem>
+
+          <listitem>
+            <para>Is the BIND service responding within the performance
+            margins that we like</para>
+          </listitem>
+        </itemizedlist>
+
+        <para/>
 
         <para>$$$TODO</para>
       </section>
@@ -451,7 +496,8 @@ source jail { unix-stream("/var/named/chroot/dev/log"); };</programlisting>
       <section>
         <title>Initial configuration</title>
 
-        <para>We will start with an initial configuration of BIND.</para>
+        <para>We will start with an initial configuration of BIND, meant for a
+        master DNS server.</para>
 
         <para>Let's start with
         <filename>/var/named/chroot/etc/bind/named.conf</filename><indexterm>
@@ -553,6 +599,11 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 1.e.f.5.d.a.8.9.c.a.0.0.0.0.0.0.1.2.0.0         IN      PTR     ns.genfic.com.
 8.d.3.e.1.0.b.6.e.a.0.0.0.0.0.0.2.2.0.0         IN      PTR     ns2.genfic.com.
 ; (...)</programlisting>
+
+        <para>With the configuration done, you can now start the named
+        daemon.</para>
+
+        <programlisting># <command>run_init rc-service named start</command></programlisting>
       </section>
 
       <section>
@@ -603,9 +654,10 @@ server 2001:db8:81:21::ac:98ad:5fe1 { keys { secundary; }; };</programlisting>
     <section>
       <title>Using bind</title>
 
-      <para>The bind server is started as an init script.</para>
+      <para>The bind server is started and managed through its init
+      script.</para>
 
-      <programlisting># <command>rc-service named start</command></programlisting>
+      <programlisting># <command>run_init rc-service named start</command></programlisting>
 
       <section>
         <title>Validating configurations</title>

@@ -401,7 +401,7 @@
 
         <para>For monitoring the BIND services, we will configure nagios to do
         DNS lookups against all defined name servers. From an availability
-        perspective, there are most likely two things we need to keep an eye
+        perspective, there are most likely three things we need to keep an eye
         on:</para>
 
         <itemizedlist>
@@ -411,45 +411,175 @@
 
           <listitem>
             <para>Is the BIND service responding within the performance
-            margins that we like</para>
+            margins that we like, and</para>
+          </listitem>
+
+          <listitem>
+            <para>Does the slave DNS service have the same data (serial) as
+            the primary DNS server?</para>
           </listitem>
         </itemizedlist>
 
-        <para/>
+        <para>If you are going to use DNSSEC, it might also be a good idea to
+        provide two additional checks:</para>
 
-        <para>$$$TODO</para>
+        <itemizedlist>
+          <listitem>
+            <para>Do the records and their signatures still match (or
+            preferably, does the signature match and can it be traced and
+            validated all up to the root chain), and</para>
+          </listitem>
+
+          <listitem>
+            <para>Are the ZSKs (Zone Signing Keys) rotated sufficiently (and
+            newer ones available)</para>
+          </listitem>
+        </itemizedlist>
       </section>
 
       <section>
         <title>Operations</title>
 
-        <para/>
+        <para>When running, BIND is a fairly simple daemon from an
+        architectural point of view.</para>
+
+        <figure>
+          <title>Standard operation usage of BIND</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/03-bind-operations.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>Network-wise, it interacts with two other services: other BIND
+        servers (for zone transfers) and with standard clients (for querying
+        the DNS records).</para>
+
+        <para>On the system, the interaction is mainly with the system logger
+        (over a socket). The resources that the named daemon uses are its
+        configuration (and cryptographic keys if applicable) and its zone
+        files.</para>
       </section>
 
       <section>
         <title>User management</title>
 
-        <para/>
+        <para>DNS services are, by default, anonymous services. Some access
+        controls are often placed to restrict who can (from a network point of
+        view) query the DNS service or send/receive data from (in case of pull
+        requests/zone transfers), and more tight access controls (like shared
+        keys) can be used to further authenticate such activities. However,
+        real "users" are not known in the BIND setup.</para>
+
+        <para>That being said, the SELinux policy for BIND does provide an
+        administrative interface, allowing you to define roles that are
+        allowed to administer a BIND environment without granting those users
+        full administrative access on your system. The interface is called
+        <interfacename>bind_admin</interfacename> and takes two arguments: the
+        user domain allowed access and its role.</para>
+
+        <programlisting>bind_admin(&lt;userdomain&gt;, &lt;userrole&gt;)</programlisting>
       </section>
 
       <section>
         <title>Security</title>
 
-        <para/>
+        <para>DNS services are widely available and are a high-profile target
+        for hackers and malicious persons or organizations. If someone could
+        change the DNS records for your domain, then it can have users visit
+        different sites (which are made to look like your own site) which
+        might allow the perpetrator to get access to authentication
+        credentials, confidential information and more. He only needs to
+        modify the IP address replies that the DNS server would give and have
+        them point to its own website. This is called DNS hijacking, and does
+        not only introduce the risk of "spoofed websites", but also changes in
+        e-mail flows (for instance, the malicious user changes the MX records
+        to point to his own e-mail server so he can watch and even modify
+        e-mail communication to your own domain).</para>
+
+        <para>To provide some level of protection against these threats, a
+        number of security changes are recommended:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>If your registrar supports DNSSEC<indexterm>
+                <primary>DNSSEC</primary>
+              </indexterm>, then enable DNSSEC on your zones as well. With
+            DNSSEC, the resource records in your zone are digitally signed (by
+            your own keys) and your key is signed by the parent domain (hence
+            the need for the registrar and higher-level domains to support it
+            too).</para>
+
+            <para>This provides some additional protection against DNS
+            hijacking, although it is not perfect (end users must use DNSSEC
+            for their lookups and should have a valid trusted keystore
+            containing the root DNS server keys).</para>
+          </listitem>
+
+          <listitem>
+            <para>Enable SPF (Sender Policy Framework) so that mail servers
+            who receive an e-mail that is supposed to be sent by you (or
+            someone in your domain), then the mail server can check the origin
+            address against the SPF records in your DNS to validate if they
+            match or not.</para>
+          </listitem>
+
+          <listitem>
+            <para>Enable DKIM (DomainKey Identified Mail) to sign outgoing
+            e-mails and provide the DKIM public key in your DNS records so
+            DKIM-supporting mail servers can validate the signatures.</para>
+          </listitem>
+        </itemizedlist>
       </section>
     </section>
 
     <section>
       <title>Installing and configuring BIND</title>
 
-      <para/>
+      <para>Configuring BIND on Gentoo Linux is fairly similar as configuring
+      BIND on other platforms. There are plenty of good and elaborate
+      resources on BIND configuration on the Internet, some of which are
+      mentioned at the end of this chapter.</para>
 
       <section>
         <title>Installing bind</title>
 
-        <para>First, install net-dns/bind.</para>
+        <para>First, install net-dns/bind. An overview of the USE flags used
+        here is shown as well as output of the equery command.</para>
 
-        <programlisting># <command>emerge net-dns/bind net-dns/bind-tools</command>
+        <programlisting># <command>equery u bind</command>
+[ Legend : U - final flag setting for installation]
+[        : I - package is installed with flag     ]
+[ Colors : set, unset                             ]
+ * Found these USE flags for net-dns/bind-9.9.2_p1:
+ U I
+ - - berkdb      : Adds support for sys-libs/db (Berkeley DB for MySQL)
+ + + caps        : Use Linux capabilities library to control privilege
+ + + dlz         : Enables dynamic loaded zones, 3rd party extension
+ - - doc         : Adds extra documentation (API, Javadoc, etc). It is recommended to enable per package instead of globally
+ - - filter-aaaa : Enable filtering of AAAA records over IPv4
+ - - geoip       : Add geoip support for country and city lookup based on IPs
+ - - gost        : Enables gost OpenSSL engine support
+ - - gssapi      : Enable gssapi support
+ - - idn         : Enable support for Internationalized Domain Names
+ + + ipv6        : Adds support for IP version 6
+ - - ldap        : Adds LDAP support (Lightweight Directory Access Protocol)
+ - - mysql       : Adds mySQL Database support
+ - - odbc        : Adds ODBC Support (Open DataBase Connectivity)
+ - - postgres    : Adds support for the postgresql database
+ - - python      : Adds optional support/bindings for the Python language
+ - - rpz         : Enable response policy rewriting (rpz)
+ - - rrl         : Response Rate Limiting (RRL) - Experimental
+ - - sdb-ldap    : Enables ldap-sdb backend
+ + + ssl         : Adds support for Secure Socket Layer connections
+ - - static-libs : Build static libraries
+ + + threads     : Adds threads support for various packages. Usually pthreads
+ + + urandom     : Use /dev/urandom instead of /dev/random
+ + + xml         : Add support for XML files
+
+# <command>emerge net-dns/bind net-dns/bind-tools</command>
 # <command>rc-update add named default</command></programlisting>
 
         <para>Next, edit <filename>/etc/conf.d/named</filename> and set the
@@ -523,7 +653,7 @@ view "local" {
   match-clients { 2001:db8:81::/48; };
   recursion yes;
   zone "genfic.com" { type master; file "pri/com.genfic"; };
-  zone "1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa" { type master; file "pri/inv.com.genfic"; };
+  zone "1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa" { type master; file "pri/1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa"; };
 };</programlisting>
 
         <para>That's it. The configuration will have this installation work as
@@ -531,8 +661,21 @@ view "local" {
         addresses within our IP range. For these requests, we use the
         <filename>pri/com.genfic</filename> file (which is our "zone" file
         that will contain the DNS records) and
-        <filename>pri/inv.com.genfic</filename> for the reverse
-        lookups.</para>
+        <filename>pri/1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa</filename> for the
+        reverse lookups. I like to keep the zone files named after the domain
+        (zone) itself - not only is it more logical and less error prone, but
+        many BIND utilities can handle this logic easier. For instance, with
+        dnssec-related commands, you do not need to pass on the domain in the
+        option if the file is named after the domain.</para>
+
+        <para>Sadly, the name of the reverse lookup is fairly difficult to
+        work with by people. For this reason, I always create a symbolic link
+        that makes this a lot easier:</para>
+
+        <programlisting># <command>ln -s 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa genfic.com.inv</command></programlisting>
+
+        <para>This way, I know that &lt;domain&gt;.inv is a symbolic link
+        pointing to the reverse lookup zone definition.</para>
 
         <para>For the slave server, the setup is fairly similar:</para>
 
@@ -582,7 +725,7 @@ mail            IN      AAAA    2001:db8:81:21::b0:0738:8ad5;
 mail2           IN      AAAA    2001:db8:81:22::50:5e9f:e569;
 ; (...)</programlisting>
 
-        <programlisting># <command>cat /var/named/chroot/var/bind/pri/inv.com.genfic</command>
+        <programlisting># <command>cat /var/named/chroot/var/bind/pri/com.genfic.inv</command>
 $TTL 1h ;
 @       IN      SOA     1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa ns.genfic.com. (
                         2012041101
@@ -607,20 +750,7 @@ $ORIGIN 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
       </section>
 
       <section>
-        <title>Automatically generating zone files</title>
-
-        <para>Managing the zone files can be done using regular text files,
-        but for larger environments, it is interesting to have an interface
-        that does it for you. Later in the reference architecture, we will be
-        setting up a central management location for our server management.
-        This central configuration management database (well, it might not be
-        a database by itself, but the term is correct) will be used to
-        automatically generate zone files and push them to the name
-        servers.</para>
-      </section>
-
-      <section>
-        <title>Additional hardening</title>
+        <title>Hardening zone transfers</title>
 
         <para>You can perform additional hardening on the BIND system by
         introducing transaction signatures (TSIG<indexterm>
@@ -648,6 +778,72 @@ server 2001:db8:81:21::ac:98ad:5fe1 { keys { secundary; }; };</programlisting>
 
         <para>You cannot use the TSIG together with an IP address list though,
         so either use the keys or use IP addresses.</para>
+      </section>
+
+      <section>
+        <title>Hardening DNS records (DNSSEC)</title>
+
+        <para>To use DNSSEC, you first need to create two keypairs. One is the
+        KSK (Key Signing Key) and is a long-term keypair. It will be used to
+        sign the ZSKs (Zone Signing Keys) used for the zones. ZSKs are used to
+        sign most DNS records, whereas the KSK is used to sign the ZSK. It is
+        also the KSK which is signed by the "higher-level" domain.</para>
+
+        <programlisting># <command>cd /var/named/chroot/etc/bind</command>
+# <command>mkdir keys &amp;&amp; cd keys</command>
+# <command>dnssec-keygen -a RSASHA256 -b 2048 -3 genfic.com</command>
+# <command>dnssec-keygen -a RSASHA256 -b 2048 -3 -fk genfic.com</command>
+# <command>chown -R named:named .</command></programlisting>
+
+        <para>Next, update the BIND configuration to use these keys. Below you
+        find the updated named.conf file with highlights where changes were
+        made:</para>
+
+        <programlisting>options {
+  directory "/var/bind";
+  pid-file "/var/run/named/named.pid";
+  statistics-file "/var/run/named/named.stats";
+  listen-on { 127.0.0.1; };
+  listen-on-v6 { 2001:db8:81:21::ac:98ad:5fe1; };
+  allow-query { any; };
+  zone-statistics yes;
+  allow-transfer { 2001:db8:81:22::ae:6b01:e3d8; };
+  notify yes;
+  recursion no;
+  version "[nope]";
+<command>  dnssec-validation yes;
+  dnssec-lookaside auto;
+  dnssec-enable yes;
+  key-directory "/etc/bind/keys";
+  allow-new-zones yes;</command>
+};
+view "local" {
+  match-clients { 2001:db8:81::/48; };
+  recursion yes;
+  zone "genfic.com" {
+        type master;
+        file "pri/genfic.com";
+<command>        inline-signing yes;
+        auto-dnssec maintain;</command>
+  };
+  zone "1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa" {
+        type master;
+        file "pri/genfic.com.inv";
+<command>        inline-signing yes;
+        auto-dnssec maintain;</command>
+  };
+};
+
+<command>include "/etc/bind/bind.keys";</command></programlisting>
+
+        <para>Make sure that the named daemon has write access to the zone
+        files (both through the SELinux
+        <parameter>named_write_masters_zone</parameter> boolean as well as
+        regular Linux permissions) as it will save the signed records next to
+        the regular file.</para>
+
+        <para>With these changes made, restarting the named daemon enables
+        DNSSEC support.</para>
       </section>
     </section>
 
@@ -697,6 +893,18 @@ server 2001:db8:81:21::ac:98ad:5fe1 { keys { secundary; }; };</programlisting>
 
         <programlisting># <command>dig mail.genfic.com AAAA @ns.genfic.com +short</command>
 2001:db8:81:21:0:b0:738:8ad5</programlisting>
+      </section>
+
+      <section>
+        <title>Sending DNSSEC DS Records to the parent domain</title>
+
+        <para>$$$TODO</para>
+      </section>
+
+      <section>
+        <title>Refreshing DNSSEC Zone Signing Keys</title>
+
+        <para>$$$TODO</para>
       </section>
 
       <section>
@@ -963,6 +1171,18 @@ start-stop-daemon --start --exec /usr/sbin/dhcrelay \
         <para><link
         xlink:href="http://benchmarks.cisecurity.org/en-us/?route=downloads.show.single.bind.200">CISecurity
         BIND Benchmark</link> (CISecurity.org)</para>
+      </listitem>
+
+      <listitem>
+        <para><link
+        xlink:href="http://backreference.org/2010/11/17/dnssec-verification-with-dig/">DNSSEC
+        validation with dig</link> (backreference.org)</para>
+      </listitem>
+
+      <listitem>
+        <para><link
+        xlink:href="https://www.nlnetlabs.nl/publications/dnssec_howto/">DNSSEC
+        HOWTO</link> (nlnetlabs.nl)</para>
       </listitem>
     </itemizedlist>
 

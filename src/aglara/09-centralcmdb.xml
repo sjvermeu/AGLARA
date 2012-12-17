@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="centralcmdb"
+         xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <title>Configuration management with git and Puppet</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>When working in a larger environment, using a central configuration
+    management environment allows you to quickly rebuild vital systems or
+    create copies, as well as keep track of your inventory and services. By
+    centralizing all information, decisions and impact analysis can be done
+    quickly and efficiently. In this chapter, we will focus on using Puppet
+    within the reference architecture.</para>
+
+    <section>
+      <title>Central configuration management, or federated?</title>
+
+      <para>Configuration management in a larger environment is not something
+      that is easy to implement. It is a combination of deployment
+      information, instance configuration management, historical information,
+      parameter relations and more. In this reference architecture, the
+      approach in the next figure is used.</para>
+
+      <figure>
+        <title>Overview for configuration management</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/09-cmdb-overview.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>In this example, one team could be responsible for JBoss
+      application server components (packages, documentation, third line
+      support) but not have the responsibility for installing and managing
+      JBoss AS. In this situation, this team delivers and manages their
+      components, including an overlay (either for the team or shared with
+      others). The system administrators configure their systems to add this
+      particular overlay as well as configure their systems to properly set up
+      JBoss AS by instantiating the modules developed by the first team on the
+      systems.</para>
+
+      <section>
+        <title>Federated repositories</title>
+
+        <para>First of all, the reference architecture uses a federated
+        repository approach. Teams with their own responsibility use their own
+        repositories (and managed in the way that is most efficient for those
+        teams). On the figure, there are two "types" of teams represented, but
+        this is only an example:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>development teams, who are responsible for providing the
+            necessary packages, documentation and more. In case of a
+            Gentoo-only installation environment, those teams will manage
+            overlays (structured sets of ebuilds) for their components.</para>
+          </listitem>
+
+          <listitem>
+            <para>infrastructural teams, who are responsible for the
+            infrastructure servers themselves. These teams manage their
+            servers in their own repositories, which are checkout out on the
+            configuration management hubs. With the use of proper branch
+            names, the configuration management hubs can checkout testing
+            branches and production branches for use on the target
+            systems.</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The use of federated repositories allows each team to work on
+        their components in the most flexible manner. It also allows a
+        reasonable access control on the various components: team 4 might not
+        be granted write access on the system configuration for team 3 but can
+        still read it (for its own internal testing), or perhaps even not read
+        it at all.</para>
+      </section>
+
+      <section>
+        <title>High-available hubs</title>
+
+        <para>The configuration management HUBs are set up in a high-available
+        manner. Because they only contain checkouts of the repositories (and
+        do not act as the master repositories themselves) we can easily scale
+        this architecture. In the picture it is shown as a multi-master (i.e.
+        each HUB manages servers), load-balanced setup. However, other
+        architectures can easily be implemented, such as a HUB for one site
+        (data center) and a HUB for another site (another data center).</para>
+
+        <para>The hubs contain the CMDB information needed for deployment. In
+        our reference architecture, this will be Puppet.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>About Puppet</title>
+
+      <para>Puppet is a free software configuration management tool, written
+      in Ruby and developed under the wings of the Puppet Labs company.</para>
+
+      <para>The idea behind Puppet is that administrators describe how a
+      system should look like, and Puppet will devise the strategy to
+      configure the system up to that point. This removes the cludge of
+      re-inventing the order of actions as this is handled by Puppet. The
+      declarative state of a system can also be applied to other systems
+      easily, making it a breeze to create copies of existing systems.</para>
+    </section>
+
+    <section>
+      <title>About Git</title>
+
+      <para>Git is a distributed revision control system where developers have
+      a full repository on their workstation, pushing changes to a remote
+      origin location where others can then pull the changes from.</para>
+
+      <para>The use of Git is popular in the free software world as it has
+      proven itself fruitful for distributed development (such as with the
+      Linux kernel), which is perfect in our reference architecture.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Puppet master</title>
+
+    <para/>
+
+    <section>
+      <title>Architecture</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Setting up puppet master</title>
+
+      <para/>
+
+      <section>
+        <title>Installing puppet master</title>
+
+        <para>The puppet master and puppet client itself are both provided
+        through the <package>app-admin/puppet</package> package.</para>
+
+        <programlisting># <command>equery u puppet</command>
+[ Legend : U - final flag setting for installation]
+[        : I - package is installed with flag     ]
+[ Colors : set, unset                             ]
+ * Found these USE flags for app-admin/puppet-2.7.18:
+ U I
+ - - augeas              : Enable augeas support
+ - - diff                : Enable diff support
+ - - doc                 : Adds extra documentation (API, Javadoc, etc). It is recommended to enable per package instead of globally
+ - - emacs               : Adds support for GNU Emacs
+ - - ldap                : Adds LDAP support (Lightweight Directory Access Protocol)
+ - - minimal             : Install a very minimal build (disables, for example, plugins, fonts, most drivers, non-critical features)
+ - - rrdtool             : Enable rrdtool support
+ + + ruby_targets_ruby18 : Build with MRI Ruby 1.8.x
+ - - shadow              : Enable shadow support
+ - - sqlite3             : Adds support for sqlite3 - embedded sql database
+ - - test                : Workaround to pull in packages needed to run with FEATURES=test. Portage-2.1.2 handles this internally, so don't set it in
+                           make.conf/package.use anymore
+ - - vim-syntax          : Pulls in related vim syntax scripts
+ - - xemacs              : Add support for XEmacs
+
+# <command>emerge app-admin/puppet</command></programlisting>
+
+        <para>Next, edit /etc/puppet/puppet.conf and add the following to
+        enable puppetmaster to bind on IPv6:</para>
+
+        <programlisting>[master]
+    bindaddress="::"</programlisting>
+
+        <para>You can then start the puppet master service.</para>
+
+        <programlisting># <command>run_init rc-service puppetmaster start</command></programlisting>
+      </section>
+
+      <section>
+        <title>Configuring file access</title>
+
+        <para>Puppet allows clients pulling in files from the master through a
+        variety of methods. One possibile one is to use is a web-based service
+        which can be configured through /etc/puppet/fileserver.conf:</para>
+
+        <programlisting># <command>cat /etc/puppet/fileserver.conf</command>
+[files]
+  path /var/lib/puppet/files
+  allow *.internal.genfic.com</programlisting>
+
+        <para>The "files" is what puppet calls the mountpoint. If a Puppet
+        manifest refers to <filename>puppet:///files/</filename> then the
+        web-based service will look for the remainder of the path at the
+        provided location. Thus, a reference to
+        <filename>puppet://files/general/etc/motd</filename> will have the
+        web-based service serving the file
+        <filename>/var/lib/puppet/files/general/etc/motd</filename>.</para>
+
+        <para>However, it is recommended to have files be served through the
+        modules themselves - the modular approach makes managing the classes
+        much easier (and makes debugging easier as well).</para>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Puppet clients</title>
+
+    <para/>
+
+    <section>
+      <title>Architecture</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Setting up puppet clients</title>
+
+      <para/>
+
+      <section>
+        <title>Installing puppet client</title>
+
+        <para>The puppet client, just like the master, is provided by the
+        <package>app-admin/puppet</package> package. Once installed, you can
+        start the puppet client service:</para>
+
+        <programlisting># <command>run_init rc-service puppet start</command></programlisting>
+
+        <para>When started, the puppet client will try to connect to the
+        server with hostname puppet. If the puppet master is hosted on a
+        server with a different hostname, edit the
+        <filename>/etc/puppet/puppet.conf</filename> file and add in a
+        <parameter>server=</parameter> entry inside the
+        <parameter>[agent]</parameter> section.</para>
+      </section>
+
+      <section>
+        <title>Configuring access</title>
+
+        <para>The SELinux policy loaded does not, by default, allow puppet to
+        manage each and every file on the system. If you want this, you need
+        to enable the <parameter>puppet_manage_all_files</parameter>
+        boolean.</para>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Resources</title>
+
+    <para>A humble list of excellent online resources:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link xlink:href="http://www.puppetcookbook.com/">Puppet
+        Cookbook</link> (puppetcookbook.com)</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+</chapter>

@@ -55,8 +55,8 @@
 	offsite knowledge storage ;-)
       </para>
       <para>
-        The version you are reading currently is v0.11 and has been generated
-	on 2012/12/16.
+        The version you are reading currently is v0.12 and has been generated
+	on 2012/12/17.
       </para>
     </abstract>
 
@@ -88,6 +88,7 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/06-buildserver.xml" />
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/07-database.xml" />
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/08-mailserver.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/09-centralcmdb.xml" />
   <!-- <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="glossary.xml" /> -->
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="genindex.sgm" />
 

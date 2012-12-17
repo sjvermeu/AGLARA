@@ -898,13 +898,53 @@ view "local" {
       <section>
         <title>Sending DNSSEC DS Records to the parent domain</title>
 
-        <para>$$$TODO</para>
+        <para>When your DNS service provides DNSSEC, you will need to upload
+        your Delegation Signer information to the parent domain service. This
+        DS record will then be stored in the parent zone, and thus get its own
+        digital signature so clients can check the validity of the key. To
+        push the DS records, you can generate those using
+        <command>dnssec-dsfromkey</command> against the KSK:</para>
+
+        <programlisting># <command>grep key-signing *.key</command>
+K1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.+008+41569.key:; This is a key-signing key, keyid 41569, for 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
+Kgenfic.com.+008+51397.key:; This is a key-signing key, keyid 51397, for genfic.com
+# <command>dnssec-dsfromkey Kgenfic.com.+008+51397.key</command>
+genfic.com. IN DS 51397 8 1 B23D4D54B971A2A835A31B2B1AF24AB43E2C8EA2
+genfic.com. IN DS 51397 8 2 323F009E2B952F3247DC78BA85AA38A9C798B5FE129A78935CCC4686 C5F02A14</programlisting>
+
+        <para>You can now submit these records (the first is a SHA1 checksum
+        of the DNSKEY and owner information, the second one a SHA256 checksum
+        of the same data) to your registrar. Some support an automated way to
+        handle this, others still require you to send it manually. Just make
+        sure it is sent securely - not that the information is private, but if
+        you notice that your registrar doesn't take proper measures to make
+        sure it is you handing over the DS records, then the entire idea of a
+        secure DNS falls down.</para>
       </section>
 
       <section>
         <title>Refreshing DNSSEC Zone Signing Keys</title>
 
-        <para>$$$TODO</para>
+        <para>While creating the keys, <command>dnssec-keygen</command>
+        supports timing information to allow for proper roll-over of the zone
+        signing keys. This information includes a publication date (when will
+        the new key be published in your DNS records, even if the key is not
+        used yet), activation date (when will the new key be used to sign
+        records), inactivation date and deletion date. As we are refreshing
+        the zone keys, you do not need to resubmit DS records (as those are
+        made against the key-signing key, not zone-signing key).</para>
+
+        <para>When made available, run <command>rndc loadkeys
+        genfic.com</command> to reload the keys for the genfic.com
+        domain.</para>
+
+        <para>What if we refresh the key signing keys? In that case, you do
+        need to send over the new DS records to the parent domain. I find it
+        more proper to do double-signing when refreshing KSK whereas using
+        roll-over periods for ZSK, as the KSK only signs one record (the
+        DNSKEY one) whereas the ZSK signs many more records. Double-signing
+        would increase the amount of records immensely in case of the
+        ZSK.</para>
       </section>
 
       <section>
@@ -948,7 +988,36 @@ $ <command>nsupdate ./changes.txt</command></programlisting>
       modifications need to be sent to a remote location (and might be stored
       locally too).</para>
 
-      <para>TODO</para>
+      <para>rndc querylog (enable/disable, found in messages):</para>
+
+      <section>
+        <title>Configuring logging</title>
+
+        <para>BIND by default will log through the system logger. This allows
+        us to store the logging information where we please, perhaps even
+        moving the data towards other systems (or at least outside the chroot
+        environment).</para>
+
+        <para>However, BIND does not log queries immediately - you need to
+        tell it to toggle querylogging (I call it toggle, since running the
+        same command will disable it again):</para>
+
+        <programlisting># <command>rndc querylog</command></programlisting>
+
+        <para>Once enabled, queries will appear in the system log like
+        so:</para>
+
+        <programlisting>Dec 17 09:15:30 ns named[3721]: client 2001:db8:81:21:0:ac:98ad:5fe1#48818 \
+  (mail.genfic.com): view local: query: mail.genfic.com IN AAAA +ED \
+  (2001:db8:81:21:0:ac:98ad:5fe1)
+Dec 17 09:16:07 ns named[3721]: client 2001:db8:81:21:0:ac:98ad:5fe1#54273 \
+  (ns2.genfic.com): view local: query: ns2.genfic.com IN AAAA +ED \
+  (2001:db8:81:21:0:ac:98ad:5fe1)</programlisting>
+
+        <para>In the above case, the queries came from the same client (one
+        with IPv6 address ending in :5fe1) and the client wanted to know the
+        IPv6 addresses of mail.genfic.com and ns2.genfic.com.</para>
+      </section>
     </section>
   </section>
 

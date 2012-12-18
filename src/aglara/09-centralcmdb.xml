@@ -249,7 +249,7 @@
 
     <para>The puppet master hosts the configuration entries for your
     environment and manages the puppet clients' authentication (through
-    certificates). </para>
+    certificates).</para>
 
     <section>
       <title>Architecture</title>
@@ -306,6 +306,65 @@
       </section>
 
       <section>
+        <title>Configuring as CA</title>
+
+        <para>One puppet master needs to be configured as the certificate
+        authority, responsible for handing out and managing the certificates
+        of the various puppet clients.</para>
+
+        <programlisting># cat /etc/puppet/puppet.conf
+[main]
+  logdir=/var/log/puppet
+  rundir=/var/run/puppet
+  ssldir=$vardir/ssl
+[master]
+  bindaddress="::"
+  </programlisting>
+      </section>
+
+      <section>
+        <title>Configuring as (non-CA) Hub</title>
+
+        <para>The remainder of puppet masters need to be configured as a HUB;
+        for these systems, disable CA functionality:</para>
+
+        <programlisting># cat /etc/puppet/puppet.conf
+[main]
+  logdir=/var/log/puppet
+  rundir=/var/run/puppet
+  ca_server=puppet-ca.internal.genfic.com
+[master]
+  bindaddress="::"
+  ca=false</programlisting>
+
+        <para>Make sure no ssl directory is available.</para>
+
+        <programlisting># <command>rm -rf $(puppet master --configprint ssldir)</command></programlisting>
+
+        <para>Next, request a certificate from the CA for this master. In the
+        <parameter>--dns_alt_names</parameter> parameter, specify all possible
+        hostnames (fully qualified and not) that agents might use to connect
+        to this particular master.</para>
+
+        <programlisting># <command>puppet agent --test --dns_alt_names \
+    "puppetmaster1.internal.genfic.com,puppet,puppet.internal.genfic.com"</command></programlisting>
+
+        <para>Then, on the CA server, sign the request:</para>
+
+        <programlisting># <command>puppet cert --list</command>
+# <command>puppet cert sign &lt;new master cert&gt;</command></programlisting>
+
+        <para>Finally, retrieve the signed certificate back on the HUB:</para>
+
+        <programlisting># <command>puppet agent --test</command></programlisting>
+
+        <para>Repeat these steps for every HUB you want to use. You can
+        implement round-robin load balancing by using a round-robin DNS
+        address allocation for the master hostname (such as
+        puppet.internal.genfic.com).</para>
+      </section>
+
+      <section>
         <title>Configuring repositories</title>
 
         <para>As per our initial example, we will need to pull from the
@@ -338,7 +397,7 @@
         <para>Because we just pull in changes as they come along, mastership
         of the data is within the git repositories. Given proper policies in
         place, you can easily have a simple script available that is invoked
-        by cron to update the various repositories. </para>
+        by cron to update the various repositories.</para>
       </section>
     </section>
   </section>

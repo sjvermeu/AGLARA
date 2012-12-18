@@ -33,7 +33,8 @@
 
         <mediaobject>
           <imageobject>
-            <imagedata fileref="images/09-cmdb-overview.png"/>
+            <imagedata fileref="images/09-cmdb-overview.png" scalefit="1"
+                       width="100%"/>
           </imageobject>
         </mediaobject>
       </figure>
@@ -44,7 +45,7 @@
       JBoss AS. In this situation, this team delivers and manages their
       components, including an overlay (either for the team or shared with
       others). The system administrators configure their systems to add this
-      particular overlay as well as configure their systems to properly set up
+      particular overlay as well as configure their systems to poperly set up
       JBoss AS by instantiating the modules developed by the first team on the
       systems.</para>
 
@@ -98,6 +99,17 @@
         <para>The hubs contain the CMDB information needed for deployment. In
         our reference architecture, this will be Puppet.</para>
       </section>
+
+      <section>
+        <title>Version controlled or not</title>
+
+        <para>In many organizations, changes on systems should be version
+        controlled. By using version control repositories (such as Git) this
+        is implemented automatically, but raises another question: how can
+        teams fix a particular setting for one environment? This requirement
+        has to be taken up with the specific solutions (such as Puppet and
+        Git).</para>
+      </section>
     </section>
 
     <section>
@@ -112,6 +124,105 @@
       re-inventing the order of actions as this is handled by Puppet. The
       declarative state of a system can also be applied to other systems
       easily, making it a breeze to create copies of existing systems.</para>
+
+      <section>
+        <title>Puppet definition structure</title>
+
+        <para>The strength of Puppet lays within its definitions. You have
+        modules that help you define the state of a particular resource (or
+        set of resources), including default values that fit your needs, and
+        you have nodes that instantiate the modules and set specifics. The
+        power lays in the inheritance and overrides that you can define. In
+        this architecture, let's consider the following definition
+        structure:</para>
+
+        <programlisting>/etc/puppet/
++- manifests
+|  +- site.pp  # Global definition 
+|  +- nodes.pp # Sources in the node definitions further down
+|  `- nodes
+|     +- team1
+|     |  +- nodes.pp
+|     |  `- ...
+|     `- teamN
++- modules
+|  +- module1
+|  `- moduleN
++- patterns
+|  +- pattern1
+|  `- patternN
+`- environments
+   +- manifests
+   |  `- nodes
+   +- environment1
+   |  +- modules
+   |  `- patterns
+   `- environmentN</programlisting>
+
+        <para>System administration teams have their repository in which they
+        define the state of their systems. This repository is available on the
+        Puppet master site under the
+        <filename>/etc/puppet/manifests/nodes/&lt;repo&gt;</filename>
+        location. Each repository contains a nodes.pp file that is sourced in
+        from the main <filename>nodes.pp</filename> at
+        <filename>/etc/puppet/manifests</filename>. Nodes inherit or include
+        information from patterns (and perhaps modules, but mostly
+        patterns).</para>
+
+        <para>Modules are developed independently as their own repositories,
+        and made available under
+        <filename>/etc/puppet/modules/&lt;repo&gt;</filename>. Modules are
+        seen as building blocks of a particular technology and should have as
+        little dependencies as possible.</para>
+
+        <para>Patterns are also a sort-of modules, but they combine the
+        previous modules in well structured classes. For instance, a pattern
+        for a postgresql database server will include the postgresql module,
+        but also a backup module (for instance for bacula), log rotation
+        information, additional users (accounts for third line support),
+        etc.</para>
+
+        <para>Finally, environments are specific (tagged) checkouts of the
+        modules and patterns, and are used to provide a release-based
+        approach. Whereas the main location could contain the master branch of
+        all repositories (which is the production-ready branch) the
+        environments can support preproduction checkouts (for instance an
+        environment called "development" and one called "testing") or even
+        post-production checkouts (specific releases). If your organization
+        uses monthly releases, this could be an environment production-201212
+        denoting the december release in 2012. However, know that the
+        environments also require the node definitions again and that it is
+        the Puppet <emphasis>agent</emphasis> that defines which environment
+        to use.</para>
+      </section>
+
+      <section>
+        <title>Alternative: Using packaged releases</title>
+
+        <para>If you do not like the use of environments as depicted above,
+        you can also focus on packaged releases: teams still manage their code
+        as they please, but eventually create packages (like ebuilds) which
+        are versioned and can be deployed. This would then lead to packages
+        that install modules with have a version in their name:</para>
+
+        <programlisting>/etc/puppet
+`- modules
+   +- postgresql92-1.0.0
+   `- postgresql92-1.0.2</programlisting>
+
+        <para>Other packages (like those providing the patterns) then depend
+        on the correct versions. Thanks to dependency support in Gentoo, when
+        no patterns (or nodes) are installed anymore that depend on a
+        particular version, it will be cleaned from the environment. And
+        thanks to SLOT support, multiple deployments of the same package with
+        different versions is supported as well.</para>
+
+        <para>In this reference architecture, I will not persue this method -
+        I find it a broken solution for a broken situation: in your
+        architecture, fixing versions leads to outdated systems and slowly
+        progressing information architecture. By leveraging environments, this
+        problem is less prominent.</para>
+      </section>
     </section>
 
     <section>
@@ -128,9 +239,17 @@
   </section>
 
   <section>
-    <title>Puppet master</title>
+    <title>Git</title>
 
     <para/>
+  </section>
+
+  <section>
+    <title>Puppet master</title>
+
+    <para>The puppet master hosts the configuration entries for your
+    environment and manages the puppet clients' authentication (through
+    certificates). </para>
 
     <section>
       <title>Architecture</title>
@@ -157,16 +276,19 @@
  U I
  - - augeas              : Enable augeas support
  - - diff                : Enable diff support
- - - doc                 : Adds extra documentation (API, Javadoc, etc). It is recommended to enable per package instead of globally
+ - - doc                 : Adds extra documentation (API, Javadoc, etc). It is \
+                           recommended to enable per package instead of globally
  - - emacs               : Adds support for GNU Emacs
  - - ldap                : Adds LDAP support (Lightweight Directory Access Protocol)
- - - minimal             : Install a very minimal build (disables, for example, plugins, fonts, most drivers, non-critical features)
+ - - minimal             : Install a very minimal build (disables, for example, \
+                           plugins, fonts, most drivers, non-critical features)
  - - rrdtool             : Enable rrdtool support
  + + ruby_targets_ruby18 : Build with MRI Ruby 1.8.x
  - - shadow              : Enable shadow support
  - - sqlite3             : Adds support for sqlite3 - embedded sql database
- - - test                : Workaround to pull in packages needed to run with FEATURES=test. Portage-2.1.2 handles this internally, so don't set it in
-                           make.conf/package.use anymore
+ - - test                : Workaround to pull in packages needed to run with \
+                           FEATURES=test. Portage-2.1.2 handles this internally, \
+                           so don't set it in make.conf/package.use anymore
  - - vim-syntax          : Pulls in related vim syntax scripts
  - - xemacs              : Add support for XEmacs
 
@@ -184,28 +306,39 @@
       </section>
 
       <section>
-        <title>Configuring file access</title>
+        <title>Configuring repositories</title>
 
-        <para>Puppet allows clients pulling in files from the master through a
-        variety of methods. One possibile one is to use is a web-based service
-        which can be configured through /etc/puppet/fileserver.conf:</para>
+        <para>As per our initial example, we will need to pull from the
+        repositories. Assuming that the git repositories are available at
+        git.internal.genfic.com, we could do the following:</para>
 
-        <programlisting># <command>cat /etc/puppet/fileserver.conf</command>
-[files]
-  path /var/lib/puppet/files
-  allow *.internal.genfic.com</programlisting>
+        <programlisting># <command>cd /etc/puppet/</command>
+# <command>git clone git://git.internal.genfic.com/puppet/manifests.git</command>
+# <command>git clone git://git.internal.genfic.com/puppet/modules.git</command>
+# <command>git clone git://git.internal.genfic.com/puppet/patterns.git</command></programlisting>
 
-        <para>The "files" is what puppet calls the mountpoint. If a Puppet
-        manifest refers to <filename>puppet:///files/</filename> then the
-        web-based service will look for the remainder of the path at the
-        provided location. Thus, a reference to
-        <filename>puppet://files/general/etc/motd</filename> will have the
-        web-based service serving the file
-        <filename>/var/lib/puppet/files/general/etc/motd</filename>.</para>
+        <para>Of course, you can use nested repositories as well. For
+        instance, if you have several administration teams, then inside the
+        manifests repository a directory nodes would be available that is
+        ignored by git (through the .gitignore file). As a result, anything
+        inside that directory is not managed by the manifests.git project. So
+        what we do is pull in the repositories of the various teams:</para>
 
-        <para>However, it is recommended to have files be served through the
-        modules themselves - the modular approach makes managing the classes
-        much easier (and makes debugging easier as well).</para>
+        <programlisting># <command>cd /etc/puppet/manifests/nodes</command>
+# <command>git clone git://git.internal.genfic.com/teams/team1.git</command>
+# <command>git clone git://git.internal.genfic.com/teams/team2.git</command></programlisting>
+
+        <para>With the environments, a similar setup is used, but once cloned
+        we check out a specific branch. For instance, for development
+        environment, this would be the development branch:</para>
+
+        <programlisting># <command>cd /etc/puppet/environments</command>
+# <command>git clone --branch development git://git.internal.genfic.com/puppet/patterns.git</command></programlisting>
+
+        <para>Because we just pull in changes as they come along, mastership
+        of the data is within the git repositories. Given proper policies in
+        place, you can easily have a simple script available that is invoked
+        by cron to update the various repositories. </para>
       </section>
     </section>
   </section>
@@ -230,8 +363,14 @@
         <title>Installing puppet client</title>
 
         <para>The puppet client, just like the master, is provided by the
-        <package>app-admin/puppet</package> package. Once installed, you can
-        start the puppet client service:</para>
+        <package>app-admin/puppet</package> package. Next to puppet, we will
+        also install augeas, which is a tool that abstracts configuration
+        syntax and allows simple, automated changes on configuration
+        files.</para>
+
+        <programlisting># <command>emerge app-admin/augeas</command></programlisting>
+
+        <para>Once installed, you can start the puppet client service:</para>
 
         <programlisting># <command>run_init rc-service puppet start</command></programlisting>
 
@@ -240,7 +379,29 @@
         server with a different hostname, edit the
         <filename>/etc/puppet/puppet.conf</filename> file and add in a
         <parameter>server=</parameter> entry inside the
-        <parameter>[agent]</parameter> section.</para>
+        <parameter>[agent]</parameter> section. As we are using a
+        load-balanced setup, we need to set a dedicated location for the
+        certificate handling of the clients - only one server can act as the
+        certificate authority. We can point to this server using the ca_server
+        parameter:</para>
+
+        <programlisting># <command>cat /etc/puppet/puppet.conf</command>
+[main]
+  logdir=/var/log/puppet
+  rundir=/var/run/puppet
+  ssldir=$vardir/ssl
+
+[agent]
+  classfile=$vardir/classes.txt
+  localconfig=$vardir/localconfig
+  listen=true
+  ca_server=puppet-ca.internal.genfic.com</programlisting>
+
+        <para>You probably notice we also added the listen=true directive.
+        This allows the puppetmaster to connect to the puppet clients as well
+        (by default, the puppet clients connect to the master themselves).
+        This can be interesting if you want to push changes to particular
+        systems without waiting for the standard refresh period.</para>
       </section>
 
       <section>

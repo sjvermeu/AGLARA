@@ -28,7 +28,7 @@
     more.</para>
 
     <section>
-      <title>Architecture </title>
+      <title>Architecture</title>
 
       <para>The Postfix architecture looks like so:</para>
 
@@ -37,7 +37,8 @@
 
         <mediaobject>
           <imageobject>
-            <imagedata fileref="images/08-postfix.png"/>
+            <imagedata fileref="images/08-postfix.png" scalefit="1"
+                       width="100%"/>
           </imageobject>
         </mediaobject>
       </figure>
@@ -86,7 +87,7 @@ mydestination = $myorigin</programlisting>
 
         <para>An e-mail that is received by Postfix is validated against the
         mydestination parameter to see if the mail needs to be forwarded
-        further (relayed) or delivered locally. </para>
+        further (relayed) or delivered locally.</para>
 
         <programlisting>mydestination = genfic.com</programlisting>
       </section>

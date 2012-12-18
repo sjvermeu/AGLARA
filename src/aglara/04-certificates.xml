@@ -191,7 +191,8 @@
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/04-ca_certificate.png"/>
+              <imagedata fileref="images/04-ca_certificate.png" scalefit="1"
+                         width="100%"/>
             </imageobject>
           </mediaobject>
         </figure>
@@ -313,16 +314,6 @@
 
         <para>And who else to trust better than yourself ;-)</para>
 
-        <figure>
-          <title>Use of a CA management service</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/04-ejbca.png"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-
         <para>By using management software for certificates internally, many
         important activities can be handled without having to seek for and pay
         a large CA vendor:</para>
@@ -380,7 +371,7 @@
       <para>The OpenSSL stack is a very common, well maintained library for
       handling encryption and encryption-related functions, including
       certificate handling. Most, if not all Linux/Unix systems have it
-      installed, so you should be good to go. </para>
+      installed, so you should be good to go.</para>
 
       <section>
         <title>Setting the defaults</title>
@@ -441,7 +432,8 @@ Email Address []:</programlisting>
         <programlisting># <command>mkdir genficCA</command>
 # <command>touch genficCA/index.txt</command>
 # <command>echo 01 &gt; genficCA/crlnumber</command>
-# <command>openssl ca -gencrl -crldays 365 -keyfile root-genfic.key -cert root-genfic.crt -out root-genfic.crl</command></programlisting>
+# <command>openssl ca -gencrl -crldays 365 -keyfile root-genfic.key -cert root-genfic.crt \
+    -out root-genfic.crl</command></programlisting>
 
         <para>Now put all files in the location(s) as defined in
         openssl.cnf.</para>
@@ -502,8 +494,10 @@ Email Address []:</programlisting>
         key of the keypair generated, as well as identity information. Based
         on the CSR, the root CA will sign and create a certificate:</para>
 
-        <programlisting># <command>openssl ca -name CA_root -days 1095 -extensions v3_ca -out system-genfic.crt -infiles system-genfic.csr</command>
-# <command>openssl ca -name CA_root -days 1109 -extensions v3_ca -out user-genfic.crt -infiles user-genfic.csr</command></programlisting>
+        <programlisting># <command>openssl ca -name CA_root -days 1095 -extensions v3_ca -out system-genfic.crt \
+    -infiles system-genfic.csr</command>
+# <command>openssl ca -name CA_root -days 1109 -extensions v3_ca -out user-genfic.crt \
+    -infiles user-genfic.csr</command></programlisting>
 
         <para>You might have noticed I have different validation periods for
         the certificates. This is to support the (plausible) management
@@ -617,7 +611,7 @@ Email Address []:</programlisting>
         <title>Revoking a certificate</title>
 
         <para>Suppose a user reports that his or her private key is lost (or
-        even worse, compromised). </para>
+        even worse, compromised).</para>
 
         <para>First, you need to find this users' (signed) certificate. You
         can look at the index.txt file within the CA directory to find out

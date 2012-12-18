@@ -310,7 +310,8 @@ PaXtest - Copyright(c) 2003,2004 by Peter Busser &lt;peter@adamantix.org&gt;
 Released under the GNU Public Licence version 2 or later
 
 Mode: blackhat
-Linux hpl 3.1.6-hardened #1 SMP PREEMPT Tue Dec 27 13:49:05 CET 2011 x86_64 Intel(R) Core(TM) i5 CPU M 430 @ 2.27GHz GenuineIntel GNU/Linux
+Linux hpl 3.1.6-hardened #1 SMP PREEMPT Tue Dec 27 13:49:05 CET 2011 \
+  x86_64 Intel(R) Core(TM) i5 CPU M 430 @ 2.27GHz GenuineIntel GNU/Linux
 
 Executable anonymous mapping             : Killed
 Executable bss                           : Killed
@@ -357,9 +358,11 @@ Stack randomisation test (PAGEEXEC)      : 40 bits (guessed)
         memory structures. The higher the randomisation, the better. On Gentoo
         Hardened, (almost) all binaries are PIE.</para>
 
-        <programlisting>Return to function (strcpy)              : paxtest: return address contains a NULL byte.
+        <programlisting>Return to function (strcpy)              : paxtest: return address \
+                                           contains a NULL byte.
 Return to function (memcpy)              : Vulnerable
-Return to function (strcpy, PIE)         : paxtest: return address contains a NULL byte.
+Return to function (strcpy, PIE)         : paxtest: return address \
+                                           contains a NULL byte.
 Return to function (memcpy, PIE)         : Vulnerable
 </programlisting>
 

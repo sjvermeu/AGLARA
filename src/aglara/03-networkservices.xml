@@ -49,7 +49,8 @@
 
         <mediaobject>
           <imageobject>
-            <imagedata fileref="images/03-networkservices.png"/>
+            <imagedata fileref="images/03-networkservices.png" scalefit="1"
+                       width="80%"/>
           </imageobject>
         </mediaobject>
       </figure>
@@ -177,7 +178,8 @@
 
       <mediaobject>
         <imageobject>
-          <imagedata fileref="images/03-dnsservice.png"/>
+          <imagedata fileref="images/03-dnsservice.png" scalefit="1"
+                     width="100%"/>
         </imageobject>
       </mediaobject>
     </figure>
@@ -215,7 +217,8 @@
 
       <mediaobject>
         <imageobject>
-          <imagedata fileref="images/03-dns-highlevel.png"/>
+          <imagedata fileref="images/03-dns-highlevel.png" scalefit="1"
+                     width="100%"/>
         </imageobject>
       </mediaobject>
     </figure>
@@ -313,7 +316,8 @@
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/03-BIND.png"/>
+              <imagedata fileref="images/03-BIND.png" scalefit="1"
+                         width="100%"/>
             </imageobject>
           </mediaobject>
         </figure>
@@ -364,7 +368,8 @@
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/03-bindadmin.png"/>
+              <imagedata fileref="images/03-bindadmin.png" scalefit="1"
+                         width="70%"/>
             </imageobject>
           </mediaobject>
         </figure>
@@ -448,7 +453,8 @@
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/03-bind-operations.png"/>
+              <imagedata fileref="images/03-bind-operations.png" scalefit="1"
+                         width="100%"/>
             </imageobject>
           </mediaobject>
         </figure>
@@ -558,7 +564,8 @@
  - - berkdb      : Adds support for sys-libs/db (Berkeley DB for MySQL)
  + + caps        : Use Linux capabilities library to control privilege
  + + dlz         : Enables dynamic loaded zones, 3rd party extension
- - - doc         : Adds extra documentation (API, Javadoc, etc). It is recommended to enable per package instead of globally
+ - - doc         : Adds extra documentation (API, Javadoc, etc). It is recommended \
+                   to enable per package instead of globally
  - - filter-aaaa : Enable filtering of AAAA records over IPv4
  - - geoip       : Add geoip support for country and city lookup based on IPs
  - - gost        : Enables gost OpenSSL engine support
@@ -612,7 +619,8 @@ allow portage_t var_t:chr_file { create getattr setattr };</programlisting>
         <para>This will prepare the chroot for you. Finish off by resetting
         the right SELinux file contexts on the chroot:</para>
 
-        <programlisting># <command>setfiles -r /var/named/chroot /etc/selinux/strict/contexts/files/file_contexts /var/named/chroot</command></programlisting>
+        <programlisting># <command>setfiles -r /var/named/chroot \
+    /etc/selinux/strict/contexts/files/file_contexts /var/named/chroot</command></programlisting>
 
         <para>At the end of the steps, emerge will ask you to edit your system
         logger configuration to capture logging events from the chrooted
@@ -652,8 +660,14 @@ source jail { unix-stream("/var/named/chroot/dev/log"); };</programlisting>
 view "local" {
   match-clients { 2001:db8:81::/48; };
   recursion yes;
-  zone "genfic.com" { type master; file "pri/com.genfic"; };
-  zone "1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa" { type master; file "pri/1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa"; };
+  zone "genfic.com" { 
+    type master;
+    file "pri/com.genfic";
+  };
+  zone "1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa" {
+    type master;
+    file "pri/1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa";
+  };
 };</programlisting>
 
         <para>That's it. The configuration will have this installation work as
@@ -906,11 +920,14 @@ view "local" {
         <command>dnssec-dsfromkey</command> against the KSK:</para>
 
         <programlisting># <command>grep key-signing *.key</command>
-K1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.+008+41569.key:; This is a key-signing key, keyid 41569, for 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
-Kgenfic.com.+008+51397.key:; This is a key-signing key, keyid 51397, for genfic.com
+K1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.+008+41569.key:; This is a key-signing key, \
+  keyid 41569, for 1.8.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
+Kgenfic.com.+008+51397.key:; This is a key-signing key, keyid 51397, for \
+  genfic.com
 # <command>dnssec-dsfromkey Kgenfic.com.+008+51397.key</command>
 genfic.com. IN DS 51397 8 1 B23D4D54B971A2A835A31B2B1AF24AB43E2C8EA2
-genfic.com. IN DS 51397 8 2 323F009E2B952F3247DC78BA85AA38A9C798B5FE129A78935CCC4686 C5F02A14</programlisting>
+genfic.com. IN DS 51397 8 2 323F009E2B952F3247DC78BA85AA38A9C798B5FE129A78935CCC4686 \
+  C5F02A14</programlisting>
 
         <para>You can now submit these records (the first is a SHA1 checksum
         of the DNSKEY and owner information, the second one a SHA256 checksum
@@ -1059,7 +1076,8 @@ Dec 17 09:16:07 ns named[3721]: client 2001:db8:81:21:0:ac:98ad:5fe1#54273 \
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/03-dhcp.png"/>
+              <imagedata fileref="images/03-dhcp.png" scalefit="1"
+                         width="100%"/>
             </imageobject>
           </mediaobject>
         </figure>
@@ -1123,7 +1141,8 @@ max-lease-time 7200;
 
 subnet6 2001:db8:81:e2::/64 {
   range6 2001:db8:81:e2::f00 2001:db8:81:e2::fff;
-  option dhcp6.name-servers 2001:db8:81:21::ac:98ad:5fe1, 2001:db8:81:22::ae:6b01:e3d8;
+  option dhcp6.name-servers 2001:db8:81:21::ac:98ad:5fe1, \
+    2001:db8:81:22::ae:6b01:e3d8;
   option dhcp6.domain-search "workstation.internal.genfic.com";
 }
 
@@ -1163,7 +1182,8 @@ subnet6 2001:db8:81:21::/64 {
         accordingly.</para>
 
         <programlisting># <command>cat /etc/conf.d/dhcrelay</command>
-DHCRELAY_OPTS="-6 -l eth0 -u 2001:db8:81:21::f4:3303:40f4%eth0 -u 2001:db8:81:22::5f:3853:fe78%eth0"</programlisting>
+DHCRELAY_OPTS="-6 -l eth0 -u 2001:db8:81:21::f4:3303:40f4%eth0 -u \
+  2001:db8:81:22::5f:3853:fe78%eth0"</programlisting>
 
         <para>You also need to edit <filename>/etc/init.d/dhcrelay</filename>
         currently as it forces two options that are only valid for

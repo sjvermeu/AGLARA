@@ -47,7 +47,7 @@
 
         <mediaobject>
           <imageobject>
-            <imagedata fileref="images/05-nfs.png"/>
+            <imagedata fileref="images/05-nfs.png" scalefit="1" width="100%"/>
           </imageobject>
         </mediaobject>
       </figure>
@@ -247,7 +247,8 @@ CONFIG_NFS_V4_ACL=y</programlisting>
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/05-alt-ha.png"/>
+              <imagedata fileref="images/05-alt-ha.png" scalefit="1"
+                         width="100%"/>
             </imageobject>
           </mediaobject>
         </figure>
@@ -284,7 +285,8 @@ CONFIG_NFS_V4_ACL=y</programlisting>
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/05-htree.png"/>
+              <imagedata fileref="images/05-htree.png" scalefit="1"
+                         width="100%"/>
             </imageobject>
           </mediaobject>
         </figure>
@@ -352,7 +354,7 @@ CONFIG_NFS_V4_ACL=y</programlisting>
         our case) goes up the same way as the given formula - it doesn't give
         the exact number of jumps. For very large sets of files, this gives a
         very huge difference (100^2 = 10'000 whereas 100*log(100) = 200, and
-        1000^2 = 1'000'000 whereas 1000*log(1000) = 3000). </para>
+        1000^2 = 1'000'000 whereas 1000*log(1000) = 3000).</para>
 
         <para>Hence the speed difference.</para>
 
@@ -398,8 +400,7 @@ CONFIG_NFS_V4_ACL=y</programlisting>
         be invoked to copy the file (or its delta's) to the remote
         system:</para>
 
-        <programlisting>inotifywait -e close_wait -r -m --format '%w%f' &lt;source&gt; | \
-while read file
+        <programlisting>inotifywait -e close_wait -r -m --format '%w%f' &lt;source&gt; | while read file
 do
   rsync -auq $file &lt;targethost&gt;:&lt;targetlocation&gt;/$file
 done</programlisting>
@@ -617,7 +618,7 @@ $ <command>ssh nfs_s cat /proc/drbd</command>
 
         <para>Assuming that heartbeat left the NFS service running on the
         primary node, we can now sacrifice the secondary and reset the
-        synchronisation. </para>
+        synchronisation.</para>
 
         <programlisting>$ <command>ssh nfs_s sudo rc-service heartbeat stop</command>
 * Stopping heartbeat...     [ ok ]

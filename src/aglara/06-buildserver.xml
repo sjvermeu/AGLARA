@@ -169,7 +169,8 @@ Weekly (and before daily):
         the next example, where you see "basic_bp", it is the name of this
         build profile.</para>
 
-        <programlisting># <command>mkdir -p /srv/build/basic_bp/{portage,portage_settings,snapshot_cache,catalyst_store}</command>
+        <programlisting># <command>mkdir -p /srv/build/basic_bp/{portage,portage_settings,snapshot_cache,\
+    catalyst_store}</command>
 # <command>cd /etc/catalyst</command>
 # <command>cat catalyst-basic_bp.conf</command>
 digests="sha512"
@@ -256,7 +257,8 @@ grp/packages: lighttpd nginx cvechecker bind apache ...</programlisting>
         <para>To automate the build process, remove the date-specific
         parameters and instead pass them on as parameters, like so:</para>
 
-        <programlisting># <command>catalyst -c catalyst-basic_bp.conf -f stage3-basic_bp.conf -C version_stamp=20120406</command></programlisting>
+        <programlisting># <command>catalyst -c catalyst-basic_bp.conf -f stage3-basic_bp.conf \
+    -C version_stamp=20120406</command></programlisting>
 
         <para>Next, if the grp build finishes succesfully as well, we can use
         rsync to:</para>

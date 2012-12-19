@@ -1,0 +1,10 @@
+# File managed by puppet
+127.0.0.1	local.virtdomain local
+192.168.100.1	gateway.virtdomain gateway
+
+::1		localhost.<%= domain %> localhost
+<%= ipaddress6 %>	<%= hostname %>.<%= domain %> <%= hostname %>
+
+# Minimal requirements (case DNS is unavailable)
+2001:db8:81:e2::26b5:365b:5072	workstation.<%= domain %> workstation
+2001:db8:81:21::53:3a8a:71e0	puppet.<%= domain %> puppet

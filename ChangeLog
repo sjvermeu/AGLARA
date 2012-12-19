@@ -1,5 +1,6 @@
 ** (2012-12-19) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Architecturing puppet
+	- Adding puppet information in cfg/ location
 
 ** (2012-12-18) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Update puppet for multi-master setup

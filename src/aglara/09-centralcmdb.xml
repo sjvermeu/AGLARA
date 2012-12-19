@@ -140,17 +140,17 @@
 +- manifests
 |  +- site.pp  # Global definition 
 |  +- nodes.pp # Sources in the node definitions further down
-|  `- nodes
-|     +- team1
-|     |  +- nodes.pp
-|     |  `- ...
-|     `- teamN
+|  +- nodes
+|  |  +- team1
+|  |  |  +- nodes.pp
+|  |  |  `- ...
+|  |  `- teamN
+|  `- patterns
+|     +- pattern1
+|     `- patternN
 +- modules
 |  +- module1
 |  `- moduleN
-+- patterns
-|  +- pattern1
-|  `- patternN
 `- environments
    +- manifests
    |  `- nodes
@@ -466,7 +466,7 @@
 
         <para>Then, on the CA server, sign the request:</para>
 
-        <programlisting># <command>puppet cert --list</command>
+        <programlisting># <command>puppet cert list</command>
 # <command>puppet cert sign &lt;new master cert&gt;</command></programlisting>
 
         <para>Finally, retrieve the signed certificate back on the HUB:</para>
@@ -525,14 +525,11 @@
         <title>Installing puppet client</title>
 
         <para>The puppet client, just like the master, is provided by the
-        <package>app-admin/puppet</package> package. Next to puppet, we will
-        also install augeas, which is a tool that abstracts configuration
-        syntax and allows simple, automated changes on configuration
-        files.</para>
-
-        <programlisting># <command>emerge app-admin/augeas</command></programlisting>
-
-        <para>Once installed, you can start the puppet client service:</para>
+        <package>app-admin/puppet</package> package. During the installation,
+        portage will also install augeas, which is a tool that abstracts
+        configuration syntax and allows simple, automated changes on
+        configuration files. Once installed, you can start the puppet client
+        service:</para>
 
         <programlisting># <command>run_init rc-service puppet start</command></programlisting>
 
@@ -564,6 +561,26 @@
         (by default, the puppet clients connect to the master themselves).
         This can be interesting if you want to push changes to particular
         systems without waiting for the standard refresh period.</para>
+
+        <para>Now tell the client to create a certificate and send the signing
+        request to the puppet master:</para>
+
+        <programlisting># <command>puppet agent --test</command></programlisting>
+
+        <para>On the puppet master, the certificate request is now pending.
+        You can see the list of certificates with puppet cert --list. Sign the
+        certificate if you know it is indeed a valid request.</para>
+
+        <programlisting># <command>puppet cert list</command>
+  "pg_db1.internal.genfic.com" (23:A5:2F:99:65:60:12:32:00:CA:FE:7F:35:2F:E2:3A)
+# <command>puppet cert sign "pg_db1.internal.genfic.com"</command>
+notice: Signed certificate request for pg_db1.internal.genfic.com
+notice: Removing file Puppet::SSL::CertificateRequest pg_db1.internal.genfic.com at '/var/lib/puppet/ssl/ca/requests/pg_db1.internal.genfic.com.pem'</programlisting>
+
+        <para>Once the request is signed, you can retrieve the certificate
+        using the puppet agent command again.</para>
+
+        <programlisting># <command>puppet agent</command></programlisting>
       </section>
 
       <section>
@@ -573,6 +590,45 @@
         manage each and every file on the system. If you want this, you need
         to enable the <parameter>puppet_manage_all_files</parameter>
         boolean.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Working with Puppet</title>
+
+      <para/>
+
+      <section>
+        <title>Learning the facts</title>
+
+        <para>When you are on a puppet-managed system, you can run
+        <command>facter</command> to get an overview of all the facts that it
+        found on the system. For instance, to get information on
+        addresses:</para>
+
+        <programlisting># <command>facter | grep address</command>
+ipaddress =&gt; 192.168.100.152
+ipaddress6 =&gt; 2001:db8:81:22:0:d8:e8fc:a2dc
+macaddress =&gt; 36:5b:94:e1:eb:0e</programlisting>
+      </section>
+
+      <section>
+        <title>Not using daemon</title>
+
+        <para>If you do not want to use the puppet (client) daemon, you can
+        run puppet from cron easily. Just have <command>puppet agent</command>
+        ran with the frequency you need.</para>
+      </section>
+
+      <section>
+        <title>Not using a puppet master</title>
+
+        <para>You can even use Puppet without a puppet master. In that case,
+        the local system will need access to the configuration repository
+        (which can be a read-only NFS mount or a local checkout of a
+        repository).</para>
+
+        <para/>
       </section>
     </section>
   </section>

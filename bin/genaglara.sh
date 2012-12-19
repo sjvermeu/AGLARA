@@ -61,7 +61,7 @@ echo "done";
 
 # Building epub
 echo -n "Generating ePub format... ";
-xsltproc /usr/share/sgml/docbook/xsl-stylesheets/epub/docbook.xsl AGLARA.xml >> ${LOGFILE} 2>&1;
+xsltproc /usr/share/sgml/docbook/xsl-stylesheets/epub3/docbook.xsl AGLARA.xml >> ${LOGFILE} 2>&1;
 zip -r aglara.zip META-INF OEBPS >> ${LOGFILE} 2>&1;
 mv aglara.zip aglara.epub;
 echo "done";
@@ -69,8 +69,13 @@ echo "done";
 if [[ ${DOPDF} -eq 1 ]];
 then
   # Building book
+  echo -n "Enabling scalefit=1 to render images in PDF properly... ";
+  sed -i -e 's:scalefit="0":scalefit="1":g' AGLARA.xml >> ${LOGFILE} 2>&1;
   echo -n "Building book PDF... ";
-  xsltproc --output aglara.fo --stringparam paper.type A4 /usr/share/sgml/docbook/xsl-stylesheets/fo/docbook.xsl AGLARA.xml >> ${LOGFILE} 2>&1;
+  xsltproc --output aglara.fo \
+  		--stringparam paper.type A4 \
+  		--stringparam shade.verbatim 1 \
+  	/usr/share/sgml/docbook/xsl-stylesheets/fo/docbook.xsl AGLARA.xml >> ${LOGFILE} 2>&1;
   fop aglara.fo aglara.pdf >> ${LOGFILE} 2>&1;
   echo "done";
 fi

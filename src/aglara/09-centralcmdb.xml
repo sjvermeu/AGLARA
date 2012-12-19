@@ -245,7 +245,7 @@
   </section>
 
   <section>
-    <title>Puppet master</title>
+    <title>Puppet</title>
 
     <para>The puppet master hosts the configuration entries for your
     environment and manages the puppet clients' authentication (through
@@ -254,7 +254,122 @@
     <section>
       <title>Architecture</title>
 
-      <para/>
+      <para>the puppet architecture is fairly simple, which is also one of its
+      strengths.</para>
+
+      <section>
+        <title>Flows</title>
+
+        <para>The following diagram shows the flows/feeds that interact with
+        the puppet processes.</para>
+
+        <figure>
+          <title>Flows towards and from puppet</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/09-puppet-flow.png" scalefit="0"
+                         width="100%"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>The most prominent flow is the one with configuration updates.
+        These updates come from one of the Git repositories and are triggered
+        locally on the puppet master server itself.</para>
+      </section>
+
+      <section>
+        <title>Administration</title>
+
+        <para>As puppet is an administration tool by itself, it comes to no
+        surprise that the actual administration on puppet is done using the
+        system-specific interactive shells (i.e. through SSH).</para>
+
+        <figure>
+          <title>Puppet administration</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/09-puppet-admin.png" scalefit="0"
+                         width="100%"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>The main administration task in puppet is handling the
+        certificates: system administrators request a certificate through the
+        puppet client. The client connects to the master, sends the signing
+        request, which is then queued. The puppet admin then lists the pending
+        certificate requests and signs those he know are valid. When signed,
+        the system administrator can then retrieve the signed certificate and
+        have it installed on the system (again through the puppet client) from
+        which point the system is known and can be managed by puppet.</para>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para>When checking on the puppet operations, we need to make sure
+        that</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>the puppet agent is running (or scheduled to run)</para>
+          </listitem>
+
+          <listitem>
+            <para>the puppet agent ran within the last xx minutes (depending
+            on the frequency of the data gathering)</para>
+          </listitem>
+
+          <listitem>
+            <para>the puppet agent did not fail</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>We might also want to include a check that says that n
+        consecutive polls might not perform changes every time (in other
+        words, the configuration has to be stable after n-1 requests).</para>
+      </section>
+
+      <section>
+        <title>Operations</title>
+
+        <para>During regular operations, the puppet agent frequently connects
+        to the puppet master, sends all his "facts" (the state of the current
+        system) from which the puppetmaster then devises how to update the
+        system to match the configuration the system should be in.</para>
+
+        <figure>
+          <title>Regular operations of puppet</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/09-puppet-operations.png"
+                         scalefit="0" width="100%"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>The activities are, by default, triggered from the agent. It is
+        possible (and we will do so later) to configure the agent to also
+        listen for incoming connections from the puppet master. This allows
+        administrators to push changes to systems without waiting for the
+        agents to connect to the master.</para>
+      </section>
+
+      <section>
+        <title>User management</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Security</title>
+
+        <para/>
+      </section>
     </section>
 
     <section>
@@ -274,7 +389,7 @@
 [ Colors : set, unset                             ]
  * Found these USE flags for app-admin/puppet-2.7.18:
  U I
- - - augeas              : Enable augeas support
+ + + augeas              : Enable augeas support
  - - diff                : Enable diff support
  - - doc                 : Adds extra documentation (API, Javadoc, etc). It is \
                            recommended to enable per package instead of globally
@@ -294,8 +409,8 @@
 
 # <command>emerge app-admin/puppet</command></programlisting>
 
-        <para>Next, edit /etc/puppet/puppet.conf and add the following to
-        enable puppetmaster to bind on IPv6:</para>
+        <para>Next, edit <filename>/etc/puppet/puppet.conf</filename> and add
+        the following to enable puppetmaster to bind on IPv6:</para>
 
         <programlisting>[master]
     bindaddress="::"</programlisting>
@@ -399,18 +514,6 @@
         place, you can easily have a simple script available that is invoked
         by cron to update the various repositories.</para>
       </section>
-    </section>
-  </section>
-
-  <section>
-    <title>Puppet clients</title>
-
-    <para/>
-
-    <section>
-      <title>Architecture</title>
-
-      <para/>
     </section>
 
     <section>

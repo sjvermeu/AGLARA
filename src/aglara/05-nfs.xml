@@ -116,6 +116,12 @@
       the NFS daemon), other daemons are being introduced to further enhance
       the functionalities offered by NFSv4.</para>
 
+      <important>
+        <para>The Linux-NFS software we use in this architecture still
+        requires the NFSv3 daemons to run on the server even when running
+        NFSv4 only.</para>
+      </important>
+
       <section>
         <title>ID Mapping</title>
 
@@ -161,6 +167,29 @@ CONFIG_NFSD_V4_ACL=y</programlisting>
         nfsv4 nfsv41" are at least set</para>
 
         <programlisting># <command>emerge nfs-utils</command></programlisting>
+
+        <para>Edit <filename>/etc/conf.d/nfs</filename> and set the
+        OPTS_RPC_MOUNTD and OPTS_RPC_NFSD parameters to enable NFSv4 and
+        disable NFSv3 and NFSv2 support:</para>
+
+        <programlisting>OPTS_RPC_MOUNTD="-V 4 -N 3 -N 2"
+OPTS_RPC_NFSD="-N 2 -N 3"</programlisting>
+
+        <para>I had to create the following directories as well since SELinux
+        wouldn't allow the init script to create those for me:</para>
+
+        <programlisting># <command>mkdir /var/lib/nfs/{v4root,v4recovery,rpc_pipefs}</command></programlisting>
+
+        <para>Edit <filename>/etc/idmapd.conf</filename> and set the domain
+        name (this setting should be the same on client and server).</para>
+
+        <programlisting># <command>vim /etc/idmapd.conf</command>
+[General]
+Domain = internal.genfic.com</programlisting>
+
+        <para>You can then start the NFS service.</para>
+
+        <programlisting># <command>run_init rc-service nfs start</command></programlisting>
       </section>
 
       <section>
@@ -177,6 +206,52 @@ CONFIG_NFS_V4_ACL=y</programlisting>
         nfsv4 nfsv41" are at least set:</para>
 
         <programlisting># <command>emerge nfs-utils</command></programlisting>
+
+        <para>Edit /etc/idmapd.conf and set the domain name (this setting
+        should be the same on client and server).</para>
+
+        <programlisting># <command>vim /etc/idmapd.conf</command>
+[General]
+Domain = internal.genfic.com</programlisting>
+
+        <para>Finally, start the rpc.statd and rpc.idmapd daemons:</para>
+
+        <programlisting># <command>run_init rc-service rpc.statd start</command>
+# <command>run_init rc-service rpc.idmapd start</command></programlisting>
+      </section>
+    </section>
+
+    <section>
+      <title>Configuration</title>
+
+      <para>Most NFS configuration is handled through the
+      <filename>/etc/exports</filename><indexterm>
+          <primary>exports</primary>
+        </indexterm> file.</para>
+
+      <section>
+        <title>Shared file systems in /etc/exports</title>
+
+        <para>To share file systems (or file structures) through NFS, you need
+        to edit the <filename>/etc/exports</filename> file. Below is a first
+        example for an exported packages directory:</para>
+
+        <programlisting>/srv/nfs                        2001:db8:81:e2:0:26b5:365b:5072/48(rw,fsid=0,no_subtree_check,no_root_squash,sync)
+/srv/nfs/gentoo/packages        2001:db8:81:e2:0:26b5:365b:5072/48(rw,sync,no_subtree_check,no_root_squash)</programlisting>
+
+        <para>The first one contains the <parameter>fsid=0</parameter>
+        parameter. This one is important, as it tells NFSv4 what the root is
+        of the file systems that it exports. In our case, that is
+        <filename>/srv/nfs</filename>. A client will then mount file systems
+        relative to this root location (so mount
+        <filename>gentoo/packages</filename>, not
+        <filename>srv/nfs/gentoo/packages</filename>).</para>
+
+        <para>If you get problems with NFS mounts, make sure to
+        double/triple/quadruple-check the exports file. NFS is not good at
+        logging things, but I have found I always mess up my
+        <filename>exports</filename> rather than misconfigure daemons or
+        so.</para>
       </section>
     </section>
   </section>

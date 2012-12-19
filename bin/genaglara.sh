@@ -71,6 +71,7 @@ then
   # Building book
   echo -n "Enabling scalefit=1 to render images in PDF properly... ";
   sed -i -e 's:scalefit="0":scalefit="1":g' AGLARA.xml >> ${LOGFILE} 2>&1;
+  echo "done";
   echo -n "Building book PDF... ";
   xsltproc --output aglara.fo \
   		--stringparam paper.type A4 \

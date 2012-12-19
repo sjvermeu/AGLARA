@@ -47,7 +47,7 @@
 
         <mediaobject>
           <imageobject>
-            <imagedata fileref="images/05-nfs.png" scalefit="1" width="100%"/>
+            <imagedata fileref="images/05-nfs.png" scalefit="0" width="100%"/>
           </imageobject>
         </mediaobject>
       </figure>
@@ -247,7 +247,7 @@ CONFIG_NFS_V4_ACL=y</programlisting>
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/05-alt-ha.png" scalefit="1"
+              <imagedata fileref="images/05-alt-ha.png" scalefit="0"
                          width="100%"/>
             </imageobject>
           </mediaobject>
@@ -285,7 +285,7 @@ CONFIG_NFS_V4_ACL=y</programlisting>
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/05-htree.png" scalefit="1"
+              <imagedata fileref="images/05-htree.png" scalefit="0"
                          width="100%"/>
             </imageobject>
           </mediaobject>

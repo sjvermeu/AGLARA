@@ -49,8 +49,8 @@
 
         <mediaobject>
           <imageobject>
-            <imagedata fileref="images/03-networkservices.png" scalefit="1"
-                       width="80%"/>
+            <imagedata fileref="images/03-networkservices.png" format="PDF"
+                       scalefit="0" width="80%"/>
           </imageobject>
         </mediaobject>
       </figure>
@@ -178,7 +178,7 @@
 
       <mediaobject>
         <imageobject>
-          <imagedata fileref="images/03-dnsservice.png" scalefit="1"
+          <imagedata fileref="images/03-dnsservice.png" scalefit="0"
                      width="100%"/>
         </imageobject>
       </mediaobject>
@@ -217,7 +217,7 @@
 
       <mediaobject>
         <imageobject>
-          <imagedata fileref="images/03-dns-highlevel.png" scalefit="1"
+          <imagedata fileref="images/03-dns-highlevel.png" scalefit="0"
                      width="100%"/>
         </imageobject>
       </mediaobject>
@@ -316,7 +316,7 @@
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/03-BIND.png" scalefit="1"
+              <imagedata fileref="images/03-BIND.png" scalefit="0"
                          width="100%"/>
             </imageobject>
           </mediaobject>
@@ -368,7 +368,7 @@
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/03-bindadmin.png" scalefit="1"
+              <imagedata fileref="images/03-bindadmin.png" scalefit="0"
                          width="70%"/>
             </imageobject>
           </mediaobject>
@@ -453,7 +453,7 @@
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/03-bind-operations.png" scalefit="1"
+              <imagedata fileref="images/03-bind-operations.png" scalefit="0"
                          width="100%"/>
             </imageobject>
           </mediaobject>
@@ -1076,7 +1076,7 @@ Dec 17 09:16:07 ns named[3721]: client 2001:db8:81:21:0:ac:98ad:5fe1#54273 \
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/03-dhcp.png" scalefit="1"
+              <imagedata fileref="images/03-dhcp.png" scalefit="0"
                          width="100%"/>
             </imageobject>
           </mediaobject>

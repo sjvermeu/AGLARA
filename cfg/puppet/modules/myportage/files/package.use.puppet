@@ -1,2 +1,6 @@
+## Managed by Puppet, please do not modify manually.
+## Instead use a separate file
+
 sys-apps/net-tools old-output
 app-admin/puppet augeas
+

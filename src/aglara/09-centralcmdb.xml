@@ -696,30 +696,144 @@ puppet-agent[6195]: Finished catalog run in 0.34 seconds</programlisting>
       <para>As I said before, puppets power comes from the ability of
       describing the state of a system, and letting Puppet decide how to reach
       that state. In this section, I give you an overview of how that is
-      achieved.</para>
+      achieved. Note however that this is far from a crash course on Puppet -
+      there are good resources for that online, and Puppet truly warrants an
+      entire book on itself.</para>
 
       <section>
         <title>The site.pp file</title>
 
-        <para/>
-      </section>
+        <para>The first file is puppet's
+        <filename>manifests/site.pp</filename> file. This file is read by
+        Puppet and thus acts as the starting point for all definitions. A
+        basic definition for our architecture would be to include the patterns
+        and the nodes:</para>
 
-      <section>
-        <title>A node file</title>
-
-        <para/>
+        <programlisting>import "patterns/*.pp"
+import "nodes/*.pp"</programlisting>
       </section>
 
       <section>
         <title>A pattern file</title>
 
-        <para/>
+        <note>
+          <para>Patterns are specific to our Puppet implementation; the
+          terminology is not used in Puppet by itself.</para>
+        </note>
+
+        <para>In a pattern file, we declare the settings as if it was a sort
+        of "template" node for a particular service. You could have patterns
+        for regular systems, for databases, for web application servers, for
+        hardened/stripped servers, etc. The idea is that these patterns are
+        then applied on the particular nodes, allowing for simple and default
+        installations (for instance image-driven) to be quickly transformed
+        into proper deployments.</para>
+
+        <para>A pattern described further is just an example for a "general"
+        state. You can build on top of this one, build other patterns that
+        include from this one, etc. Really, patterns just apply wherever you
+        think reuse is good and the setup is somewhat complex (if it was a
+        single thing, it would become a module).</para>
+
+        <para>Such a pattern file starts from the next, simple layout (for
+        instance for
+        <filename>manifests/patterns/general.pp</filename>):</para>
+
+        <programlisting>class general {
+  # Include your content here
+}</programlisting>
+
+        <para>Let's first include some modules (basic building blocks) -
+        something we'll cover later:</para>
+
+        <programlisting># Manage our /etc/hosts file
+include hosts
+# setup portage settings
+include myportage</programlisting>
+
+        <para>Next, we want to make sure that an eix cache (database) is
+        available on the system. If not, then Puppet might fail to install
+        software itself as it relies on the eix database:</para>
+
+        <programlisting>exec { "create_eix_cache":
+  command =&gt; "/usr/bin/eix-update",
+  creates =&gt; "/var/cache/eix/portage.eix",
+}</programlisting>
+
+        <para>In the above example, Puppet will look at the
+        <parameter>creates</parameter> parameter, see that it would create the
+        /var/cache/eix/portage.eix file, and then checks on the system if that
+        file exists. If not, then the command referenced by the
+        <parameter>command</parameter> parameter will be executed by
+        Puppet.</para>
+
+        <para>Let's also say that SSH must be installed (on Gentoo this is by
+        default, but you never know a wiseguy deleted it) and the service must
+        be running. This could be declared as follows:</para>
+
+        <programlisting>package { ssh:
+  ensure =&gt; installed,
+  require =&gt; Exec['create_eix_cache'],
+}
+
+service { sshd:
+  ensure =&gt; running,
+  require =&gt; [
+    File['/etc/ssh/sshd_config'],
+    Package[ssh]
+  ],
+}</programlisting>
+
+        <para>Here, Puppet gets to know that before it can ensure the sshd
+        service is running, the /etc/ssh/sshd_config file must be available
+        (this does mean we need to declare something later that provides this
+        file) and the package as well. And for the package to be installed,
+        Puppet knows it first needs to check if our previously created
+        eix-command has ran.</para>
+
+        <para>The possibilities are almost endless. You can handle mount
+        information too, like so:</para>
+
+        <programlisting>mount { "/usr/portage/packages":
+  ensure =&gt; mounted,
+  device =&gt; "nfs_server.internal.genfic.com:gentoo/packages",
+  atboot =&gt; true,
+  fstype =&gt; "nfs4",
+  options =&gt; "soft,timeo=30",
+}</programlisting>
+
+        <para>With this setting, Puppet will update the
+        <filename>/etc/fstab</filename> file and then invoke the mount
+        command.</para>
+      </section>
+
+      <section>
+        <title>A node file</title>
+
+        <para>When a pattern is made, we can create a node (which is the term
+        used for a target machine that is managed by Puppet).</para>
+
+        <para>In a simple form, this could be:</para>
+
+        <programlisting>node 'pg1_db.internal.genfic.com' {
+  include p_database
+}</programlisting>
+
+        <para>Here, we just declared that the node with hostname
+        pg1_db.internal.genfic.com uses the pattern definition in
+        p_database.pp. Of course, we could extend this further by including
+        more information. And the real power comes when the pattern uses
+        certain settings (through variables) which are then set on the node
+        level.</para>
       </section>
 
       <section>
         <title>A module file</title>
 
-        <para/>
+        <para>Modules are the building blocks of a Puppet-managed
+        environment.</para>
+
+        <para>TODO</para>
       </section>
     </section>
   </section>

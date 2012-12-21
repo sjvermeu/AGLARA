@@ -1,3 +1,7 @@
+## Managed by Puppet, please do not modify manually.
+## Instead use a separate file
+
 app-admin/setools python
 sys-libs/libselinux static-libs ruby
 dev-libs/libpcre static-libs
+

@@ -1,0 +1,13 @@
+# File managed by puppet
+
+source /var/lib/layman/make.conf
+USE="-ldap -gtk -xorg -pppd mysql imap ipv6 libwww maildir sasl ssl unicode xml apache2 -gpm ubac bcmath gd sockets truetype agent png -sqlite3 device-mapper dlz"
+CFLAGS="-march=native -O2 -ggdb -pipe"
+CXXFLAGS="${CFLAGS}"
+CHOST="x86_64-pc-linux-gnu"
+FEATURES="buildpkg"
+GENTOO_MIRRORS="http://192.168.100.1:8080/gensetup/gentoo ${GENTOO_MIRRORS}"
+SYNC="" # We use emerge-webrsync only
+EMERGE_DEFAULT_OPTS="-k"
+POLICY_TYPES="targeted strict mcs"
+MAKEOPTS="-j<%= processorcount %>"

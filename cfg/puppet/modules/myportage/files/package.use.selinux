@@ -1,0 +1,3 @@
+app-admin/setools python
+sys-libs/libselinux static-libs ruby
+dev-libs/libpcre static-libs

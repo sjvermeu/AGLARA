@@ -1,0 +1,3 @@
+# We need to do this as current stable lvm2 does
+# not build properly with the static-libs pcre/libselinux
+=sys-fs/lvm2-2.02.93-r1 ~amd64

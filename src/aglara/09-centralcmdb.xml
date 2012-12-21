@@ -362,7 +362,10 @@
       <section>
         <title>User management</title>
 
-        <para/>
+        <para>Puppet does not have specific user management features in it. If
+        you want separate roles, you will need to do so through the file
+        access control mechanisms on the puppet master and/or through the
+        repositories that you use as the configuration repository.</para>
       </section>
 
       <section>
@@ -514,6 +517,29 @@
         place, you can easily have a simple script available that is invoked
         by cron to update the various repositories.</para>
       </section>
+
+      <section>
+        <title>Adding additional modules</title>
+
+        <para>Puppet supports downloading and installing additional puppet
+        modules from the Puppet forge location. To do so, you can use
+        <command>puppet module install &lt;name&gt;</command>. For instance,
+        to install the inkling/postgresql module:</para>
+
+        <programlisting># <command>puppet module install inkling/postgresql</command>
+Preparing to install into /etc/puppet/modules ...
+Downloading from http://forge.puppetlabs.com ...
+Installing -- do not interrupt ...
+/etc/puppet/modules
+└─┬ inkling-postgresql (v0.3.0)
+  ├── puppetlabs-firewall (v0.0.4)
+  └── puppetlabs-stdlib (v3.2.0)</programlisting>
+
+        <para>If you setup environments, you can even have a particular
+        version of a module installed inside a specific environment by
+        specifying it through <parameter>--environment
+        &lt;yourenv&gt;</parameter>.</para>
+      </section>
     </section>
 
     <section>
@@ -627,6 +653,71 @@ macaddress =&gt; 36:5b:94:e1:eb:0e</programlisting>
         the local system will need access to the configuration repository
         (which can be a read-only NFS mount or a local checkout of a
         repository).</para>
+
+        <para>In such a situation, you run puppet apply:</para>
+
+        <programlisting># <command>puppet apply --modulepath /path/to/modules /path/to/manifests/site.pp</command></programlisting>
+      </section>
+
+      <section>
+        <title>Requesting an immediate check and update</title>
+
+        <para>You can ask the puppet (client) daemon to immediately check with
+        the puppet master by sending a SIGUSR1 signal to the daemon
+        (restarting the daemon also works).</para>
+
+        <programlisting># <command>pkill -SIGUSR1 puppetd</command></programlisting>
+
+        <para>If your puppet daemons are running with the "listen=true"
+        setting, then you can tell the puppet master too to connect to the
+        daemon and trigger an immediate check using the "kick" feature:</para>
+
+        <programlisting># <command>puppet kick pg_db1.internal.genfic.com</command></programlisting>
+      </section>
+
+      <section>
+        <title>Logging</title>
+
+        <para>Puppet logs its activities by default through the system
+        logger.</para>
+
+        <programlisting># <command>tail -f /var/log/syslog</command>
+puppet-master[4946]: Compiled catalog for puppet.internal.genfic.com in \
+  environment production in 0.10 seconds
+puppet-agent[6195]: (/Stage[main]/Portage/File[make.conf]/content) content \
+  changed '{md5}be84feffe82bc2a37ffc721d892ef06a' to '{md5}5050fba3458f8eb120562db10834e0f1'
+puppet-agent[6195]: Finished catalog run in 0.34 seconds</programlisting>
+      </section>
+    </section>
+
+    <section>
+      <title>The power of Puppets definitions</title>
+
+      <para>As I said before, puppets power comes from the ability of
+      describing the state of a system, and letting Puppet decide how to reach
+      that state. In this section, I give you an overview of how that is
+      achieved.</para>
+
+      <section>
+        <title>The site.pp file</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>A node file</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>A pattern file</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>A module file</title>
 
         <para/>
       </section>

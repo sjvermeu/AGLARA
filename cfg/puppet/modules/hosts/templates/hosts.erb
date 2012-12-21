@@ -5,6 +5,8 @@
 ::1		localhost.<%= domain %> localhost
 <%= ipaddress6 %>	<%= hostname %>.<%= domain %> <%= hostname %>
 
-# Minimal requirements (case DNS is unavailable)
+# Resolving (until systematic DNS is available)
 2001:db8:81:e2::26b5:365b:5072	workstation.<%= domain %> workstation
 2001:db8:81:21::53:3a8a:71e0	puppet.<%= domain %> puppet
+2001:db8:81:21::62fe:c886:d574  pg1.<%= domain %> pg1
+2001:db8:81:22::d8:e8fc:a2dc    test.<%= domain %> test

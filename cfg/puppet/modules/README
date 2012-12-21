@@ -1,0 +1,5 @@
+portage:	https://github.com/gentoo/puppet-portage
+		Update templates/makeconf.base.conf.erb to set
+			CFLAGS="-march=native -ggdb -O2 -pipe"
+		Update portage/lib/puppet/util/portage.rb
+			atom_name has \d (decimal) in name too (like lvm2)

@@ -32,4 +32,31 @@ class mysysconf {
     group => "root",
     source => "puppet:///modules/mysysconf/sshd_config",
   }
+ 
+  # Set ima policy init script
+  file { "/etc/init.d/ima_policy":
+    ensure => present,
+    mode => 0640,
+    owner => "root",
+    group => "root",
+    source => "puppet:///modules/mysysconf/ima_policy",
+  }
+
+  # Set evm and security keys script
+  file { "/etc/init.d/security_keys":
+    ensure => present,
+    mode => 0640,
+    owner => "root",
+    group => "root",
+    source => "puppet:///modules/mysysconf/security_keys",
+  }
+
+  # SELinux setenforce init script
+  file { "/etc/init.d/selinux_enforce":
+    ensure => present,
+    mode => 0640,
+    owner => "root",
+    group => "root",
+    source => "puppet:///modules/mysysconf/selinux_enforce",
+  }
 }

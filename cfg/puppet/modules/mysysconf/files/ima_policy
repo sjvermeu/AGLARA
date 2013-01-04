@@ -1,0 +1,16 @@
+#!/sbin/runscript
+# Copyright 1999-2012 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+# $Header: $
+
+description="Load in custom IMA policy"
+
+depend() {
+	need sysfs
+}
+
+start() {
+	ebegin "Loading custom IMA policy"
+	cat /etc/ima/policy.conf > /sys/kernel/security/ima/policy
+	eend $?
+}

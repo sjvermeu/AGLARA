@@ -1,3 +1,6 @@
+** (2013-01-04) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Update puppet configuration
+
 ** (2012-12-21) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Update example puppet settings
 	- Add some information on the puppet files (site, node, patterns,

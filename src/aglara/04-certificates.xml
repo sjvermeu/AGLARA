@@ -354,6 +354,23 @@
         very limited.</para>
       </section>
     </section>
+
+    <section>
+      <title>CA service providers</title>
+
+      <para>If you find managing your own CA a bit too difficult, you can also
+      opt to use an online CA service provider. There are many paid-for
+      service providers as well as free ones. Regardless of the provider you
+      want, make sure that your internal certificates are only signed by a
+      root certificate authority that is specific to your environment, and
+      that the provider does not sign certificate requests by others with the
+      root CA you trust internally.</para>
+
+      <para>For this reason, be careful which service provider you choose, and
+      make a clear distinction between certificates that you will be using
+      internally (not exposed to others) and those that are facing external
+      environments.</para>
+    </section>
   </section>
 
   <section>
@@ -364,6 +381,117 @@
     exist, they are either not properly maintained or very difficult to manage
     in the long term. For this reason, we stick with the
     <command>openssl</command> interface.</para>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>I will be using OpenSSL as a Certificate Authority for internally
+      managed and handled certificates. The activities for handling the
+      certificates are handled through command-line usage by the proper
+      administrators (so no fancy website) but some automation will be put in
+      place through e-mails where requesters can send the certificate signing
+      requests by e-mail: the files are then automatically put in a directory.
+      The administrator can then sign certificates, and send them back to the
+      requester.</para>
+
+      <para>Within the architecture, you'll also notice that I put in an OCSP
+      daemon. OCSP<indexterm>
+          <primary>OCSP</primary>
+        </indexterm> stands for Online Certificate Status Protocol and is a
+      simple protocol that clients can use to check if a certificate is still
+      valid, without needing to (re)download the CRL lists over and over again
+      and parsing the list. An advantage is that you don't need to expose "all
+      the bad certificates" that you know of (which might be a sort of
+      information leakage) and that clients don't need to parse the CRL
+      themselves (as it is now handled on a server level).</para>
+
+      <para>I'll use the built-in OCSP daemon provided by OpenSSL here, but
+      for larger volumes a dedicated OCSP infrastructure might be
+      wiser.</para>
+
+      <section>
+        <title>Feeds</title>
+
+        <para>The two flows that we identify currently are the signing request
+        mails, and of course the backups that need to be taken.</para>
+
+        <figure>
+          <title>Flows and feeds for the CA server</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/04-caserv-feed.png" scalefit="0"
+                         width="100%"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </section>
+
+      <section>
+        <title>Administration</title>
+
+        <para>Administration is handled manually through SSH and Puppet.
+        </para>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para>From a monitoring perspective, we will need to keep a close eye
+        on the daemons (OCSP daemon for handling the certificate validation
+        requests, and the fetchmail daemon for pulling in e-mails from the
+        mail infrastructure). It is probably sufficient to provide plain
+        process monitoring and log file monitoring, although you can create an
+        automated OCSP request monitor to check of the OCSP daemon is still
+        working properly.</para>
+      </section>
+
+      <section>
+        <title>Operations</title>
+
+        <para>In regular operations, the person responsible for handling the
+        requests and certificates will do its standard operations through the
+        openssl command line interface. If needed, he sends out the signed
+        certificates by e-mail, or publishes the revocations somewhere (in the
+        drawing below, no tool is positioned for this - it can be a simple
+        file copy, e-mail or push of the file towards a network file
+        share).</para>
+
+        <figure>
+          <title>Operations on a CA server</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/04-caserv-operations.png"
+                         scalefit="0" width="100%"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>Also, the OCSP server is listening on the network for any
+        incoming certificate checks requested from clients (for instance,
+        browsers).</para>
+      </section>
+
+      <section>
+        <title>Users</title>
+
+        <para>On this server, only the certificate handler people needed
+        access. No specific role-based access control is needed yet, but can
+        be implemented using the standard operating system access controls
+        (discretionary or mandatory through SELinux).</para>
+      </section>
+
+      <section>
+        <title>Security</title>
+
+        <para>As this system is a security-sensitive system, it is wise to
+        properly harden the system and perform full auditing on it.</para>
+
+        <para>Backups that leave the system should be encrypted
+        beforehand.</para>
+      </section>
+    </section>
 
     <section>
       <title>OpenSSL as CA</title>
@@ -540,6 +668,96 @@ Email Address []:</programlisting>
         print it out if you want) and store this in a (very) safe location.
         For instance put it on a flash disk (or tape if you have tape drives)
         and put it in a safe (or better, two flash disks in two safes).</para>
+      </section>
+
+      <section>
+        <title>Starting the OCSP Server</title>
+
+        <para>OpenSSL has an internal OCSP daemon that you can use to provide
+        OCSP services internally.</para>
+
+        <para>One way to start it is in a screen session:</para>
+
+        <programlisting>$ <command>screen -S ocsp-server</command>
+$ <command>cd /etc/ssl/private/genficUserCA</command>
+$ <command>openssl ocsp -index index.txt -CA user-genfic.crt \
+  -rsigner user-genfic.crt -rkey private/user-genfic.key \
+  -port 80</command>
+Waiting for OCSP client connections..</programlisting>
+
+        <para>This way, the OCSP daemon will listen on port 80 and within the
+        screen session called ocsp-server.</para>
+
+        <para>If the administrator ever needs to get to this screen session,
+        he can run "<command>screen -x ocsp-server</command>" and he's
+        attached to the session again.</para>
+
+        <para>Of course, you can create an init script for this as well
+        (instead of using screen).</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Mail service</title>
+
+      <para>To pull in the certificate signing requests through e-mail, we
+      need to configure fetchmail to pull in the mails, and procmail to handle
+      the attachments (i.e. extract them from the mail and store them in a
+      specific directory).</para>
+
+      <section>
+        <title>Fetchmail</title>
+
+        <para>The fetchmail daemon is provided by the
+        <package>net-mail/fetchmail</package> package. Once installed, create
+        a Linux system user (say "csrpull") with a configuration file similar
+        to the following as <filename>~/.fetchmailrc</filename>:</para>
+
+        <programlisting>set daemon 60
+
+poll imap.internal.genfic.com protocol IMAP with option interval 1:
+  user "csrpull@systems.genfic.com" is csrpull here
+  password 'thisIsOneHellOfAPassword'
+  keep
+  ssl
+  mda "/usr/bin/procmail -d %T"</programlisting>
+
+        <para>Once created, make sure it is only readable by the csrpull user
+        itself:</para>
+
+        <programlisting>$ <command>chmod 0600 /home/csrpull/.fetchmailrc</command></programlisting>
+
+        <para>Finally, start the fetchmail daemon. Don't forget to add it to
+        the default runlevel too.</para>
+
+        <programlisting># <command>run_init rc-service fetchmail start</command>
+# <command>rc-update add fetchmail default</command></programlisting>
+      </section>
+
+      <section>
+        <title>Procmail</title>
+
+        <para>From the fetchmail, you notice that the mails that are pulled in
+        will be sent towards procmail, so we need to configure procmail to
+        automatically extract the certificate signing request files from the
+        mails and drop them in the proper directory (say
+        /home/csrpull/requests). Create a .procmailrc file in the csrpull home
+        directory with the following content:</para>
+
+        <programlisting>CSR_DROP_DIR=$HOME/requests
+:0c
+* ^To: csrpull@systems.genfic.com
+| munpack -q -C "$CSR_DROP_DIR"</programlisting>
+
+        <para>You can make the rules as powerful as you want. For instance, if
+        you don't want to manually sign the requests, you can have the
+        procmail recipe call the proper script which, after extracting the
+        request, signs it automatically and sends it back to the sender (or to
+        the address set in the certificate itself).</para>
+
+        <para>With this file in place, fetchmail will automatically forward
+        any mails received towards the procmail recipe, which will then
+        extract the attachment(s) into the requests folder.</para>
       </section>
     </section>
 

@@ -427,6 +427,37 @@ Max kernel policy version:      26</programlisting>
         <para>For more information on enabling grSecurity, see the Gentoo
         grSecurity v2 Guide.</para>
       </section>
+
+      <section>
+        <title>Using IMA and EVM</title>
+
+        <para>Another set of security subsystems available in recent Linux
+        kernels are the Integrity Measurement Architecture and Extended
+        Verification Modules subsystems.</para>
+
+        <para>With IMA<indexterm>
+            <primary>IMA</primary>
+          </indexterm>, the integrity of files is validated (checksum or
+        digital signature) against the recorded value in the extended
+        attribute of that file. If the integrity matches, then the system
+        allows to read (and if it isn't a digital signature, even modify) the
+        file. If the checksum doesn't match, then the access to the file is
+        prohibited.</para>
+
+        <para>EVM<indexterm>
+            <primary>EVM</primary>
+          </indexterm> then ensures that the extended attributes of the file
+        are not tampered with (as it stores the security information from IMA
+        as well as SELinux information). This is accomplished using a HMAC
+        value or a digital signature of the security related extended
+        attributes. Because of the use of cryptographic methods, offline
+        tampering of this data is not that simple - the attacker needs access
+        to the key used by the HMAC or even the private key used for
+        generating the signatures.</para>
+
+        <para>For more information on enabling IMA/EVM, see the Gentoo
+        Integrity subproject documentation.</para>
+      </section>
     </section>
 
     <section>
@@ -734,8 +765,8 @@ hostname="ns.genfic.com"
 
       <listitem>
         <para><link
-        xlink:href="http://dev.gentoo.org/~swift/docs/security_benchmarks/">Security
-        benchmarks</link></para>
+        xlink:href="http://www.gentoo.org/proj/en/hardened/integrity">Gentoo
+        Hardened Integrity subproject</link> (Gentoo Linux)</para>
       </listitem>
     </itemizedlist>
 

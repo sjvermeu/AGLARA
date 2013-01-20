@@ -59,4 +59,21 @@ class mysysconf {
     group => "root",
     source => "puppet:///modules/mysysconf/selinux_enforce",
   }
+
+  # IMA custom policy
+  file { "/etc/ima/policy.conf":
+    ensure => present,
+    require => File['/etc/ima'],
+    mode => 0640,
+    owner => "root",
+    group => "root",
+    source => "puppet:///modules/mysysconf/policy.conf",
+  }
+
+  # IMA location
+  file { "/etc/ima":
+    ensure => "directory",
+    owner => "root",
+    group => "root",
+  }
 }

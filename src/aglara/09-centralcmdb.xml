@@ -254,7 +254,7 @@
     <section>
       <title>Architecture</title>
 
-      <para>the puppet architecture is fairly simple, which is also one of its
+      <para>The puppet architecture is fairly simple, which is also one of its
       strengths.</para>
 
       <section>
@@ -371,7 +371,11 @@
       <section>
         <title>Security</title>
 
-        <para/>
+        <para>Make sure that no resources can be accessed through Puppet that
+        are otherwise not accessible by unauthorized people. As Puppet
+        includes a (web-based) file server, we need to configure it properly
+        so that unauthorized access is not possible. Luckily, this is the
+        default behavior with a Puppet installation.</para>
       </section>
     </section>
 
@@ -628,9 +632,10 @@ notice: Removing file Puppet::SSL::CertificateRequest pg_db1.internal.genfic.com
         <title>Learning the facts</title>
 
         <para>When you are on a puppet-managed system, you can run
-        <command>facter</command> to get an overview of all the facts that it
-        found on the system. For instance, to get information on
-        addresses:</para>
+        <command>facter</command><indexterm>
+            <primary>facter</primary>
+          </indexterm> to get an overview of all the facts that it found on
+        the system. For instance, to get information on addresses:</para>
 
         <programlisting># <command>facter | grep address</command>
 ipaddress =&gt; 192.168.100.152
@@ -830,10 +835,38 @@ service { sshd:
       <section>
         <title>A module file</title>
 
-        <para>Modules are the building blocks of a Puppet-managed
-        environment.</para>
+        <para>Modules are the building blocks of a Puppet-managed environment.
+        They provide management features for a single, specific technology.
+        </para>
 
-        <para>TODO</para>
+        <para>Say you need to manage a postgresql database, then you can
+        search for (and use) a Puppet module for postgresql.</para>
+
+        <programlisting># <command>puppet module search postgresql</command>
+Searching http://forge.puppetlabs.com ...
+NAME                   DESCRIPTION                            
+camptocamp-pgconf      A defined type to manage entries in Postgresql's configuration file
+inkling-postgresql     NOTE: Transfer of Ownership
+akumria-postgresql     Manage and install Postgresql databases and users
+KrisBuytaert-postgres  Puppet Postgres module
+puppetlabs-postgresql  Transferred from Inkling
+
+# <command>puppet module install puppetlabs-postgresql</command>
+Preparing to install into /etc/puppet/modules ...
+Downloading from http://forge.puppetlabs.com ...
+Installing -- do not interrupt ...
+/etc/puppet/modules
+└─┬ puppetlabs-postgresql (v1.0.0)
+  ├── puppetlabs-firewall (v0.0.4)
+  └── puppetlabs-stdlib (v2.6.0)</programlisting>
+
+        <para>You can manage your own, internal forge site where modules can
+        be downloaded from as well.</para>
+
+        <para>When you have a module available, you can start using it similar
+        as we did before. On the <link
+        xlink:href="http://forge.puppetlabs.com">http://forge.puppetlabs.com</link>
+        site you will also find usage examples for each module.</para>
       </section>
     </section>
   </section>

@@ -45,7 +45,7 @@
       JBoss AS. In this situation, this team delivers and manages their
       components, including an overlay (either for the team or shared with
       others). The system administrators configure their systems to add this
-      particular overlay as well as configure their systems to poperly set up
+      particular overlay as well as configure their systems to properly set up
       JBoss AS by instantiating the modules developed by the first team on the
       systems.</para>
 
@@ -239,9 +239,179 @@
   </section>
 
   <section>
-    <title>Git</title>
+    <title>Git with gitolite</title>
 
-    <para/>
+    <para>Git by itself is a fairly modest versioning system. It doesn't
+    support access controls out-of-the-box, instead relying on the abilities
+    of other systems (such as those used to provide access to git, like the
+    access control systems of the Linux operating system) to provide this
+    important security feature.</para>
+
+    <para>To make access controls easier to implement, as well as the
+    management of the git repositories, various software titles have emerged.
+    In this section, I'll focus on the gitolite software, which provides
+    internal access controls (without needing to provide accounts on Linux
+    operating system level) with SSH keys.</para>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>Gitolite<indexterm>
+          <primary>gitolite</primary>
+        </indexterm> uses a single operating system user, and abstracts access
+      towards the git repositories it manages. Access towards git is done
+      through SSH.</para>
+
+      <para>Because git provides every developer with its own, full
+      repository, we will not setup a high available architecture for git.
+      Instead, we'll rely on its distributed model (and of course frequent
+      backups).</para>
+
+      <section>
+        <title>Flows</title>
+
+        <para>Only one flow is identified, which is the backup.</para>
+
+        <figure>
+          <title>Git and gitolite flows</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/09-git-flow.png" scalefit="0"
+                         width="100%"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </section>
+
+      <section>
+        <title>Administration</title>
+
+        <para>Gitolite itself is managed through a git repository of its own.
+        Only when things are awkwardly failing on that level as well will you
+        need SSH access to the server.</para>
+
+        <figure>
+          <title>Gitolite administration</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/09-git-admin.png" scalefit="0"
+                         width="100%"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para>To monitor git, we'll use a testing repository on the system and
+        a remote git commit. This allows us to make sure that the service is
+        running and available, and might even be updated with some performance
+        metrics (for instance, the time that a push of a small change
+        takes).</para>
+      </section>
+
+      <section>
+        <title>Operations</title>
+
+        <para>Regular operations is the same as with the administration: users
+        connect to the git server through git (and SSH).</para>
+      </section>
+
+      <section>
+        <title>Users</title>
+
+        <para>Users are managed through the gitolite repository.</para>
+      </section>
+
+      <section>
+        <title>Security</title>
+
+        <para>The secure access towards the repositories is handled by
+        gitolite (through the configuration in the gitolite administration
+        repository) and SSH.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Using gitolite</title>
+
+      <para/>
+
+      <section>
+        <title>Installing &amp; configuring gitolite</title>
+
+        <para>Installing gitolite in Gentoo is a breeze (just like with the
+        majority of other distributions).</para>
+
+        <programlisting># <command>emerge dev-vcs/gitolite</command></programlisting>
+
+        <para>Next, copy the SSH key of the administrator(s) somewhere on the
+        system, and then have the following command ran as the git user (you
+        can use "<command>su -u git -c</command>" or "<command>sudo -H -u
+        git</command>" for this), where
+        <filename>/path/to/admin.pub</filename> is the public SSH key of the
+        administrator:</para>
+
+        <programlisting>git $ <command>gl-setup /path/to/admin.pub</command></programlisting>
+
+        <para>The configuration file of gitolite will be shown. In it, you can
+        configure gitolite.</para>
+
+        <para>For instance:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>set <varname>$REPO_UMASK</varname> to 0027 to ensure the
+            repositories are not readable (and especially not writeable) by
+            other users on the git server</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>Finally, have the administrator check out the gitolite
+        administrative repository on his (client) system.</para>
+
+        <programlisting>$ <command>git clone git@git.internal.genfic.com:gitolite-admin.git</command></programlisting>
+      </section>
+
+      <section>
+        <title>Managing users</title>
+
+        <para>Users are managed through their public SSH keys. Once you
+        obtained a public SSH key for a user, commit it into the keydir/
+        location (inside the gitolite-admin repository) named after the user
+        (like <filename>keydir/username.pub</filename>). The filename itself
+        is used to identify the users. If a user needs to be removed, remove
+        the key from the directory and push the changes to the administration
+        repository. The changes will take effect immediately.</para>
+      </section>
+
+      <section>
+        <title>Managing repositories</title>
+
+        <para>To create a new repository, edit the conf/gitolite.conf file and
+        add in (or remove) the repository, and identify the user or users that
+        are allowed access to the repository. If you remove a repository
+        configuration, you'll need to remove the repository from the Linux
+        host itself as well (which isn't done through the gitolite-admin
+        repository).</para>
+
+        <para>For instance, a snippet for a repository "puppet-was" in which
+        the users john, dalia (both admins), jacob and eden have access
+        to:</para>
+
+        <programlisting>repo puppet-was
+  RW+ = john dalia
+  RW  = jacob
+  R   = eden</programlisting>
+
+        <para>The gitolite documentation referred to at the end of this
+        chapter has more information about the syntax and the abilities,
+        including group support in gitolite.</para>
+      </section>
+    </section>
   </section>
 
   <section>
@@ -836,8 +1006,8 @@ service { sshd:
         <title>A module file</title>
 
         <para>Modules are the building blocks of a Puppet-managed environment.
-        They provide management features for a single, specific technology.
-        </para>
+        They provide management features for a single, specific
+        technology.</para>
 
         <para>Say you need to manage a postgresql database, then you can
         search for (and use) a Puppet module for postgresql.</para>
@@ -874,7 +1044,19 @@ Installing -- do not interrupt ...
   <section>
     <title>Resources</title>
 
-    <para>A humble list of excellent online resources:</para>
+    <para>A humble list of excellent online resources.</para>
+
+    <para>For git and gitolite:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link
+        xlink:href="http://sitaramc.github.com/gitolite/master-toc.html">gitolite
+        documentation</link> (github.com)</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>For puppet:</para>
 
     <itemizedlist>
       <listitem>

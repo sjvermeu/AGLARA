@@ -204,6 +204,17 @@
     servers then check the signature based on the public key that is stored in
     a DNS record of the domain that the mail seems to originate from.</para>
 
+    <para>Another example of a service offered by DNS is documenting the SSH
+    finger print of servers. SSH fingerprints are cryptographic hashes of the
+    public key (and some additional information about it) used by the SSH
+    service of a particular server. This fingerprint can then be added to the
+    DNS server, and users that connect to an SSH server can verify if the
+    fingerprint they receive is indeed the one expected to be from that
+    server. If not, then they might be connecting to a malicious server. The
+    clients that want to verify this information with the regular SSH client
+    offered on Unix/Linux systems need to use the
+    <parameter>VerifyHostKeyDNS=yes</parameter> option in SSH though.</para>
+
     <para>Having a well performing DNS architecture is extremely important as
     many services you will host will rely on DNS to know how to contact other
     resources: although it is perfectly possible to use IP-only

@@ -249,6 +249,126 @@
     database is responsible for providing the addresses and names.</para>
 
     <section>
+      <title>From records to views</title>
+
+      <para>For DNS, the smallest set of information it returns is called a
+      record. Records are grouped together in domains, and domains are grouped
+      in zones. Within a record, there are 6 fields (including the name of the
+      record and the type). In the next few sections, I'll describe the syntax
+      as used by BIND although the concepts are the same for other DNS
+      servers.</para>
+
+      <section>
+        <title>Record structure</title>
+
+        <para>When you declare an IP address for a host name, you are actually
+        declaring a DNS record. In a zone file (which we'll talk about later),
+        a record for an IPv4 address:</para>
+
+        <programlisting>www    IN  A      192.168.0.2</programlisting>
+
+        <para>This record states that, within the domain that this record is a
+        part of, that 'www.&lt;domain&gt;' resolves to 192.168.0.2. Type type
+        of the record here is A. An IPv6 address would result in a AAAA
+        record.</para>
+
+        <programlisting>mail   IN  AAAA  2001:db8:10::1</programlisting>
+
+        <para>For the same host, you can have multiple records as long as they
+        are of a different type (and don't make the definitions
+        ambiguous).</para>
+
+        <programlisting>www    IN  A     192.168.0.2
+       IN  AAAA  2001:db8:10::1</programlisting>
+
+        <para>There are many record types available (and more are being
+        defined every few years). For instance,</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>CNAME which sais that the given host name is an alias for
+            another record</para>
+          </listitem>
+
+          <listitem>
+            <para>LOC provides location information for servers</para>
+          </listitem>
+
+          <listitem>
+            <para>SSHFP gives the SSH finger print information for a
+            server</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>etc...</para>
+      </section>
+
+      <section>
+        <title>Domains</title>
+
+        <para>Multiple records are combined within a domain. </para>
+
+        <programlisting>; Comments are prepended with a semi-colon
+$TTL 24h ; If records do not hold TTL information themselves, use this as default
+$ORIGIN internal.genfic.com.  ; Domain that we are declaring
+@  1D  IN  SOA ns1.internal.genfic.com. hostmaster.genfic.com. (
+         2013020401 ; serial
+         3H ; refresh
+         15 ; retry
+         1w ; expire
+         3h ; minimum
+       )
+       IN  NS     ns1.internal.genfic.com. ; in the domain</programlisting>
+
+        <para>In the above example, the @ sign is shorthand for the domain
+        ($ORIGIN).</para>
+
+        <para>The first record in the domain declaration is the SOA record,
+        and after this record you'll find an NS record.</para>
+      </section>
+
+      <section>
+        <title>Zone</title>
+
+        <para>One (or more) domains (and their affiliated records) are stored
+        in a zone file. A zone is a specific space within the global Domain
+        Name System that is managed (administered) by a single authority.
+        Other DNS servers might also serve the same zone, but they will not be
+        marked as the authorative DNS service for that zone.</para>
+      </section>
+
+      <section>
+        <title>View</title>
+
+        <para>A view is not DNS specific, but a feature that many DNS servers
+        offer. A view uses <emphasis>different zone files</emphasis> depending
+        on the requestor. For instance, you can have a DNS server that serves
+        both Internet-originating requests as well as internal requests.
+        Internet-originating requests thus need to receive the Internet-facing
+        IP addresses as replies, but internal requests can use internal IP
+        addresses.</para>
+
+        <programlisting>public-host$ <command>dig +short @ns1.genfic.com www.genfic.com A</command>
+123.45.67.89
+intern-host$ <command>dig +short @ns1.genfic.com www.genfic.com A</command>
+10.152.20.12</programlisting>
+      </section>
+
+      <section>
+        <title>Instance</title>
+
+        <para>An instance is not DNS specific, but a term I use often.
+        Instances are separate processes using different configurations.
+        Unlike views, which still refer to the same DNS server, an instance is
+        the (set of) process(es) that serve based on a specific configuration.
+        You can for instance have two instances running on a server: one DNS
+        server that uses configuration A (and bound on the first network
+        interface on your server) and one DNS server that uses configuration B
+        (bound on the second network interface on your server).</para>
+      </section>
+    </section>
+
+    <section>
       <title>Domain name servers</title>
 
       <para>Many organizations will host their own domain name servers, and

@@ -1,3 +1,6 @@
+** (2013-02-04) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Add info on records/domains/zone/view/instances on DNS
+
 ** (2013-01-27) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Paragraph on SSH finger prints in DNS (as example service)
 

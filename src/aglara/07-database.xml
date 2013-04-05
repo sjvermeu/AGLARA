@@ -27,13 +27,17 @@
     <title>PostgreSQL</title>
 
     <para>Although (somewhat) less popular than MySQL, the PostgreSQL database
-    is in my (humble) opinion a more stable and succesful database platform.
+    is in my (humble) opinion a more stable and successful database platform.
     It is gaining momentum with vendors and has commercial backing by several
     companies - just in case you are in dire need for paying for software
     ;-)</para>
 
     <section>
       <title>Architecture</title>
+
+      <para>Basically, postgresql is an almost monolithic system from a
+      Unix/Linux point of view: not that many processes are involved. Of
+      course, internally, that is a completely different thing.</para>
 
       <para>The PostgreSQL architecture looks like so:</para>
 
@@ -48,7 +52,21 @@
         </mediaobject>
       </figure>
 
-      <para/>
+      <para>Let's first look at how we would position the database in the
+      reference architecture used in this book.</para>
+
+      <section>
+        <title>Feeds and flows</title>
+
+        <para>As we are talking about a database, the most important flow we
+        might expect is the backup/restore related one.</para>
+      </section>
+
+      <section>
+        <title/>
+
+        <para/>
+      </section>
     </section>
 
     <section>
@@ -80,8 +98,8 @@
 
         <programlisting># <command>emerge dev-db/postgresql-server</command></programlisting>
 
-        <para>Next, edit the /etc/conf.d/postgresql-9.1 file to accomodate the
-        settings of the cluster.</para>
+        <para>Next, edit the /etc/conf.d/postgresql-9.1 file to accommodate
+        the settings of the cluster.</para>
 
         <programlisting>PGDATA="/etc/postgresql-9.1"
 DATA_DIR="/var/lib/postgresql/9.1/data"
@@ -105,9 +123,9 @@ PG_INITDB_OPTS="--locale=en_US.UTF-8"</programlisting>
 
         <para>Let's first make sure that we can connect to the database
         remotely too (by default, it only works locally). Edit the
-        postgresql.conf file (in /etc/postgresql-9.1) and set the
-        listen_addresses to the interface(s) you want the database to be
-        reachable on.</para>
+        <filename>postgresql.conf</filename> file (in
+        /<filename>etc/postgresql-9.1</filename>) and set the listen_addresses
+        to the interface(s) you want the database to be reachable on.</para>
 
         <programlisting>listen_addresses=::1 2001:db8:81::204:de89:3312</programlisting>
 

@@ -832,6 +832,11 @@ macaddress =&gt; 36:5b:94:e1:eb:0e</programlisting>
         <para>In such a situation, you run puppet apply:</para>
 
         <programlisting># <command>puppet apply --modulepath /path/to/modules /path/to/manifests/site.pp</command></programlisting>
+
+        <para>If you want more information of all changes that are made, you
+        can ask puppet to log (using <parameter>-l logfile</parameter>) or
+        print it out on screen more (using
+        <parameter>--verbose</parameter>).</para>
       </section>
 
       <section>

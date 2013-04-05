@@ -713,6 +713,164 @@ hostname="ns.genfic.com"
   </section>
 
   <section>
+    <title>Basic OS architecture</title>
+
+    <para>When we position an operating system platform such as Gentoo Linux,
+    quite a few aspects already need to be considered in its design. It isn't
+    sufficient to just create an image (or installation procedure) and be done
+    with it. We need to consider basic services on operating systems, such as
+    backup/restore routines, updates &amp; upgrades, etc. Most of the
+    infrastructure needed to accomplish all that will be talked about
+    further.</para>
+
+    <section>
+      <title>Services</title>
+
+      <para>When you are going to manage multiple servers, you will need some
+      sort of centralized services. This doesn't require a daemon/server
+      architecture for all services though, as we will see later on.</para>
+
+      <figure>
+        <title>Services for an operating system platform</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="???"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The mentioned services on the above drawing are quite basic
+      services, which you will need to properly manage in order to get a well
+      functioning environment.</para>
+
+      <section>
+        <title>Access management services</title>
+
+        <para>To access the system, mostly for administrative purposes,
+        requires basic access methods towards the system. As we are using
+        Gentoo Linux, the most probable component for this is OpenSSH. But in
+        order to properly provide access services, we don't only look at the
+        OpenSSH daemon itself, but also the centralized access management
+        services (which will be OpenLDAP based) to easily manage what is
+        called <emphasis>joiner/leaver processes</emphasis>. </para>
+
+        <para>A joiner/leaver process is the process that needs to be taken
+        when a person joins (or leaves) the organization. Proper processes
+        should ensure that the account(s) that this person uses are only
+        usable as long as the person is a member of the organization, and that
+        his rights are properly managed. If you have hundreds of servers, it
+        is of course not feasible to manually update the servers
+        <filename>/etc/passwd</filename> and <filename>/etc/shadow</filename>
+        files manually. You could still build some scripts that automatically
+        create and modify these files, or even use a centralized configuration
+        management set for that, but you will quickly hit boundaries.</para>
+      </section>
+
+      <section>
+        <title>Monitoring services</title>
+
+        <para>Monitoring services are used, not really to be informed when a
+        service is down, but rather to quickly identify what is causing a
+        service failure.</para>
+
+        <para>Service failures, like "I cannot resolve IP addresses" or "The
+        web site is not reachable" are difficult to debug if you are lacking
+        monitoring. Proper monitoring implementations allow you to get an idea
+        of the entire state of the architecture and its individual components.
+        If monitoring tells you that the web server processes are running and
+        that remote web site retrieval agents are still pulling in site
+        details, then you're most likely to look at the connectivity between
+        the client and the site (such as potential proxy servers or even
+        networking or firewalls). On the other hand, if the monitoring is
+        telling you that a web gateway daemon is not responsive, you'll
+        quickly be able to handle the problem as you have a fairly good idea
+        at where the problem lies.</para>
+      </section>
+
+      <section>
+        <title>Backup services</title>
+
+        <para>Although backups are not important, being able to restore stuff
+        is - hence the need for backups ;-)</para>
+
+        <para>Even on regular servers, backups will be important to support
+        fast recovery from human errors or application malpractices. Users,
+        including administrators, make mistakes. Being able to quickly recover
+        from deleted files or modifications will save you hours of work
+        later.</para>
+      </section>
+
+      <section>
+        <title>Configuration management</title>
+
+        <para>In order to properly update/upgrade the systems, as well as
+        configure it to match the needs of the organization, you will need
+        some configuration management approach. Whereas smaller deployments
+        can be perfectly managed manually, decent configuration management
+        allows you to quickly deploy new systems, reconfigure systems when
+        needed, support testing of configuration changes, etc.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>In our reference architecture, the given services will be filled
+      in with the following components.</para>
+
+      <figure>
+        <title>Components for operating system platform</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="???"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The activities involved with those components are described in the
+      next few sections.</para>
+
+      <section>
+        <title>Flows and feeds</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Administration</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Operations</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>User access</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Security</title>
+
+        <para/>
+      </section>
+    </section>
+  </section>
+
+  <section>
     <title>Resources</title>
 
     <para>For more information about the topics in this chapter, you can

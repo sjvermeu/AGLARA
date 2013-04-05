@@ -1,3 +1,10 @@
+** (2013-04-05) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Small updates on database part
+	- Introduce architectural information on platform
+
+** (2013-03-20) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Puppet: more info on local apply
+
 ** (2013-02-04) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Add info on records/domains/zone/view/instances on DNS
 

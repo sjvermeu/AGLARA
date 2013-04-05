@@ -61,9 +61,14 @@ echo "done";
 
 # Building epub
 echo -n "Generating ePub format... ";
-xsltproc /usr/share/sgml/docbook/xsl-stylesheets/epub3/docbook.xsl AGLARA.xml >> ${LOGFILE} 2>&1;
-zip -r aglara.zip META-INF OEBPS >> ${LOGFILE} 2>&1;
-mv aglara.zip aglara.epub;
+mkdir aglara-epub;
+xsltproc --stringparam base.dir aglara-epub/OEBPS/ /usr/share/sgml/docbook/xsl-stylesheets/epub3/chunk.xsl AGLARA.xml >> ${LOGFILE} 2>&1;
+cp -r aglara/images aglara-epub/OEBPS;
+cd aglara-epub;
+zip -X0 aglara.epub mimetype >> ${LOGFILE} 2>&1;
+zip -r -X9 aglara.epub META-INF OEBPS >> ${LOGFILE} 2>&1;
+mv aglara.epub ../;
+cd ..;
 echo "done";
 
 if [[ ${DOPDF} -eq 1 ]];

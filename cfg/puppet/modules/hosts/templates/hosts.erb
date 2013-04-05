@@ -4,10 +4,8 @@
 192.168.100.1	gateway.virtdomain gateway
 
 ::1		localhost.<%= domain %> localhost
-<%= ipaddress6 %>	<%= hostname %>.<%= domain %> <%= hostname %>
+<%= scope.lookupvar("my_ip6address") %>	<%= hostname %>.<%= domain %> <%= hostname %>
 
 # Resolving (until systematic DNS is available)
-2001:db8:81:e2::26b5:365b:5072	workstation.<%= domain %> workstation
-2001:db8:81:21::53:3a8a:71e0	puppet.<%= domain %> puppet
-2001:db8:81:21::62fe:c886:d574  pg1.<%= domain %> pg1
-2001:db8:81:22::d8:e8fc:a2dc    test.<%= domain %> test
+#2001:db8:81:21::62fe:c886:d574  pg1.<%= domain %> pg1
+2001:db8:81:e2:0:26b5:365b:5072	workstation.<%= domain %> workstation

@@ -1,0 +1,34 @@
+--- openrc.rb	2013-03-20 10:28:47.000000000 +0100
++++ openrc.rb	2013-03-20 11:30:25.609000000 +0100
+@@ -10,6 +10,7 @@
+   defaultfor :operatingsystem => :gentoo
+   defaultfor :operatingsystem => :funtoo
+ 
++  commands :runinit => '/usr/sbin/run_init'
+   commands :rcservice => '/sbin/rc-service'
+   commands :rcstatus  => '/bin/rc-status'
+   commands :rcupdate  => '/sbin/rc-update'
+@@ -51,19 +52,19 @@
+   end
+ 
+   def restartcmd
+-    (@resource[:hasrestart] == :true) && [command(:rcservice), @resource[:name], :restart]
++    (@resource[:hasrestart] == :true) && [command(:runinit), command(:rcservice), @resource[:name], :restart]
+   end
+ 
+   def startcmd
+-    [command(:rcservice), @resource[:name], :start ]
++    [command(:runinit), command(:rcservice), @resource[:name], :start ]
+   end
+ 
+   def stopcmd
+-    [command(:rcservice), @resource[:name], :stop]
++    [command(:runinit), command(:rcservice), @resource[:name], :stop]
+   end
+ 
+   def statuscmd
+-    ((@resource.provider.get(:hasstatus) == true) || (@resource[:hasstatus] == :true)) && [command(:rcservice), @resource[:name], :status]
++    ((@resource.provider.get(:hasstatus) == true) || (@resource[:hasstatus] == :true)) && [command(:runinit), command(:rcservice), @resource[:name], :status]
+   end
+ 
+ end

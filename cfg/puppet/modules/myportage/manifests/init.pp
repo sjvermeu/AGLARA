@@ -8,7 +8,9 @@
 # different behavior when ran through puppetd and through
 # puppet).
 #
-class myportage {
+class myportage(
+	$stable = $myportage::params::stable
+  ) inherits myportage::params {
   # Default portage settings
   file { "make.conf":
     ensure => present,
@@ -16,6 +18,22 @@ class myportage {
     owner => "root",
     group => "root", 
     content => template("myportage/make.conf.erb"),
+  }
+
+  # bashrc for modifications
+  file { "bashrc":
+    ensure => present,
+    owner => "root",
+    group => "root",
+    path => "/etc/portage/bashrc",
+    source => "puppet:///modules/myportage/bashrc",
+  }
+
+  # Create bashrc.d directory
+  file { "/etc/portage/bashrc.d":
+    ensure => "directory",
+    owner => "root",
+    group => "root",
   }
   
   # Create package.use directory
@@ -50,9 +68,9 @@ class myportage {
     source => "puppet:///modules/myportage/package.use.puppet",
   }
   
-  # Fix for 439414
+  # Fix for 439414 - can be removed (absent)
   file { "package.accept_keywords/lvm":
-    ensure => present,
+    ensure => absent,
     owner => "root",
     group => "root",
     require => File['/etc/portage/package.accept_keywords'],

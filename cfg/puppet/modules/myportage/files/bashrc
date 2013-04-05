@@ -1,0 +1,18 @@
+if [ "x${EBUILD_PHASE}" != "x" ];
+then
+  if [ -x "/etc/portage/bashrc.d/${CATEGORY}/${PF}.${EBUILD_PHASE}" ];
+  then
+    source "/etc/portage/bashrc.d/${CATEGORY}/${PF}.${EBUILD_PHASE}"
+  elif [ -x "/etc/portage/bashrc.d/${CATEGORY}/${P}.${EBUILD_PHASE}" ];
+  then
+    source "/etc/portage/bashrc.d/${CATEGORY}/${P}.${EBUILD_PHASE}" 
+  elif [ -x "/etc/portage/bashrc.d/${CATEGORY}/${PN}.${EBUILD_PHASE}" ];
+  then
+    source "/etc/portage/bashrc.d/${CATEGORY}/${PN}.${EBUILD_PHASE}"
+  fi
+  ## General activities to perform
+  if [ -x "/etc/portage/bashrc.d/ANY.${EBUILD_PHASE}" ];
+  then
+    source "/etc/portage/bashrc.d/ANY.${EBUILD_PHASE}" 
+  fi
+fi

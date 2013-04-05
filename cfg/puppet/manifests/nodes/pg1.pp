@@ -1,11 +1,12 @@
 ##
 ## pg1.internal.genfic.com
 ##
-#
-# PARAMS+
-# MAC=00:11:22:33:44:b4
-# IP6=2001:db8:81::204:de89:3312
-# PARAMS-
 node 'pg1.internal.genfic.com' inherits basenode {
-  include general
+  $my_ip4address = "192.168.100.153"
+  $my_ip6address = "2001:db8:81:21::62fe:c886:d574"
+
+  class {"general": }
+  class {"myportage":
+    stable => true
+  }
 }

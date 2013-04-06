@@ -35,7 +35,7 @@
     handover of activities or jobs within the organization.</para>
 
     <para>When dealing with large-scale free software deployments, this is not
-    different. Within the next few sections, I will elaborate on how to match
+    different. Within the next few sections, we will elaborate on how to match
     requirements and which processes you need to look at.</para>
 
     <section>
@@ -111,7 +111,7 @@
 
       <para>Yet many readers will undoubtedly thing this is all quite too
       high-level or abstract to work with. If so, then please read on, because
-      that is what I want to help you with in this book!</para>
+      that is what we want to help you with in this book!</para>
     </section>
 
     <section>
@@ -126,7 +126,7 @@
       for web services, OpenLDAP for directory services, etc.) and management
       components (like Puppet for configuration management). This is more in
       line with what many readers expect and know, because we are then talking
-      about the technologies they know and deploy themselves. Many vendors
+      about the technologies readers know and deploy themselves. Many vendors
       that have a huge portfolio of software and server services have their
       reference architectures as well, which is often used by administrators
       as a first resource reference to their own infrastructure.</para>
@@ -239,7 +239,7 @@
         <para>The non-functional requirements can be thought of through the
         FURPS(+)<indexterm>
             <primary>FURPS</primary>
-          </indexterm> acronym. We had the F already (which stands for
+          </indexterm> acronym. We covered the F already (which stands for
         Functional), but the other letters in the acronym give a nice overview
         of non-functional requirements that might exist: Usability,
         Reliability, Performance, Supportability. The + in the acronym focuses
@@ -315,13 +315,13 @@
     <section>
       <title>Logical design</title>
 
-      <para>For me personally, the logical design is where I do most of my
-      work. Whereas requirements capturing is the most important, the logical
-      design is where I start writing and documenting how the architecture
-      looks like, translating the requirements in services (or even
-      immediately into technologies). In this book I'll also use a lightweight
-      logical design method to describe why decisions are made in the
-      reference architecture. I will not be providing full logical design
+      <para>For the author personally, the logical design is where he does
+      most of his work. Whereas requirements capturing is the most important,
+      the logical design is where we start writing and documenting how the
+      architecture looks like, translating the requirements in services (or
+      even immediately into technologies). In this book we'll also use a
+      lightweight logical design method to describe why decisions are made in
+      the reference architecture. We will not be providing full logical design
       documents (that would be a bit overkill for now, especially since it is
       just a fictional company) but the methods and structures used can help
       you in your quest to find out what you need to think about.</para>
@@ -333,8 +333,8 @@
       too late - after all, every assumption that isn't validated is a risk
       for your design.</para>
 
-      <para>Next, the logical design itself is made, for which I use the
-      FAMOUS abbreviation:</para>
+      <para>Next, the logical design itself is made, for which the author uses
+      the FAMOUS abbreviation:</para>
 
       <itemizedlist>
         <listitem>
@@ -433,9 +433,10 @@
         </listitem>
       </itemizedlist>
 
-      <para>After this logical design, I also write down further details about
-      the design that are less about the components and more about how they
-      will or could be used. For this, I use the FASTCARD abbreviation:</para>
+      <para>After this logical design, we can also write down further details
+      about the design that are less about the components and more about how
+      they will or could be used. For this, the author uses the FASTCARD
+      abbreviation:</para>
 
       <itemizedlist>
         <listitem>
@@ -514,12 +515,12 @@
         </listitem>
       </itemizedlist>
 
-      <para>By documenting these two aspects, I usually have all information I
-      need about one building block or architecture. It is this information
-      that I keep alive during the lifecycle of the components within the
-      architecture. Don't worry if the acronyms are currently too illogical
-      for you - they will become more clear when you start looking at the
-      example designs that are described further down the book.</para>
+      <para>By documenting these two aspects, we usually have all information
+      we need about one building block or architecture. It is this information
+      that the author keeps alive during the lifecycle of the components
+      within the architecture. Don't worry if the acronyms are currently too
+      illogical for you - they will become more clear when you start looking
+      at the example designs that are described further down the book.</para>
     </section>
   </section>
 </chapter>

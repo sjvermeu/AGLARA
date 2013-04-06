@@ -22,15 +22,15 @@
 
     <itemizedlist>
       <listitem>
-        <para>First of all - I'm a Gentoo Linux developer. Its the
-        distribution I know the best.</para>
+        <para>First of all - the author is a Gentoo Linux developer. Its the
+        distribution he know the best.</para>
 
         <para>But in light of a (fictional) company, it might also be because
         its current (fictional) engineers are all Gentoo Linux developers, or
         because it has ties with regional Gentoo Linux supporting services. In
         light of many organizations, when there is choice between Linux
         distributions, one thing to consider is which distribution your
-        engineers are most likely to work with. I know, asking them will
+        engineers are most likely to work with. Alright, asking them will
         probably result in some heavy fighting to see which distribution is
         best (perhaps you can use the <link
         xlink:href="https://en.wikipedia.org/wiki/Condorcet_method">Condorcet
@@ -44,7 +44,7 @@
         hosting of certain products which are only supported on RHEL (or
         similar). However, because we will only use free software solutions,
         this is no requirement for our case. But it is understandable that
-        companies that do run propriatary software choose a distribution that
+        companies that do run proprietary software choose a distribution that
         is supported by their vendors.</para>
       </listitem>
 
@@ -97,7 +97,7 @@
         it offers many tools out-of-the-box to support every possible
         requirement.</para>
 
-        <para>To reduce the impact of its source-only stigma, I will dedicate
+        <para>To reduce the impact of its source-only stigma, we will dedicate
         a chapter in this book on the use of build servers and binhost support
         for improved manageability.</para>
       </listitem>
@@ -133,9 +133,646 @@
     problems. Generally though, this gives little (to no) additional advantage
     towards a multilib profile. But as this is a reference architecture, I'll
     stick with this.</para>
+  </section>
+
+  <section>
+    <title>Virtualization using KVM</title>
+
+    <para>When possible, we will use virtualization. As virtualization
+    platform, we will choose KVM as it offers many interesting features (both
+    for development as well as larger enterprise usability) and is quite
+    popular in the Linux development (and user) community. Other
+    virtualization techniques that can be used are Xen or Virtualbox. Within
+    Gentoo Linux, KVM is a popular and much-used virtualization
+    technology.</para>
 
     <section>
-      <title>Gentoo Hardened</title>
+      <title>Why virtualize</title>
+
+      <para>Virtualization has been around for quite some time. Early
+      mainframe installations already had a sort of isolation that is not far
+      off from virtualization nowadays. However, virtualization is not just a
+      mainframe concept anymore - most larger enterprises are already fully
+      working on the virtualization of their stacks. Products like
+      VMWare<indexterm>
+          <primary>VMWare</primary>
+        </indexterm> have popularized virtualization in the enterprise, and
+      other hypervisors like KVM, VirtualBox, Xen and more are trying to get a
+      piece of the cacke.</para>
+
+      <para>To help administrators manage the virtual guests that are running
+      on dozens of hosts, frameworks have emerged that lift some of the
+      management tasks to a higher level. These frameworks offer automated
+      generation of new guests, simplified configuration of the instances,
+      remote management of guests. Some of them even support maintenance
+      activities, such as moving guests from one host to another, or monitor
+      the resource consumption of guests to find a good balance between
+      running guests and available hosts.</para>
+
+      <para>In Gentoo, many of these virtualization frameworks are
+      supported.</para>
+
+      <para>The first one is <package>app-emulation/libvirt</package> and is
+      RedHat's virtualization management platform. The hypervisor systems run
+      the libvirt daemon which manages the virtual guests as well as storage
+      and other settings, and the administrator remotely connects to the
+      various hypervisor systems through the
+      <package>app-emulation/virt-manager</package> application. It has
+      support for SELinux through its s(ecure)Virt(ualization) feature. To do
+      so, it does require the MCS SELinux policy. Libvirt is also being used
+      by many other frameworks (like oVirt, Archipel, Abiquo and more).</para>
+
+      <para>Another one that is gaining momentum is
+      <package>app-emulation/ganeti</package> and is backed by Google. It is
+      foremost a command-line driven method but is well capable of handling
+      dozens and dozens of hypervisor systems. It supports simplified
+      fail-over on top of DRBD and makes an abstraction of the running hosts
+      versus the guests. It bundles a set of hosts (which it calls nodes) in
+      logical groups called clusters. The guests (instances) are then spread
+      across the nodes in the cluster, and the administrator manages the
+      cluster remotely.</para>
+
+      <para>Using virtualization has a whole set of advantages of which I'll
+      try to mention a few in the next paragraphs. I will use the term
+      <emphasis>host</emphasis> when talking about the host operating system
+      (the one running or directly managing the hypervisor software) and
+      <emphasis>guest</emphasis> for the virtualized operating system
+      instances (that are running on the host).</para>
+
+      <section>
+        <title>High Availability</title>
+
+        <para>In a virtualized environment, guests can be quickly restarted
+        when needed. The host is still up and running, so rebooting a system
+        is a matter of restarting a process. This has the advantage that
+        caching and other performance measures taken by the hypervisor are
+        still available, which makes bootup times of guests quite fast.</para>
+
+        <para>But even in case of host downtime, given the right architecture,
+        guests can be quickly started up again. By providing a hardware
+        abstraction in the virtualization layer, these technologies are able
+        to start a guest on a different hardware environment (even with
+        different hardware, although there are limits to this - the most
+        obvious one being that the new hardware must support the same
+        architecture and virtualization). Many virtualization solutions can
+        host guest storage (the guests' disks) in image files which can be
+        made highly available through high-performance NFS shares, cluster
+        file system or storage synchronisation. If the host crashes, the guest
+        storage is quickly made available on a different host and the guest is
+        restarted.</para>
+      </section>
+
+      <section>
+        <title>Resource optimization</title>
+
+        <para>For most organizations, virtualization is one of the most
+        effective ways to optimize resources in their data rooms. Regular
+        Unix/Windows servers generally consume lots of power, cooling and
+        floor space while still only offering 15% (or less) of actual resource
+        consumption (CPU cycles). 85% of the time, the system is literally
+        doing nothing but waiting. With virtualization, you can have resources
+        utilized better, going towards a healthy 80% while still allowing room
+        for sudden resource burst demands.</para>
+      </section>
+
+      <section>
+        <title>Flexible change management</title>
+
+        <para>The virtualization layer also offers a way to do flexible change
+        management. Because guests are now more tangible, it is easier to make
+        snapshots of entire guests, copy them around, upgrade one instance
+        and, if necessary, roll back to the previous snapshot - all this in
+        just a few minutes or less. You can't do this with dedicated
+        installations.</para>
+      </section>
+
+      <section>
+        <title>"Secure" isolation</title>
+
+        <para>In a security-sensitive environment, isolation is a very
+        important concept. It ensures that a system or service can only access
+        those resources it needs to, while disallowing (and even hiding) the
+        other resources. Virtualization allows architects to design the system
+        so that it runs in its own operating system, so from the viewpoint of
+        the service, it has access to those resources it needs, but sees no
+        other. On the host layer, the guests can then be properly isolated so
+        they cannot influence each other.</para>
+
+        <para>Having separate operating systems is often seen as a thorough
+        implementation of "isolation". Yes, there are a lot of other means to
+        isolate services. Still, running a service in a virtualized operating
+        system is not the summum of isolation. <link
+        xlink:href="http://blog.nelhage.com/2011/08/breaking-out-of-kvm/">Breaking
+        out of KVM</link> has been done in the past, and will most likely
+        happen again. Other virtualization have seen their share of security
+        vulnerabilities to this level as well.</para>
+      </section>
+
+      <section>
+        <title>Simplified backup/restore</title>
+
+        <para>For many organizations, a bare-metal backup/restore routine is
+        much more resource hungry than regular file-based backup/restore. By
+        using virtualization, bare-metal backup/restore of the guests is a
+        breeze, as it is now back a matter of working with files (and
+        processes). Ok, the name "bare-metal" might not work anymore here -
+        and you'll still need to backup your hypervisor. But if your
+        hypervisor (host) installation is very standardized, this is much
+        faster and easier than before.</para>
+      </section>
+
+      <section>
+        <title>Fast deployment</title>
+
+        <para>By leveraging the use of guest images, it is easy to create a
+        single image and then use it as a master template for other instances.
+        Need a web serving cluster? Set up on, replicate and boot. Need a few
+        more during high load? Replicate and boot a few more. It becomes just
+        that easy.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>To support the various advantages of virtualization mentioned
+      earlier, we will need to take these into account in the architecture.
+      For instance, high availability requires that the storage, on which the
+      guests are running, is quickly (or even continuously) available on other
+      systems so these can take over (or quickly boot) the guests. Also,
+      supporting snapshotting means that we need to think about the process
+      (steps) that are needed in order to support snapshotting.</para>
+
+      <para>One of the services that will decide on the architecture the most
+      is the high availability. Most virtualization products offer one or more
+      methods for high availability. You can opt for an all-inclusive
+      solution, such as Ganeti or libvirt. In the remainder of this chapter,
+      we will focus on <emphasis>optional</emphasis> replicated storage based
+      on DRBD, using regular file systems (so no cluster file systems or other
+      distributed file systems). The replication will be triggered on
+      host-level (not guest). If there is need for shared file systems, we
+      will look into high-performance NFS systems.</para>
+
+      <para>These decisions are based on the following, somewhat principle
+      related, factors:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>High availability of <emphasis>services</emphasis> is easy to
+          accomplish without requiring additional components, such as file
+          system replication or heart beats. Services like LDAP support
+          replication out-of-the-box, and web servers are quite easy to set up
+          in an active/active manner. As such high availability also provides
+          the necessary flexibility for longer distances and doesn't incur
+          additional, sometimes complex, technologies, this is the preferred
+          method for high availability in the remainder of this book.</para>
+        </listitem>
+
+        <listitem>
+          <para>When high availability can be provided by the services,
+          offering high availability on the hypervisor level - while still
+          very interesting - has a lower priority than offering decent
+          performance. As a result, every performance-degrading method should
+          be dismissed or at least made optional. And replication methods,
+          such as DRBD, or cluster file systems, such as GFS2, do have a
+          performance penalty.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>Also, we will opt for regular KVM running inside screen sessions.
+      The screen sessions allow us to easily manage KVM monitor commands. The
+      console itself will be launched through VNC sessions. The sessions will
+      by default not be started (as to not consume memory and resources) but
+      can be started through the KVM monitor when needed. As a result, our
+      virtualization architecture looks a bit like the following.</para>
+
+      <figure>
+        <title>Virtualization architecture</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-virtual-general.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>All the other aspects of the hypervisor level are the same as what
+      we will have with our regular operating system design (which is defined
+      further down). This is because at the hypervisor level, we will use
+      Gentoo Linux as well. The flexibility of the operating system allows us
+      to easily manage multiple guests in a secure manner (hence the secure
+      containers displayed in the above picture). We will cover these secure
+      containers later.</para>
+
+      <section>
+        <title>Administration</title>
+
+        <para>Managing the guests entails the following use cases:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>IMACD operations on the guest</para>
+          </listitem>
+
+          <listitem>
+            <para>Operate a guest (stop, start, restart)</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The regular IMACD operations are based on image management.
+        Basic (master) guest images are managed elsewhere, and eventually
+        published on a file server. The hosts, when needed, copy over this
+        master image to the local file system. When a guest needs to be
+        instantiated, it either uses a copy of this file (long-term guest) or
+        a copy-on-write (short-term guest) stored in the proper directory
+        after which it is launched.</para>
+
+        <para>Similarly, removal of guests entails shutdown of the guest and
+        removal of the image from the system. All this is easily
+        scriptable.</para>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para>Monitoring guests will be integrated in the monitoring component
+        later. Basically, we want to be notified if a guest is not running
+        anymore but should (process monitoring), or if a guest is not
+        responsive anymore (ping reply monitoring).</para>
+      </section>
+
+      <section>
+        <title>Security</title>
+
+        <para>We mentioned secure containers before, so let's describe this
+        bit in more detail.</para>
+
+        <para>What we want to accomplish is that the virtual guests cannot
+        interfere with each other. This is both permission-wise (for which we
+        will use SELinux) as well as resources (for which we will use Linux
+        cgroups).</para>
+
+        <para>Permissions will be governed through SELinux' categories. The
+        guests all run inside a SELinux domain already, so that
+        vulnerabilities within the Qemu emulator (the user-space part of the
+        hypervisor) cannot influence the host itself. However, if they all run
+        inside the same SELinux domain, then they could influence each other.
+        So what we will do is run each of them within a particular SELinux
+        category, and make sure that their images also have this category
+        assigned. </para>
+
+        <para>Resources are governed through Linux cgroups, allowing
+        administrators to put restrictions on various resources such as CPU,
+        I/O, network usage, etc. On a hypervisor level, we want to support
+        guests with differentiated resource requirements:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>guaranteed resources (so the CPU shares and memory shares
+            are assigned immediately)</para>
+          </listitem>
+
+          <listitem>
+            <para>prioritized resources (so the CPU shares and memory shared
+            are, when needed, preferably assigned to members of this
+            group)</para>
+          </listitem>
+
+          <listitem>
+            <para>shared resources (the rest ;-)</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+    </section>
+
+    <section>
+      <title>Deployment and uses</title>
+
+      <para>Let's make all this a bit more tangible and look at how this would
+      be accomplished.</para>
+
+      <section>
+        <title>File system structure</title>
+
+        <para>Each host uses the same file system structure (standard) so that
+        you can move images from one system to another without changing your
+        underlying procedures. Let's say the images are stored in
+        <filename>/srv/virt</filename> using the following structure:</para>
+
+        <programlisting>/sr/virt
++- pending
++- base
+`- guests
+   +- hostname1
+   |  +- rootfs.img
+   |  +- otherfs.img
+   |  +- settings.conf
+   |  `- computed.conf
+   +- hostname2
+   `- ...</programlisting>
+
+        <para>The <filename>pending</filename> location is where base image
+        copies are placed first. Images in that directory are still in process
+        of being transferred, or have been interrupted somewhere along. Once a
+        copy is complete, the image will be moved from the pending to the
+        <filename>base</filename> location. Guests then use copies (of
+        copy-on-write) images from the base images, although this is of course
+        not mandatory - new empty images can be created as well for other
+        purposes. The base images allow you to quickly setup particular
+        systems or prepared file systems for other purposes.</para>
+
+        <para>The <filename>settings.conf</filename> file contains the
+        information related to the guest. This includes MAC address
+        information, guest image information (and options on how to attach
+        them), etc. It is also wise to make this file easily manageable by
+        both humans (so don't use special syntax) and tools (so don't use
+        human language). The other configuration file,
+        <filename>computed.conf</filename>, contains settings specific for
+        running this guest on this host and is generated and updated by the
+        scripts we use to manage the virtual images.</para>
+
+        <programlisting>## Example settings.conf
+HOSTNAME=pg1
+DOMAINNAME=internal.genfic.com
+MAC_ADDRESS=00:11:22:33:44:b3
+VLAN=8
+CPU=kvm64
+SMP_DEFAULT=2 # Dual CPU
+MEM_DEFAULT=1536 # 1.5 Gbyte of memory
+RESOURCES=guaranteed # for cgroup management
+
+IMAGES=IMAGE1,IMAGE2
+IMAGE1=/srv/virt/guests/pg1/rootfs.img,if=virtio,cache=writeback
+IMAGE2=/srv/virt/guests/pg1/postgresdb.img,if=virtio,cache=writeback</programlisting>
+
+        <programlisting>## Example computed.conf
+GDB=disabled
+VNC_ADDRESS=vhost4-mgmt
+VNC_PORT=14 # real port is 5914
+SMP=2
+MEM=2048 # 2 Gbyte of memory
+STATE=running
+SELINUX_CATEGORY=12
+CGROUP=guests/dedicated/pg1</programlisting>
+      </section>
+
+      <section>
+        <title>Interacting with KVM monitors</title>
+
+        <para>The KVM monitor (actually Qemu/KVM monitor) allows
+        administrators to manage the virtual guest specifics, such as
+        hot-adding (or removing) devices, taking snapshots, etc. As we placed
+        the KVM monitor on the standard output within screen, all the admin
+        has to do (after logging in) is to attach to the monitor of the right
+        virtual guest.</para>
+
+        <programlisting>$ <command>screen -ls</command>
+There are screens on:
+   4872.kvm-pg1     (Detached)
+   5229.kvm-www1    (Detached)
+  14920.kvm-www2    (Detached)
+$ <command>screen -x kvm-pg1</command>
+(qemu) </programlisting>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Basic OS architecture</title>
+
+    <para>When we position an operating system platform such as Gentoo Linux,
+    quite a few aspects already need to be considered in its design. It isn't
+    sufficient to just create an image (or installation procedure) and be done
+    with it. We need to consider basic services on operating systems, such as
+    backup/restore routines, updates &amp; upgrades, etc. Most of the
+    infrastructure needed to accomplish all that will be talked about
+    further.</para>
+
+    <section>
+      <title>Services</title>
+
+      <para>When you are going to manage multiple servers, you will need some
+      sort of centralized services. This doesn't require a daemon/server
+      architecture for all services though, as we will see later on.</para>
+
+      <figure>
+        <title>Services for an operating system platform</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-platform-services.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The mentioned services on the above drawing are quite basic
+      services, which you will need to properly manage in order to get a well
+      functioning environment.</para>
+
+      <section>
+        <title>Access management services</title>
+
+        <para>To access the system, mostly for administrative purposes,
+        requires basic access methods towards the system. As we are using
+        Gentoo Linux, the most probable component for this is OpenSSH. But in
+        order to properly provide access services, we don't only look at the
+        OpenSSH daemon itself, but also the centralized access management
+        services (which will be OpenLDAP based) to easily manage what is
+        called <emphasis>joiner/leaver processes</emphasis>.</para>
+
+        <para>A joiner/leaver process is the process that needs to be taken
+        when a person joins (or leaves) the organization. Proper processes
+        should ensure that the account(s) that this person uses are only
+        usable as long as the person is a member of the organization, and that
+        his rights are properly managed. If you have hundreds of servers, it
+        is of course not feasible to manually update the servers
+        <filename>/etc/passwd</filename> and <filename>/etc/shadow</filename>
+        files manually. You could still build some scripts that automatically
+        create and modify these files, or even use a centralized configuration
+        management set for that, but you will quickly hit boundaries.</para>
+      </section>
+
+      <section>
+        <title>Monitoring services</title>
+
+        <para>Monitoring services are used, not really to be informed when a
+        service is down, but rather to quickly identify what is causing a
+        service failure.</para>
+
+        <para>Service failures, like "I cannot resolve IP addresses" or "The
+        web site is not reachable" are difficult to debug if you are lacking
+        monitoring. Proper monitoring implementations allow you to get an idea
+        of the entire state of the architecture and its individual components.
+        If monitoring tells you that the web server processes are running and
+        that remote web site retrieval agents are still pulling in site
+        details, then you're most likely to look at the connectivity between
+        the client and the site (such as potential proxy servers or even
+        networking or firewalls). On the other hand, if the monitoring is
+        telling you that a web gateway daemon is not responsive, you'll
+        quickly be able to handle the problem as you have a fairly good idea
+        at where the problem lies.</para>
+      </section>
+
+      <section>
+        <title>Backup services</title>
+
+        <para>Although backups are not important, being able to restore stuff
+        is - hence the need for backups ;-)</para>
+
+        <para>Even on regular servers, backups will be important to support
+        fast recovery from human errors or application malpractices. Users,
+        including administrators, make mistakes. Being able to quickly recover
+        from deleted files or modifications will save you hours of work
+        later.</para>
+      </section>
+
+      <section>
+        <title>Configuration management</title>
+
+        <para>In order to properly update/upgrade the systems, as well as
+        configure it to match the needs of the organization, you will need
+        some configuration management approach. Whereas smaller deployments
+        can be perfectly managed manually, decent configuration management
+        allows you to quickly deploy new systems, reconfigure systems when
+        needed, support testing of configuration changes, etc.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>In our reference architecture, the given services will be filled
+      in with the following components.</para>
+
+      <figure>
+        <title>Components for operating system platform</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-platform-components.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The activities involved with those components are described in the
+      next few sections.</para>
+
+      <section>
+        <title>Flows and feeds</title>
+
+        <para>The services that will be mostly important for the larger flows
+        are the software management services (through Portage) and the
+        backup/restore routines (through Bacula).</para>
+
+        <figure>
+          <title>Operating system feeds</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/02-platform-feeds.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>Let's first consider the <emphasis>software
+        management</emphasis> part. As we are using Gentoo Linux, we will use
+        Gentoo's Portage package management called Portage<indexterm>
+            <primary>Portage</primary>
+          </indexterm>. However, to support large-scale deployments, we will
+        use the Portage binary package support. This allows us to build
+        packages once, and make them available for others. We will discuss the
+        build server for Gentoo later in this book.</para>
+
+        <para>We can choose how we make the binary packages available from a
+        number of methods:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Use a central file server on which the packages are hosted.
+            We can use an NFS server for this, or any of the various other
+            methods (including caching-enabled systems such as OpenAFS).
+            </para>
+          </listitem>
+
+          <listitem>
+            <para>Use a web server that serves the packages, and have Portage
+            pull the packages from the web server</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>I prefer the use of a web server because it offers nice logging
+        capabilities, and you can put in additional security measures (such as
+        requiring the use of SSL with mutual authentication). Also, load
+        balancing is quite simple, as is controlling all data flows (and req,
+        uest queueing, etc.)</para>
+
+        <para>The second flows is the backup/restore flows. These are governed
+        by the Bacula backup software. Depending on the configuration, this
+        might give a significant overhead (network-wise). As we are using
+        virtualized systems, I suggest to use host-based snapshot methods for
+        backing up entire virtual images (allowing for "bare-metal"
+        recovery).</para>
+      </section>
+
+      <section>
+        <title>Administration</title>
+
+        <para>To administer the system (and the components hosted on it), we
+        will use OpenSSH (for access to the system) and Puppet (for managing
+        configuration settings).</para>
+
+        <figure>
+          <title>Operating system administration</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/02-platform-administration.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>Standard operator/administrator access to the operating system
+        is handled through the SSH secure shell. The OpenSSH daemon will be
+        configured to use a central user repository for its authentication of
+        users. This allows administrators to, for instance, change their
+        password on a single system and ensure that the new password is then
+        in use for all other systems as well.</para>
+
+        <para>The configuration management will be handled through Puppet,
+        whose configuration repository will be managed through various
+        version-controlled systems and eventually exported on NFS towards the
+        systems. If needed, different NFS services or definitions can be used
+        to limit which systems can see the configuration settings of other
+        systems.</para>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para>We will monitor the systems (and the components and services
+        that we host further) through Icinga.</para>
+
+        <figure>
+          <title>Operating system monitoring</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/02-platform-monitoring.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>The icinga agent supports various plugins that allow us to
+        monitor various aspects of the operating system and the services that
+        run on it. The results of each "query" is then sent to the central
+        Icinga database. The monitoring web interface, which we will discuss
+        later, interacts with the database to visually represent the state of
+        your environment.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>The choice of Gentoo Hardened</title>
 
       <para>To increase security of the deployments, all systems in this
       reference architecture will use a Gentoo Hardened deployment. Within the
@@ -461,10 +1098,7 @@ Max kernel policy version:      26</programlisting>
     </section>
 
     <section>
-      <title>Installation choices</title>
-
-      <para>During the initial installation of Gentoo, a few choices will
-      already need to be made.</para>
+      <title>Deployment and uses</title>
 
       <section>
         <title>Partitioning and LVM</title>
@@ -473,9 +1107,9 @@ Max kernel policy version:      26</programlisting>
         (so no SAN nor NAS for every possible file system) and deal with the
         consequences of having distributed storage differently. One of the
         methods we will be using is to use LVM wherever we can, including for
-        the root file system. I do recommend that the internal storage is
-        somewhat protected against disk failure through RAID. Although I am a
-        proponent of RAID1, <link
+        the root file system. It is recommended that the internal storage is
+        somewhat protected against disk failure through RAID. Although the
+        author is a proponent of RAID1, <link
         xlink:href="http://assets.en.oreilly.com/1/event/27/Linux%20Filesystem%20Performance%20for%20Databases%20Presentation.pdf">tests</link>
         have shown that RAID5 performs equally well.</para>
 
@@ -489,37 +1123,29 @@ Max kernel policy version:      26</programlisting>
 # <command>lvcreate -l 10G -n lv_home vg_system</command></programlisting>
 
         <para>Through this approach, the root file system will be hosted on
-        /dev/mapper/vg_system-lv_root and as such be expandable (if necessary)
-        as well as protected by the underlying RAID system. If you keep enough
-        free space in the volume group, you can work with snapshots to support
-        flexible backup methods.</para>
-
-        <para>Needless to say, you will need to boot with an initramfs.</para>
-
-        <programlisting># <command>genkernel --install --lvm initramfs</command></programlisting>
-
-        <para>Don't forget to update the bootloader configuration.</para>
+        <filename>/dev/mapper/vg_system-lv_root</filename> and as such be
+        expandable (if necessary) as well as protected by the underlying RAID
+        system. If you keep enough free space in the volume group, you can
+        work with snapshots to support flexible backup methods.</para>
       </section>
 
       <section>
-        <title>The /boot location</title>
+        <title>Selection of used system software</title>
 
-        <para>I tend to keep my /boot location pretty "big" considering what
-        other users think is needed: 1 Gbyte. Although the kernel and
-        initramfs (plus boot loader files) are only a few megabytes, I often
-        place a rescue environment in it (such as a <link
-        xlink:href="http://www.sysresccd.org">sysresccd</link>) so that I can
-        recover even when initramfs is unable to. It also allows me to install
-        additional verification tools like memtest and the like.</para>
-      </section>
+        <para>The following set of system software components will be
+        installed (and thus part of the base setup).</para>
 
-      <section>
-        <title>System logger</title>
+        <itemizedlist>
+          <listitem>
+            <para>syslog-ng, as the acting system logger and system log
+            daemon</para>
+          </listitem>
 
-        <para>For system logging, we will use syslog-ng, a well-supported
-        advanced logging daemon.</para>
-
-        <programlisting># <command>emerge syslog-ng</command></programlisting>
+          <listitem>
+            <para>vixie-cron, as the acting cron daemon (for running scheduled
+            tasks in the background)</para>
+          </listitem>
+        </itemizedlist>
       </section>
 
       <section>
@@ -528,344 +1154,6 @@ Max kernel policy version:      26</programlisting>
         <para>We will be using IPv6 exclusively in this architecture, but for
         some applications, we still need to support IPv4. When this is the
         case, we will try to only use 127.0.0.1.</para>
-
-        <para>To setup a system with IPv6, first set the /etc/conf.d/net file
-        accordingly. For instance, for one of our name servers (which we'll
-        describe later):</para>
-
-        <programlisting># <command>cat /etc/conf.d/net</command>
-config_eth0="2001:db8:81:21::ac:98ad:5fe1/64";
-dns_servers="2001:db8:81:21::ac:98ad:5fe1 2001:db8:81:22::ae:6b01:e3d8";
-routes_eth0="2001:db8:81:21::c5:bb33:d902";</programlisting>
-
-        <para>Our hostname will be set in a fully qualified way (primarily for
-        use by puppet later):</para>
-
-        <programlisting># <command>cat /etc/conf.d/hostname</command>
-hostname="ns.genfic.com"
-
-# <command>cat /etc/hosts</command>
-::1                             localhost
-2001:db8:81:21::ac:98ad:5fe1  ns.genfic.com  ns</programlisting>
-
-        <para>As a quick hint, if you want to ping hosts using IPv6, use
-        <command>ping6</command>.</para>
-      </section>
-    </section>
-  </section>
-
-  <section>
-    <title>Virtualization using KVM</title>
-
-    <para>When possible, we will use virtualization. As virtualization
-    platform, we will choose KVM as it offers many interesting features (both
-    for development as well as larger enterprise usability) and is quite
-    popular in the Linux development (and user) community. Other
-    virtualization techniques that can be used are Xen or Virtualbox. Within
-    Gentoo Linux, KVM is a popular and much-used virtualization
-    technology.</para>
-
-    <section>
-      <title>Why virtualize</title>
-
-      <para>Virtualization has been around for quite some time. Early
-      mainframe installations already had a sort of isolation that is not far
-      off from virtualization nowadays. However, virtualization is not just a
-      mainframe concept anymore - most larger enterprises are already fully
-      working on the virtualization of their stacks. Products like
-      VMWare<indexterm>
-          <primary>VMWare</primary>
-        </indexterm> have popularized virtualization in the enterprise, and
-      other hypervisors like KVM, VirtualBox, Xen and more are trying to get a
-      piece of the cacke.</para>
-
-      <para>To help administrators manage the virtual guests that are running
-      on dozens of hosts, frameworks have emerged that lift some of the
-      management tasks to a higher level. These frameworks offer automated
-      generation of new guests, simplified configuration of the instances,
-      remote management of guests. Some of them even support maintenance
-      activities, such as moving guests from one host to another, or monitor
-      the resource consumption of guests to find a good balance between
-      running guests and available hosts.</para>
-
-      <para>In Gentoo, many of these virtualization frameworks are
-      supported.</para>
-
-      <para>The first one is <package>app-emulation/libvirt</package> and is
-      RedHat's virtualization management platform. The hypervisor systems run
-      the libvirt daemon which manages the virtual guests as well as storage
-      and other settings, and the administrator remotely connects to the
-      various hypervisor systems through the
-      <package>app-emulation/virt-manager</package> application. It has
-      support for SELinux through its s(ecure)Virt(ualization) feature. To do
-      so, it does require the MCS SELinux policy. Libvirt is also being used
-      by many other frameworks (like oVirt, Archipel, Abiquo and more).</para>
-
-      <para>Another one that is gaining momentum is
-      <package>app-emulation/ganeti</package> and is backed by Google. It is
-      foremost a command-line driven method but is well capable of handling
-      dozens and dozens of hypervisor systems. It supports simplified
-      fail-over on top of DRBD and makes an abstraction of the running hosts
-      versus the guests. It bundles a set of hosts (which it calls nodes) in
-      logical groups called clusters. The guests (instances) are then spread
-      across the nodes in the cluster, and the administrator manages the
-      cluster remotely.</para>
-
-      <para>Using virtualization has a whole set of advantages of which I'll
-      try to mention a few in the next paragraphs. I will use the term
-      <emphasis>host</emphasis> when talking about the host operating system
-      (the one running or directly managing the hypervisor software) and
-      <emphasis>guest</emphasis> for the virtualized operating system
-      instances (that are running on the host).</para>
-
-      <section>
-        <title>High Availability</title>
-
-        <para>In a virtualized environment, guests can be quickly restarted
-        when needed. The host is still up and running, so rebooting a system
-        is a matter of restarting a process. This has the advantage that
-        caching and other performance measures taken by the hypervisor are
-        still available, which makes bootup times of guests quite fast.</para>
-
-        <para>But even in case of host downtime, given the right architecture,
-        guests can be quickly started up again. By providing a hardware
-        abstraction in the virtualization layer, these technologies are able
-        to start a guest on a different hardware environment (even with
-        different hardware, although there are limits to this - the most
-        obvious one being that the new hardware must support the same
-        architecture and virtualization). Many virtualization solutions can
-        host guest storage (the guests' disks) in image files which can be
-        made highly available through high-performance NFS shares, cluster
-        filesystem or storage synchronisation. If the host crashes, the guest
-        storage is quickly made available on a different host and the guest is
-        restarted.</para>
-      </section>
-
-      <section>
-        <title>Resource optimization</title>
-
-        <para>For most organizations, virtualization is one of the most
-        effective ways to optimize resources in their data rooms. Regular
-        Unix/Windows servers generally consume lots of power, cooling and
-        floor space while still only offering 15% (or less) of actual resource
-        consumption (CPU cycles). 85% of the time, the system is literally
-        doing nothing but waiting. With virtualization, you can have resources
-        utilized better, going towards a healthy 80% while still allowing room
-        for sudden resource burst demands.</para>
-      </section>
-
-      <section>
-        <title>Flexible change management</title>
-
-        <para>The virtualization layer also offers a way to do flexible change
-        management. Because guests are now more tangible, it is easier to make
-        snapshots of entire guests, copy them around, upgrade one instance
-        and, if necessary, roll back to the previous snapshot - all this in
-        just a few minutes or less. You can't do this with dedicated
-        installations.</para>
-      </section>
-
-      <section>
-        <title>"Secure" isolation</title>
-
-        <para>In a security-sensitive environment, isolation is a very
-        important concept. It ensures that a system or service can only access
-        those resources it needs to, while disallowing (and even hiding) the
-        other resources. Virtualization allows architects to design the system
-        so that it runs in its own operating system, so from the viewpoint of
-        the service, it has access to those resources it needs, but sees no
-        other. On the host layer, the guests can then be properly isolated so
-        they cannot influence each other.</para>
-
-        <para>Having separate operating systems is often seen as a thorough
-        implementation of "isolation". Yes, there are a lot of other means to
-        isolate services. Still, running a service in a virtualized operating
-        system is not the summum of isolation. <link
-        xlink:href="http://blog.nelhage.com/2011/08/breaking-out-of-kvm/">Breaking
-        out of KVM</link> has been done in the past, and will most likely
-        happen again. Other virtualization have seen their share of security
-        vulnerabilities to this level as well.</para>
-      </section>
-
-      <section>
-        <title>Simplified backup/restore</title>
-
-        <para>For many organizations, a bare-metal backup/restore routine is
-        much more resource hungry than regular file-based backup/restore. By
-        using virtualization, bare-metal backup/restore of the guests is a
-        breeze, as it is now back a matter of working with files (and
-        processes). Ok, the name "bare-metal" might not work anymore here -
-        and you'll still need to backup your hypervisor. But if your
-        hypervisor (host) installation is very standardized, this is much
-        faster and easier than before.</para>
-      </section>
-
-      <section>
-        <title>Fast deployment</title>
-
-        <para>By leveraging the use of guest images, it is easy to create a
-        single image and then use it as a master template for other instances.
-        Need a web serving cluster? Set up on, replicate and boot. Need a few
-        more during high load? Replicate and boot a few more. It becomes just
-        that easy.</para>
-      </section>
-    </section>
-  </section>
-
-  <section>
-    <title>Basic OS architecture</title>
-
-    <para>When we position an operating system platform such as Gentoo Linux,
-    quite a few aspects already need to be considered in its design. It isn't
-    sufficient to just create an image (or installation procedure) and be done
-    with it. We need to consider basic services on operating systems, such as
-    backup/restore routines, updates &amp; upgrades, etc. Most of the
-    infrastructure needed to accomplish all that will be talked about
-    further.</para>
-
-    <section>
-      <title>Services</title>
-
-      <para>When you are going to manage multiple servers, you will need some
-      sort of centralized services. This doesn't require a daemon/server
-      architecture for all services though, as we will see later on.</para>
-
-      <figure>
-        <title>Services for an operating system platform</title>
-
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="???"/>
-          </imageobject>
-        </mediaobject>
-      </figure>
-
-      <para>The mentioned services on the above drawing are quite basic
-      services, which you will need to properly manage in order to get a well
-      functioning environment.</para>
-
-      <section>
-        <title>Access management services</title>
-
-        <para>To access the system, mostly for administrative purposes,
-        requires basic access methods towards the system. As we are using
-        Gentoo Linux, the most probable component for this is OpenSSH. But in
-        order to properly provide access services, we don't only look at the
-        OpenSSH daemon itself, but also the centralized access management
-        services (which will be OpenLDAP based) to easily manage what is
-        called <emphasis>joiner/leaver processes</emphasis>. </para>
-
-        <para>A joiner/leaver process is the process that needs to be taken
-        when a person joins (or leaves) the organization. Proper processes
-        should ensure that the account(s) that this person uses are only
-        usable as long as the person is a member of the organization, and that
-        his rights are properly managed. If you have hundreds of servers, it
-        is of course not feasible to manually update the servers
-        <filename>/etc/passwd</filename> and <filename>/etc/shadow</filename>
-        files manually. You could still build some scripts that automatically
-        create and modify these files, or even use a centralized configuration
-        management set for that, but you will quickly hit boundaries.</para>
-      </section>
-
-      <section>
-        <title>Monitoring services</title>
-
-        <para>Monitoring services are used, not really to be informed when a
-        service is down, but rather to quickly identify what is causing a
-        service failure.</para>
-
-        <para>Service failures, like "I cannot resolve IP addresses" or "The
-        web site is not reachable" are difficult to debug if you are lacking
-        monitoring. Proper monitoring implementations allow you to get an idea
-        of the entire state of the architecture and its individual components.
-        If monitoring tells you that the web server processes are running and
-        that remote web site retrieval agents are still pulling in site
-        details, then you're most likely to look at the connectivity between
-        the client and the site (such as potential proxy servers or even
-        networking or firewalls). On the other hand, if the monitoring is
-        telling you that a web gateway daemon is not responsive, you'll
-        quickly be able to handle the problem as you have a fairly good idea
-        at where the problem lies.</para>
-      </section>
-
-      <section>
-        <title>Backup services</title>
-
-        <para>Although backups are not important, being able to restore stuff
-        is - hence the need for backups ;-)</para>
-
-        <para>Even on regular servers, backups will be important to support
-        fast recovery from human errors or application malpractices. Users,
-        including administrators, make mistakes. Being able to quickly recover
-        from deleted files or modifications will save you hours of work
-        later.</para>
-      </section>
-
-      <section>
-        <title>Configuration management</title>
-
-        <para>In order to properly update/upgrade the systems, as well as
-        configure it to match the needs of the organization, you will need
-        some configuration management approach. Whereas smaller deployments
-        can be perfectly managed manually, decent configuration management
-        allows you to quickly deploy new systems, reconfigure systems when
-        needed, support testing of configuration changes, etc.</para>
-      </section>
-    </section>
-
-    <section>
-      <title>Architecture</title>
-
-      <para>In our reference architecture, the given services will be filled
-      in with the following components.</para>
-
-      <figure>
-        <title>Components for operating system platform</title>
-
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="???"/>
-          </imageobject>
-        </mediaobject>
-      </figure>
-
-      <para>The activities involved with those components are described in the
-      next few sections.</para>
-
-      <section>
-        <title>Flows and feeds</title>
-
-        <para/>
-      </section>
-
-      <section>
-        <title>Administration</title>
-
-        <para/>
-      </section>
-
-      <section>
-        <title>Monitoring</title>
-
-        <para/>
-      </section>
-
-      <section>
-        <title>Operations</title>
-
-        <para/>
-      </section>
-
-      <section>
-        <title>User access</title>
-
-        <para/>
-      </section>
-
-      <section>
-        <title>Security</title>
-
-        <para/>
       </section>
     </section>
   </section>

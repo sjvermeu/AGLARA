@@ -1,6 +1,8 @@
 ** (2013-04-06) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Update base setup (hypervisor and OS)
 	- Use Intro / Architecture / Deployment and uses pattern
+	- Update PostgreSQL part (more architectural information,
+	  add in pg_rman and pgpool)
 
 ** (2013-04-05) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Small updates on database part

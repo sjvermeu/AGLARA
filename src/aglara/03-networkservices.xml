@@ -306,7 +306,7 @@
       <section>
         <title>Domains</title>
 
-        <para>Multiple records are combined within a domain. </para>
+        <para>Multiple records are combined within a domain.</para>
 
         <programlisting>; Comments are prepended with a semi-colon
 $TTL 24h ; If records do not hold TTL information themselves, use this as default
@@ -369,7 +369,7 @@ intern-host$ <command>dig +short @ns1.genfic.com www.genfic.com A</command>
     </section>
 
     <section>
-      <title>Domain name servers</title>
+      <title>Architecture</title>
 
       <para>Many organizations will host their own domain name servers, and
       perhaps have a third one outside their premises as a fall-back. In our
@@ -673,7 +673,7 @@ intern-host$ <command>dig +short @ns1.genfic.com www.genfic.com A</command>
     </section>
 
     <section>
-      <title>Installing and configuring BIND</title>
+      <title>Deployment and uses</title>
 
       <para>Configuring BIND on Gentoo Linux is fairly similar as configuring
       BIND on other platforms. There are plenty of good and elaborate

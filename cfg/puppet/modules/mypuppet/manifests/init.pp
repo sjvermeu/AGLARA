@@ -39,4 +39,13 @@ class mypuppet {
     path => "/etc/portage/bashrc.d/app-admin/puppet/openrc.patch",
     source => "puppet:///modules/mypuppet/openrc.patch",
   }
+
+  file { "puppet.conf":
+    ensure => present,
+    owner => "root",
+    group => "root",
+    mode => 0644,
+    path => "/etc/puppet/puppet.conf",
+    source => "puppet:///modules/mypuppet/puppet.conf",
+  }
 }

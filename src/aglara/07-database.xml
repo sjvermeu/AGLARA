@@ -19,6 +19,14 @@
     support, many tools can interact with several database types (Oracle, SQL
     Server, PostgreSQL, MySQL, ...).</para>
 
+    <para>Databases are often, from an operating system point of view, not all
+    that complicated: a few processes and some files are accessed. However,
+    internally, this is an entire different story. Databases are a world by
+    itself - you will need trained professionals to properly manage your
+    database systems (DBAs, DataBase Administrators) who know the internals of
+    the database product and can tune the database to react swiftly to the
+    requests launched against it.</para>
+
     <para>In this section, we focus on the setup of PostgreSQL and
     MySQL.</para>
   </section>
@@ -27,10 +35,10 @@
     <title>PostgreSQL</title>
 
     <para>Although (somewhat) less popular than MySQL, the PostgreSQL database
-    is in my (humble) opinion a more stable and successful database platform.
-    It is gaining momentum with vendors and has commercial backing by several
-    companies - just in case you are in dire need for paying for software
-    ;-)</para>
+    is in the author's (humble) opinion a more stable and successful database
+    platform. It is gaining momentum with vendors and has commercial backing
+    by several companies - just in case you are in dire need for paying for
+    software ;-)</para>
 
     <section>
       <title>Architecture</title>
@@ -39,58 +47,188 @@
       Unix/Linux point of view: not that many processes are involved. Of
       course, internally, that is a completely different thing.</para>
 
-      <para>The PostgreSQL architecture looks like so:</para>
+      <para>Let's first look at how we would position the database in the
+      reference architecture used in this book.</para>
 
       <figure>
-        <title>High-level architecture for PostgreSQL</title>
+        <title>Load balanced setup</title>
 
         <mediaobject>
           <imageobject>
-            <imagedata fileref="images/07-postgresql.png" scalefit="0"
-                       width="100%"/>
+            <imagedata fileref="images/07-postgres-loadbalance.png"/>
           </imageobject>
         </mediaobject>
       </figure>
 
-      <para>Let's first look at how we would position the database in the
-      reference architecture used in this book.</para>
+      <para>What we are aiming for is a high-available PostgreSQL solution:
+      two (or more) PostgreSQL databases of which one is a master (we are not
+      going to look for multi-master setups, even though they do exist) and
+      where at least one target is synchronously replicated towards. The
+      synchronous replication is needed to ensure that, in case of system
+      failure, the standby database already holds the last successful commit
+      and can be made master easily.</para>
+
+      <para>In front of the database setup, a load balancer is placed which
+      has two main functions:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>distribute read-only queries to the standby systems as well,
+          lowering the load on the master database</para>
+        </listitem>
+
+        <listitem>
+          <para>provide seamless fail-over towards the standby database so
+          applications do not notice the (short) interruption on the database
+          service</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>To accomplish this, we will set up two PostgreSQL systems with hot
+      standby, and a pgpool load balancer in front of it.</para>
 
       <section>
-        <title>Feeds and flows</title>
+        <title>Feeds and flows - backup</title>
 
-        <para>As we are talking about a database, the most important flow we
-        might expect is the backup/restore related one.</para>
+        <para>There are two main flows identified in our architecture: backup
+        and replication. Let's first take a look at the backup on.</para>
+
+        <para>Backups should be stored somewhere outside the direct vicinity
+        of the database (different site even). We will use the pg_rman
+        application and use an NFS mount to place the backup catalog (metadata
+        about backups) and backed up files.</para>
+
+        <figure>
+          <title>Backup architecture for a PostgreSQL setup</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/07-postgres-backup.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
       </section>
 
       <section>
-        <title/>
+        <title>Feeds and flows - Replication</title>
+
+        <para>Next to the backup/restore, we also define standby databases. In
+        this case, the needed WAL logs (translation logs of PostgreSQL) are
+        shipped towards the standby systems.</para>
+
+        <figure>
+          <title>Standby setups</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/07-postgres-standby.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>In the depicted scenario, a standby server is receiving the
+        archive logs and, depending of the type of standby,</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>waits (keeps logs on the file system) until the standby is
+            started (for instance due to a fail-over), or</para>
+          </listitem>
+
+          <listitem>
+            <para>immediately applies the received WAL logs</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>If a standby waits, it is called a <filename>warm
+        standby</filename>. If it immediately applies the received WAL logs,
+        it is a <filename>hot standby</filename>. In case of a hot standby,
+        the database is also open for read-only access. There are also methods
+        for creating multi-master PostgreSQL clusters. In our presented
+        architecture, the hot standby even has to signal to the master that it
+        has received and applied the log before the commit is returned as
+        successful to the client.</para>
+
+        <para>Of course, if you do not need this kind of protection on the
+        database, it is best left disabled as it incurs a performance
+        penalty.</para>
+      </section>
+
+      <section>
+        <title>Administration</title>
+
+        <para>PostgreSQL administration is mostly done using the
+        <command>psql</command><indexterm>
+            <primary>psql</primary>
+          </indexterm> command and related <command>pg_*</command>
+        commands.</para>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para>When monitoring PostgreSQL, we should focus on process
+        monitoring and log file monitoring.</para>
+      </section>
+
+      <section>
+        <title>Operations</title>
+
+        <para>When you are responsible for managing PostgreSQL systems, then
+        you will need to understand the internal architecture of
+        PostgreSQL.</para>
+
+        <figure>
+          <title>Internal architecture for PostgreSQL</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/07-postgresql.png" scalefit="0"
+                         width="100%"/>
+            </imageobject>
+          </mediaobject>
+
+          <para>The master postgres server process listens on the PostgreSQL
+          port, waiting for incoming connections. Any incoming connection is
+          first checked against the settings in the Host Based Access
+          configuration file (<filename>pg_hba.conf</filename><indexterm>
+              <primary>pg_hba.conf</primary>
+            </indexterm>). Only if this list allows the connection will it go
+          through towards the postgres database, where the rights granted to
+          the user then define what access is allowed.</para>
+        </figure>
+      </section>
+
+      <section>
+        <title>User management</title>
+
+        <para>PostgreSQL supports a wide number of authentication methods,
+        including PAM support (Pluggable Authentication Modules), GSSAPI
+        (including the Kerberos one), RADIUS, LDAP, etc. However, it is
+        important to know that this is only regarding authentication, not
+        authorization. In other words, you still need to create the roles
+        (users) in the PostgreSQL server and grant them whatever they
+        need.</para>
+
+        <para>Central user management in this case ensures that, if a person
+        leaves the organization, his account can be immediately removed (or
+        locked) so that authenticating as this user against the databases is
+        no longer possible. However, you will still need a method for cleaning
+        up the role definitions in the databases.</para>
+      </section>
+
+      <section>
+        <title>Security</title>
 
         <para/>
       </section>
     </section>
 
     <section>
-      <title>Installation</title>
-
-      <para>The installation of PostgreSQL is quickly done in about three
-      steps:</para>
-
-      <orderedlist>
-        <listitem>
-          <para>installation of the software package</para>
-        </listitem>
-
-        <listitem>
-          <para>securing of the database environment</para>
-        </listitem>
-
-        <listitem>
-          <para>reloading the postgresql environment</para>
-        </listitem>
-      </orderedlist>
+      <title>Deployment and uses</title>
 
       <section>
-        <title>Installation of the software package</title>
+        <title>Manual installation of the database server</title>
 
         <para>We start by installing the
         <package>dev-db/postgresql-server</package> package on the
@@ -105,18 +243,14 @@
 DATA_DIR="/var/lib/postgresql/9.1/data"
 PG_INITDB_OPTS="--locale=en_US.UTF-8"</programlisting>
 
-        <para>Finally, create the cluster: temporarily assign a password to
-        the postgres user (it will be asked during the configuration), and
+        <para>Now, create the cluster: temporarily assign a password to the
+        postgres user (it will be asked during the configuration), and
         afterwards lock the account again.</para>
 
         <programlisting># <command>passwd postgres</command>
 # <command>emerge --config dev-db/postgresql-server:9.1</command>
 # <command>passwd -l postgres</command>
 # <command>restorecon -Rv /var/lib/postgresql/9.1/data</command></programlisting>
-      </section>
-
-      <section>
-        <title>Securing of the database environment</title>
 
         <para>To secure the cluster, we need to edit its configuration files
         before starting.</para>
@@ -140,10 +274,6 @@ PG_INITDB_OPTS="--locale=en_US.UTF-8"</programlisting>
 # <command>psql -U postgres</command>
 postgres=# <command>\password</command>
 postgres=# <command>\q</command></programlisting>
-      </section>
-
-      <section>
-        <title>Reloading the postgresql environment</title>
 
         <para>With the password set, change the method in pg_hba.conf for the
         local (socket-based) connections from trust to password and reload the
@@ -163,7 +293,13 @@ postgres=# <command>\q</command></programlisting>
     in our reference architecture as well.</para>
 
     <section>
-      <title>Initial setup</title>
+      <title>Architecture</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Deployment and uses</title>
 
       <para>The initial setup of MySQL on Gentoo is a breeze. Install the
       <command>dev-db/mysql</command> package on your system and you're good
@@ -246,5 +382,20 @@ postgres=# <command>\q</command></programlisting>
         remotely if you want.</para>
       </section>
     </section>
+  </section>
+
+  <section>
+    <title>Resources</title>
+
+    <para>For more information, many excellent resources are available on the
+    wide Internet.</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><link
+        xlink:href="https://code.google.com/p/pg-rman/">pg_rman</link>, the
+        backup/restore utility used in this chapter</para>
+      </listitem>
+    </itemizedlist>
   </section>
 </chapter>

@@ -1,6 +1,6 @@
 # This is the base setup of our architecture.
 # Anything that is global for all systems should
-# go in the basic-setup.pp file
+# go in the basic-setup.pp file 
 import "basic-setup.pp"
 
 # Import the patterns

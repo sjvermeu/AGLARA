@@ -89,6 +89,7 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/07-database.xml" />
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/08-mailserver.xml" />
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/09-centralcmdb.xml" />
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="aglara/10-hypervisor.xml" />
   <!-- <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="glossary.xml" /> -->
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="genindex.sgm" />
 

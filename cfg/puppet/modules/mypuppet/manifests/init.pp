@@ -7,7 +7,7 @@
 class mypuppet {
   # bashrc postinstall
   file { "puppet-postinstall":
-    ensure => present,
+    ensure => absent,
     owner => "root",
     group => "root",
     mode => 755,
@@ -31,13 +31,32 @@ class mypuppet {
     group => "root",
   }
 
-  file { "puppet-openrcpatch":
-    ensure => present,
+  file { "puppet-openrc_hardened":
+    ensure => absent,
     owner => "root",
     group => "root",
     require => File['/etc/portage/bashrc.d/app-admin/puppet'],
-    path => "/etc/portage/bashrc.d/app-admin/puppet/openrc.patch",
-    source => "puppet:///modules/mypuppet/openrc.patch",
+    path => "/etc/portage/bashrc.d/app-admin/puppet/openrc_hardened.rb",
+    source => "puppet:///modules/mypuppet/openrc_hardened.rb",
+  }
+
+  file { "/etc/portage/package.accept_keywords/puppet":
+    ensure => present,
+    owner => "root",
+    group => "root",
+    mode => 0644,
+    require => File['/etc/portage/package.accept_keywords'],
+    path => "/etc/portage/package.accept_keywords/puppet",
+    source => "puppet:///modules/mypuppet/package.accept_keywords.puppet",
+  }
+
+  file { "/etc/portage/package.use/puppet":
+    ensure => present,
+    owner => "root",
+    group => "root",
+    require => File['/etc/portage/package.use'],
+    path => "/etc/portage/package.use/puppet",
+    source => "puppet:///modules/mypuppet/package.use.puppet",
   }
 
   file { "puppet.conf":

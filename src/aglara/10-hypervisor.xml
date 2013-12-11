@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xml:id="hypervisor"
+         xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <title>Virtualization with KVM</title>
+
+  <section>
+    <title>Introduction</title>
+
+    <para>TODO</para>
+  </section>
+
+  <section>
+    <title>Virtualization using KVM</title>
+
+    <para>When possible, we will use virtualization. As virtualization
+    platform, we will choose KVM as it offers many interesting features (both
+    for development as well as larger enterprise usability) and is quite
+    popular in the Linux development (and user) community. Other
+    virtualization techniques that can be used are Xen or Virtualbox. Within
+    Gentoo Linux, KVM is a popular and much-used virtualization
+    technology.</para>
+
+    <section>
+      <title>Why virtualize</title>
+
+      <para>Virtualization has been around for quite some time. Early
+      mainframe installations already had a sort of isolation that is not far
+      off from virtualization nowadays. However, virtualization is not just a
+      mainframe concept anymore - most larger enterprises are already fully
+      working on the virtualization of their stacks. Products like
+      VMWare<indexterm>
+          <primary>VMWare</primary>
+        </indexterm> have popularized virtualization in the enterprise, and
+      other hypervisors like KVM, VirtualBox, Xen and more are trying to get a
+      piece of the cacke.</para>
+
+      <para>To help administrators manage the virtual guests that are running
+      on dozens of hosts, frameworks have emerged that lift some of the
+      management tasks to a higher level. These frameworks offer automated
+      generation of new guests, simplified configuration of the instances,
+      remote management of guests. Some of them even support maintenance
+      activities, such as moving guests from one host to another, or monitor
+      the resource consumption of guests to find a good balance between
+      running guests and available hosts.</para>
+
+      <para>In Gentoo, many of these virtualization frameworks are
+      supported.</para>
+
+      <para>The first one is <package>app-emulation/libvirt</package> and is
+      RedHat's virtualization management platform. The hypervisor systems run
+      the libvirt daemon which manages the virtual guests as well as storage
+      and other settings, and the administrator remotely connects to the
+      various hypervisor systems through the
+      <package>app-emulation/virt-manager</package> application. It has
+      support for SELinux through its s(ecure)Virt(ualization) feature. To do
+      so, it does require the MCS SELinux policy. Libvirt is also being used
+      by many other frameworks (like oVirt, Archipel, Abiquo and more).</para>
+
+      <para>Another one that is gaining momentum is
+      <package>app-emulation/ganeti</package> and is backed by Google. It is
+      foremost a command-line driven method but is well capable of handling
+      dozens and dozens of hypervisor systems. It supports simplified
+      fail-over on top of DRBD and makes an abstraction of the running hosts
+      versus the guests. It bundles a set of hosts (which it calls nodes) in
+      logical groups called clusters. The guests (instances) are then spread
+      across the nodes in the cluster, and the administrator manages the
+      cluster remotely.</para>
+
+      <para>Using virtualization has a whole set of advantages of which I'll
+      try to mention a few in the next paragraphs. I will use the term
+      <emphasis>host</emphasis> when talking about the host operating system
+      (the one running or directly managing the hypervisor software) and
+      <emphasis>guest</emphasis> for the virtualized operating system
+      instances (that are running on the host).</para>
+
+      <section>
+        <title>High Availability</title>
+
+        <para>In a virtualized environment, guests can be quickly restarted
+        when needed. The host is still up and running, so rebooting a system
+        is a matter of restarting a process. This has the advantage that
+        caching and other performance measures taken by the hypervisor are
+        still available, which makes bootup times of guests quite fast.</para>
+
+        <para>But even in case of host downtime, given the right architecture,
+        guests can be quickly started up again. By providing a hardware
+        abstraction in the virtualization layer, these technologies are able
+        to start a guest on a different hardware environment (even with
+        different hardware, although there are limits to this - the most
+        obvious one being that the new hardware must support the same
+        architecture and virtualization). Many virtualization solutions can
+        host guest storage (the guests' disks) in image files which can be
+        made highly available through high-performance NFS shares, cluster
+        file system or storage synchronisation. If the host crashes, the guest
+        storage is quickly made available on a different host and the guest is
+        restarted.</para>
+      </section>
+
+      <section>
+        <title>Resource optimization</title>
+
+        <para>For most organizations, virtualization is one of the most
+        effective ways to optimize resources in their data rooms. Regular
+        Unix/Windows servers generally consume lots of power, cooling and
+        floor space while still only offering 15% (or less) of actual resource
+        consumption (CPU cycles). 85% of the time, the system is literally
+        doing nothing but waiting. With virtualization, you can have resources
+        utilized better, going towards a healthy 80% while still allowing room
+        for sudden resource burst demands.</para>
+      </section>
+
+      <section>
+        <title>Flexible change management</title>
+
+        <para>The virtualization layer also offers a way to do flexible change
+        management. Because guests are now more tangible, it is easier to make
+        snapshots of entire guests, copy them around, upgrade one instance
+        and, if necessary, roll back to the previous snapshot - all this in
+        just a few minutes or less. You can't do this with dedicated
+        installations.</para>
+      </section>
+
+      <section>
+        <title>"Secure" isolation</title>
+
+        <para>In a security-sensitive environment, isolation is a very
+        important concept. It ensures that a system or service can only access
+        those resources it needs to, while disallowing (and even hiding) the
+        other resources. Virtualization allows architects to design the system
+        so that it runs in its own operating system, so from the viewpoint of
+        the service, it has access to those resources it needs, but sees no
+        other. On the host layer, the guests can then be properly isolated so
+        they cannot influence each other.</para>
+
+        <para>Having separate operating systems is often seen as a thorough
+        implementation of "isolation". Yes, there are a lot of other means to
+        isolate services. Still, running a service in a virtualized operating
+        system is not the summum of isolation. <link
+        xlink:href="http://blog.nelhage.com/2011/08/breaking-out-of-kvm/">Breaking
+        out of KVM</link> has been done in the past, and will most likely
+        happen again. Other virtualization have seen their share of security
+        vulnerabilities to this level as well.</para>
+      </section>
+
+      <section>
+        <title>Simplified backup/restore</title>
+
+        <para>For many organizations, a bare-metal backup/restore routine is
+        much more resource hungry than regular file-based backup/restore. By
+        using virtualization, bare-metal backup/restore of the guests is a
+        breeze, as it is now back a matter of working with files (and
+        processes). Ok, the name "bare-metal" might not work anymore here -
+        and you'll still need to backup your hypervisor. But if your
+        hypervisor (host) installation is very standardized, this is much
+        faster and easier than before.</para>
+      </section>
+
+      <section>
+        <title>Fast deployment</title>
+
+        <para>By leveraging the use of guest images, it is easy to create a
+        single image and then use it as a master template for other instances.
+        Need a web serving cluster? Set up on, replicate and boot. Need a few
+        more during high load? Replicate and boot a few more. It becomes just
+        that easy.</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Architecture</title>
+
+      <para>To support the various advantages of virtualization mentioned
+      earlier, we will need to take these into account in the architecture.
+      For instance, high availability requires that the storage, on which the
+      guests are running, is quickly (or even continuously) available on other
+      systems so these can take over (or quickly boot) the guests.</para>
+
+      <para>The underlying storage platform we focus on is Ceph, and will be
+      discussed in a later chapter.</para>
+
+      <para>Also, we will opt for regular KVM running inside screen sessions.
+      The screen sessions allow us to easily manage KVM monitor commands. The
+      console itself will be launched through VNC sessions. The sessions will
+      by default not be started (as to not consume memory and resources) but
+      can be started through the KVM monitor when needed.</para>
+
+      <para>All the other aspects of the hypervisor level are the same as what
+      we will have with our regular operating system design (which is defined
+      further down). This is because at the hypervisor level, we will use
+      Gentoo Linux as well. The flexibility of the operating system allows us
+      to easily manage multiple guests in a secure manner (hence the secure
+      containers displayed in the above picture). We will cover these secure
+      containers later.</para>
+
+      <section>
+        <title>Administration</title>
+
+        <para>Managing the guests entails the following use cases:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>IMACD operations on the guest</para>
+          </listitem>
+
+          <listitem>
+            <para>Operate a guest (stop, start, restart)</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>The regular IMACD operations are based on image management.
+        Basic (master) guest images are managed elsewhere, and eventually
+        published on a file server. The hosts, when needed, copy over this
+        master image to the local file system. When a guest needs to be
+        instantiated, it either uses a copy of this file (long-term guest) or
+        a copy-on-write (short-term guest) stored in the proper directory
+        after which it is launched.</para>
+
+        <para>Similarly, removal of guests entails shutdown of the guest and
+        removal of the image from the system. All this is easily
+        scriptable.</para>
+      </section>
+
+      <section>
+        <title>Monitoring</title>
+
+        <para>Monitoring guests will be integrated in the monitoring component
+        later. Basically, we want to be notified if a guest is not running
+        anymore but should (process monitoring), or if a guest is not
+        responsive anymore (ping reply monitoring).</para>
+      </section>
+
+      <section>
+        <title>Security</title>
+
+        <para>We mentioned secure containers before, so let's describe this
+        bit in more detail.</para>
+
+        <para>What we want to accomplish is that the virtual guests cannot
+        interfere with each other. This is both permission-wise (for which we
+        will use SELinux) as well as resources (for which we will use Linux
+        cgroups).</para>
+
+        <para>Permissions will be governed through SELinux' categories. The
+        guests all run inside a SELinux domain already, so that
+        vulnerabilities within the Qemu emulator (the user-space part of the
+        hypervisor) cannot influence the host itself. However, if they all run
+        inside the same SELinux domain, then they could influence each other.
+        So what we will do is run each of them within a particular SELinux
+        category, and make sure that their images also have this category
+        assigned.</para>
+
+        <para>Resources are governed through Linux cgroups, allowing
+        administrators to put restrictions on various resources such as CPU,
+        I/O, network usage, etc. On a hypervisor level, we want to support
+        guests with differentiated resource requirements:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>guaranteed resources (so the CPU shares and memory shares
+            are assigned immediately)</para>
+          </listitem>
+
+          <listitem>
+            <para>prioritized resources (so the CPU shares and memory shared
+            are, when needed, preferably assigned to members of this
+            group)</para>
+          </listitem>
+
+          <listitem>
+            <para>shared resources (the rest ;-)</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+    </section>
+
+    <section>
+      <title>Deployment and uses</title>
+
+      <para>Let's make all this a bit more tangible and look at how this would
+      be accomplished.</para>
+
+      <section>
+        <title>File system structure</title>
+
+        <para>Each host uses the same file system structure (standard) so that
+        you can move images from one system to another without changing your
+        underlying procedures. Let's say the images are stored in
+        <filename>/srv/virt</filename> using the following structure:</para>
+
+        <programlisting>/sr/virt
++- pending
++- base
+`- guests
+   +- hostname1
+   |  +- rootfs.img
+   |  +- otherfs.img
+   |  +- settings.conf
+   |  `- computed.conf
+   +- hostname2
+   `- ...</programlisting>
+
+        <para>The <filename>pending</filename> location is where base image
+        copies are placed first. Images in that directory are still in process
+        of being transferred, or have been interrupted somewhere along. Once a
+        copy is complete, the image will be moved from the pending to the
+        <filename>base</filename> location. Guests then use copies (of
+        copy-on-write) images from the base images, although this is of course
+        not mandatory - new empty images can be created as well for other
+        purposes. The base images allow you to quickly setup particular
+        systems or prepared file systems for other purposes.</para>
+
+        <para>The <filename>settings.conf</filename> file contains the
+        information related to the guest. This includes MAC address
+        information, guest image information (and options on how to attach
+        them), etc. It is also wise to make this file easily manageable by
+        both humans (so don't use special syntax) and tools (so don't use
+        human language). The other configuration file,
+        <filename>computed.conf</filename>, contains settings specific for
+        running this guest on this host and is generated and updated by the
+        scripts we use to manage the virtual images.</para>
+
+        <programlisting>## Example settings.conf
+HOSTNAME=pg1
+DOMAINNAME=internal.genfic.com
+MAC_ADDRESS=00:11:22:33:44:b3
+VLAN=8
+CPU=kvm64
+SMP_DEFAULT=2 # Dual CPU
+MEM_DEFAULT=1536 # 1.5 Gbyte of memory
+RESOURCES=guaranteed # for cgroup management
+
+IMAGES=IMAGE1,IMAGE2
+IMAGE1=/srv/virt/guests/pg1/rootfs.img,if=virtio,cache=writeback
+IMAGE2=/srv/virt/guests/pg1/postgresdb.img,if=virtio,cache=writeback</programlisting>
+
+        <programlisting>## Example computed.conf
+GDB=disabled
+VNC_ADDRESS=vhost4-mgmt
+VNC_PORT=14 # real port is 5914
+SMP=2
+MEM=2048 # 2 Gbyte of memory
+STATE=running
+SELINUX_CATEGORY=12
+CGROUP=guests/dedicated/pg1</programlisting>
+      </section>
+
+      <section>
+        <title>Interacting with KVM monitors</title>
+
+        <para>The KVM monitor (actually Qemu/KVM monitor) allows
+        administrators to manage the virtual guest specifics, such as
+        hot-adding (or removing) devices, taking snapshots, etc. As we placed
+        the KVM monitor on the standard output within screen, all the admin
+        has to do (after logging in) is to attach to the monitor of the right
+        virtual guest.</para>
+
+        <programlisting>$ <command>screen -ls</command>
+There are screens on:
+   4872.kvm-pg1     (Detached)
+   5229.kvm-www1    (Detached)
+  14920.kvm-www2    (Detached)
+$ <command>screen -x kvm-pg1</command>
+(qemu) </programlisting>
+      </section>
+    </section>
+  </section>
+</chapter>

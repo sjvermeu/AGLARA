@@ -1,0 +1,14 @@
+#!/bin/sh
+
+SERVICENAME=$1;
+
+# We need to exit:
+# 0 - if running
+# 1 - if dead but PID exists
+# 2 - if dead but lock file exists
+# 3 - if not running
+# 4 - if unknown
+
+rc-status -a -C | grep ${SERVICENAME} | grep -q started && exit 0;
+rc-status -a -C | grep ${SERVICENAME} | grep -q stopped && exit 3;
+exit 4;

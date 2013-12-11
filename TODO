@@ -1,0 +1,3 @@
+- Kibana (visualize logging)
+- Logstash & Elasticsearch (centralization & management of log events)
+

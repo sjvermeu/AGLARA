@@ -11,6 +11,7 @@ node "basenode" {
   $defaultgw = "192.168.100.1"
 
   Service {
-    provider => openrc,
+    provider => openrc_hardened,
+    hasstatus => false,
   }
 }

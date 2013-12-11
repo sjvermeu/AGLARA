@@ -26,7 +26,6 @@ class general {
   }
   service { sshd:
     ensure => running,
-    provider => openrc,
     require => [
       File['/etc/ssh/sshd_config'],
       Package[openssh]
@@ -35,7 +34,6 @@ class general {
 
   # Dependency for net info
   service { "net.eth0":
-    provider => openrc,
     ensure => running,
   }
  

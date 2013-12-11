@@ -523,4 +523,37 @@
       at the example designs that are described further down the book.</para>
     </section>
   </section>
+
+  <section>
+    <title>About this book</title>
+
+    <para>The rest of this book will focus on various IT infrastructure
+    domains, and describe how this domain can be implemented using free
+    software.</para>
+
+    <orderedlist>
+      <listitem>
+        <para>Chapters will start with an introduction about the domain and
+        the choice made in the chapter.</para>
+      </listitem>
+
+      <listitem>
+        <para>Next, it will describe the requirements taken into account while
+        designing the reference architecture and the approach taken to tackle
+        these requirements.</para>
+      </listitem>
+
+      <listitem>
+        <para>When the solution introduces new technologies, these
+        technologies are then explained in more detail.</para>
+      </listitem>
+
+      <listitem>
+        <para>Finally, the architecture is drafted using the above-mentioned
+        logical design.</para>
+      </listitem>
+    </orderedlist>
+
+    <para/>
+  </section>
 </chapter>

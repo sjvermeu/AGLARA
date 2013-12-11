@@ -59,15 +59,7 @@ class myportage(
     source => "puppet:///modules/myportage/package.use.selinux",
   }
   
-  file { "package.use/puppet":
-    ensure => present,
-    owner => "root",
-    group => "root",
-    require => File['/etc/portage/package.use'],
-    path => "/etc/portage/package.use/puppet",
-    source => "puppet:///modules/myportage/package.use.puppet",
-  }
-  
+    
   # Fix for 439414 - can be removed (absent)
   file { "package.accept_keywords/lvm":
     ensure => absent,
@@ -76,5 +68,14 @@ class myportage(
     require => File['/etc/portage/package.accept_keywords'],
     path => "/etc/portage/package.accept_keywords/lvm",
     source => "puppet:///modules/myportage/package.accept_keywords.lvm",
+  }
+
+  file { "/usr/local/sbin/runstatus":
+    ensure => present,
+    owner => "root",
+    group => "root",
+    mode => 0755,
+    path => "/usr/local/sbin/runstatus",
+    source => "puppet:///modules/myportage/runstatus",
   }
 }

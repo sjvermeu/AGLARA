@@ -1,12 +1,12 @@
 ## File managed by puppet. Please do not modify manually.
 
 source /var/lib/layman/make.conf
-USE="-ldap -gtk -xorg -pppd mysql imap ipv6 libwww maildir sasl ssl unicode xml apache2 -gpm ubac bcmath gd sockets truetype agent png -sqlite3 device-mapper dlz -unconfined"
+USE="-ldap -gtk -xorg -pppd mysql imap ipv6 libwww maildir sasl ssl unicode xml apache2 -gpm ubac bcmath gd sockets truetype agent png -sqlite3 device-mapper dlz -unconfined xattr audit mhash"
 CFLAGS="-march=x86-64 -O2 -pipe"
 CXXFLAGS="${CFLAGS}"
 CHOST="x86_64-pc-linux-gnu"
 FEATURES="buildpkg"
-GENTOO_MIRRORS="http://192.168.100.1:8080/gensetup/gentoo ${GENTOO_MIRRORS}"
+GENTOO_MIRRORS="http://workstation:8080/gensetup/gentoo ${GENTOO_MIRRORS}"
 LDFLAGS="${LDFLAGS} -Wl,--hash-style=gnu"
 SYNC="" # We use emerge-webrsync only
 EMERGE_DEFAULT_OPTS="-k"
@@ -14,6 +14,8 @@ POLICY_TYPES="strict mcs"
 PORT_LOGDIR="/var/log/portage/builds"
 MAKEOPTS="-j<%= processorcount %>"
 EMERGE_EXTRA_OPTS="-k"
+DISTDIR="/var/portage/distfiles"
+PKGDIR="/var/portage/packages"
 <% if @stable == false -%>
 ACCEPT_KEYWORDS="~amd64"
 <% end -%>

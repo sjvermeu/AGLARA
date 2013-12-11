@@ -1,6 +1,6 @@
 for FILE in /usr/lib64/ruby/site_ruby/*/puppet/provider/service;
 do
   pushd ${FILE};
-  patch < /etc/portage/bashrc.d/app-admin/puppet/openrc.patch;
+  cp /etc/portage/bashrc.d/app-admin/puppet/openrc_hardened.rb .;
   popd;
 done

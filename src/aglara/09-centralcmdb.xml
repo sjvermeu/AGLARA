@@ -19,6 +19,22 @@
     quickly and efficiently. In this chapter, we will focus on using Puppet
     within the reference architecture.</para>
 
+    <warning>
+      <para>TODO only use non-managed mode.</para>
+
+      <para>Servers pull in data (git pull) on scheduled times (job
+      scheduler).</para>
+
+      <para>Content teams provide their modules through a puppet module
+      server, which admin teams use. Admin teams use a single repository (or
+      multiple if you want, then the servers will pull from "their"
+      repository). As such, no need to combine systems.</para>
+
+      <para>Technologies include gitosis &amp; puppet</para>
+
+      <para>Perhaps use TXT record for repository source per server?</para>
+    </warning>
+
     <section>
       <title>Central configuration management, or federated?</title>
 

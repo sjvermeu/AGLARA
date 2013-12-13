@@ -544,13 +544,13 @@
       </listitem>
 
       <listitem>
-        <para>When the solution introduces new technologies, these
-        technologies are then explained in more detail.</para>
+        <para>Then the architecture (logical design) is drafted for the
+        requirements.</para>
       </listitem>
 
       <listitem>
-        <para>Finally, the architecture is drafted using the above-mentioned
-        logical design.</para>
+        <para>Finally, as the architecture mentions some new technologies,
+        these technologies are described in a bit more detail.</para>
       </listitem>
     </orderedlist>
 

@@ -136,7 +136,7 @@
   </section>
 
   <section>
-    <title>Basic OS architecture</title>
+    <title>Basic OS - the requirements</title>
 
     <para>When we position an operating system platform such as Gentoo Linux,
     quite a few aspects already need to be considered in its design. It isn't
@@ -166,262 +166,581 @@
       <para>The mentioned services on the above drawing are quite basic
       services, which you will need to properly manage in order to get a well
       functioning environment.</para>
-
-      <section>
-        <title>Access management services</title>
-
-        <para>Access management services include:</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>Authentication (is the user indeed that user)</para>
-          </listitem>
-
-          <listitem>
-            <para>Authorization (is that user allowed to do the requested
-            activity)</para>
-          </listitem>
-
-          <listitem>
-            <para>Auditing (what do we need to keep track of the users'
-            actions)</para>
-          </listitem>
-        </itemizedlist>
-
-        <para>As we are using Gentoo Linux, the most probable component for
-        authenticating users on the operating system level is OpenSSH. But in
-        order to properly provide access services, we don't only look at the
-        OpenSSH daemon itself, but also the centralized access management
-        services (which will be OpenLDAP based).</para>
-
-        <para>Authorization on the operating system level is handled through
-        the Linux <emphasis>DAC<indexterm>
-            <primary>DAC</primary>
-          </indexterm><indexterm>
-            <primary>Discretionary Access Control</primary>
-          </indexterm> (Discretionary Access Control)</emphasis> and
-        <emphasis>MAC<indexterm>
-            <primary>MAC</primary>
-          </indexterm><indexterm>
-            <primary>Mandatory Access Control</primary>
-          </indexterm> (Mandatory Access Control)</emphasis> services. The DAC
-        support is the most well-known. For MAC, we can use
-        <emphasis>SELinux<indexterm>
-            <primary>SELinux</primary>
-          </indexterm> (Security Enhanced Linux)</emphasis>.</para>
-      </section>
-
-      <section>
-        <title>Monitoring services</title>
-
-        <para>Monitoring services are used, not really to be informed when a
-        service is down, but rather to quickly identify what is causing a
-        service failure.</para>
-
-        <para>Service failures, like "I cannot resolve IP addresses" or "The
-        web site is not reachable" are difficult to debug if you are lacking
-        monitoring. Proper monitoring implementations allow you to get an idea
-        of the entire state of the architecture and its individual components.
-        If monitoring tells you that the web server processes are running and
-        that remote web site retrieval agents are still pulling in site
-        details, then you're most likely to look at the connectivity between
-        the client and the site (such as potential proxy servers or even
-        networking or firewalls). On the other hand, if the monitoring is
-        telling you that a web gateway daemon is not responsive, you'll
-        quickly be able to handle the problem as you have a fairly good idea
-        at where the problem lies.</para>
-      </section>
-
-      <section>
-        <title>Backup services</title>
-
-        <para>Although backups are not important, being able to restore stuff
-        is - hence the need for backups ;-)</para>
-
-        <para>Even on regular servers, backups will be important to support
-        fast recovery from human errors or application malpractices. Users,
-        including administrators, make mistakes. Being able to quickly recover
-        from deleted files or modifications will save you hours of work
-        later.</para>
-      </section>
-
-      <section>
-        <title>Configuration management</title>
-
-        <para>In order to properly update/upgrade the systems, as well as
-        configure it to match the needs of the organization, you will need
-        some configuration management approach. Whereas smaller deployments
-        can be perfectly managed manually, decent configuration management
-        allows you to quickly deploy new systems, reconfigure systems when
-        needed, support testing of configuration changes, etc.</para>
-      </section>
-
-      <section>
-        <title>Compliance management</title>
-
-        <para>In order for a system to be and remain secure, it is important
-        to be able to validate configurations (compliance validation) as well
-        as be able to scan systems for potential vulnerabilities and create an
-        inventory of installed software. In this reference architecture,
-        <emphasis>SCAP<indexterm>
-            <primary>SCAP</primary>
-          </indexterm> (Security Content Automation Protocol)</emphasis>
-        services will be used supported through OpenSCAP.</para>
-      </section>
-
-      <section>
-        <title>Distributed resource management</title>
-
-        <para>In order to support automation tasks across multiple systems, we
-        will use JobScheduler services. This allows us to combine tasks to
-        automate more complex activities across systems.</para>
-      </section>
     </section>
 
     <section>
-      <title>Pluggable Authentication Modules</title>
+      <title>Access management services</title>
 
-      <para>Authentication management (part of access management) on a Linux
-      server can be handled by <emphasis>PAM<indexterm>
-          <primary>PAM</primary>
-        </indexterm><indexterm>
-          <primary>Pluggable Authentication Modules</primary>
-        </indexterm> (Pluggable Authentication Modules)</emphasis>. With PAM,
-      services do not need to provide authentication services themselves.
-      Instead, they rely on the PAM modules available on the system. Each
-      service can use a different PAM configuration if it wants, although most
-      of the time authentication is handled similarly across services. By
-      calling PAM modules, services can support two-factor authentication
-      out-of-the-box, immediately use centralized authentication repositories
-      and more.</para>
-
-      <para>PAM provides a flexible, modular architecture for the following
-      services:</para>
+      <para>Access management services include:</para>
 
       <itemizedlist>
         <listitem>
-          <para>Authentication management, to verify if a user is who it says
-          it is</para>
+          <para>Authentication (is the user indeed that user)</para>
         </listitem>
 
         <listitem>
-          <para>Account management, to check if that users' password has
-          expired or if the user is allowed to access this particular
-          service</para>
+          <para>Authorization (is that user allowed to do the requested
+          activity)</para>
         </listitem>
 
         <listitem>
-          <para>Session management, to execute certain tasks on logon or
-          logoff of a user (auditing, mounting of file systems, ...)</para>
-        </listitem>
-
-        <listitem>
-          <para>Password management, offering an interface for password resets
-          and the like</para>
+          <para>Auditing (what do we need to keep track of the users'
+          actions)</para>
         </listitem>
       </itemizedlist>
 
+      <para>As we are using Gentoo Linux, the most probable component for
+      authenticating users on the operating system level is OpenSSH. But in
+      order to properly provide access services, we don't only look at the
+      OpenSSH daemon itself, but also the centralized access management
+      services (which will be OpenLDAP based).</para>
+
+      <para>Authorization on the operating system level is handled through the
+      Linux <emphasis>DAC<indexterm>
+          <primary>DAC</primary>
+        </indexterm><indexterm>
+          <primary>Discretionary Access Control</primary>
+        </indexterm> (Discretionary Access Control)</emphasis> and
+      <emphasis>MAC<indexterm>
+          <primary>MAC</primary>
+        </indexterm><indexterm>
+          <primary>Mandatory Access Control</primary>
+        </indexterm> (Mandatory Access Control)</emphasis> services. The DAC
+      support is the most well-known. For MAC, we can use
+      <emphasis>SELinux<indexterm>
+          <primary>SELinux</primary>
+        </indexterm> (Security Enhanced Linux)</emphasis>.</para>
+    </section>
+
+    <section>
+      <title>Monitoring services</title>
+
+      <para>Monitoring services are used, not really to be informed when a
+      service is down, but rather to quickly identify what is causing a
+      service failure.</para>
+
+      <para>Service failures, like "I cannot resolve IP addresses" or "The web
+      site is not reachable" are difficult to debug if you are lacking
+      monitoring. Proper monitoring implementations allow you to get an idea
+      of the entire state of the architecture and its individual components.
+      If monitoring tells you that the web server processes are running and
+      that remote web site retrieval agents are still pulling in site details,
+      then you're most likely to look at the connectivity between the client
+      and the site (such as potential proxy servers or even networking or
+      firewalls). On the other hand, if the monitoring is telling you that a
+      web gateway daemon is not responsive, you'll quickly be able to handle
+      the problem as you have a fairly good idea at where the problem
+      lies.</para>
+    </section>
+
+    <section>
+      <title>Backup services</title>
+
+      <para>Although backups are not important, being able to restore stuff is
+      - hence the need for backups ;-)</para>
+
+      <para>Even on regular servers, backups will be important to support fast
+      recovery from human errors or application malpractices. Users, including
+      administrators, make mistakes. Being able to quickly recover from
+      deleted files or modifications will save you hours of work later.</para>
+    </section>
+
+    <section>
+      <title>Configuration management</title>
+
+      <para>In order to properly update/upgrade the systems, as well as
+      configure it to match the needs of the organization, you will need some
+      configuration management approach. Whereas smaller deployments can be
+      perfectly managed manually, decent configuration management allows you
+      to quickly deploy new systems, reconfigure systems when needed, support
+      testing of configuration changes, etc.</para>
+    </section>
+
+    <section>
+      <title>Compliance management</title>
+
+      <para>In order for a system to be and remain secure, it is important to
+      be able to validate configurations (compliance validation) as well as be
+      able to scan systems for potential vulnerabilities and create an
+      inventory of installed software. In this reference architecture,
+      <emphasis>SCAP<indexterm>
+          <primary>SCAP</primary>
+        </indexterm> (Security Content Automation Protocol)</emphasis>
+      services will be used supported through OpenSCAP.</para>
+    </section>
+
+    <section>
+      <title>Distributed resource management</title>
+
+      <para>In order to support automation tasks across multiple systems, we
+      will use JobScheduler services. This allows us to combine tasks to
+      automate more complex activities across systems.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Architecture</title>
+
+    <para>In our reference architecture, the given services will be filled in
+    with the following components.</para>
+
+    <figure>
+      <title>Components for operating system platform</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/02-platform-components.png"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+    <para>The activities involved with those components are described in the
+    next few sections.</para>
+
+    <section>
+      <title>Flows and feeds</title>
+
+      <para>A regular system has the following data flows enabled:</para>
+
+      <orderedlist>
+        <listitem>
+          <para>Backup data is sent to the backup environment; the volumes of
+          backups can be quite large, so take care to schedule backups during
+          proper time windows.</para>
+        </listitem>
+
+        <listitem>
+          <para>Logging data is sent towards a central log server, or a log
+          collector.</para>
+        </listitem>
+      </orderedlist>
+
       <section>
-        <title>Principles behind PAM</title>
+        <title>Backup data</title>
 
-        <para>When working with PAM, administrators quickly find out what the
-        principles are that PAM works with.</para>
+        <para>Backups can be quite large, and thus take a lot of network
+        bandwidth. Depending on the backup method, it might also have
+        performance impact on the server.</para>
 
-        <para>The first one is <emphasis>back-end independence</emphasis>.
-        Applications that are PAM-aware do not need to incorporate any logic
-        to deal with back-ends such as databases, LDAP service, password
-        files, WS-Security enabled web services or other back-ends that have
-        not been invented yet. By using PAM, applications segregate the
-        back-end integration logic from their own. All they need to do is call
-        PAM functions.</para>
-
-        <para>Another principle is <emphasis>configuration
-        independence</emphasis>. Administrators do not need to learn how to
-        configure dozens of different applications on how to interact with an
-        LDAP server for authentication. Instead, they use the same
-        configuration structure provided by PAM.</para>
-
-        <para>The final principle, which is part of the PAM name, is its
-        <emphasis>pluggable architecture</emphasis>. When new back-ends need
-        to be integrated, all the administrator has to do is to install the
-        library for this back-end (by placing it in the right directory on the
-        system) and configure this module (most of the modules use a single
-        configuration file). From that point onward, the module is usable for
-        applications. Administrators can configure the authentication to use
-        this back-end and usually just need to restart the application.</para>
-      </section>
-
-      <section>
-        <title>How PAM works</title>
-
-        <para>Applications that want to use PAM link with the PAM library
-        (libpam) and call the necessary functions that reflect the above
-        services. Other than that, the application does not need to implement
-        any specific features for these services, as it is all handled by PAM.
-        So when a user wants to authenticate itself against, say, a web
-        application, then this web application calls PAM (passing on the user
-        id and perhaps password or challenge) and checks the PAM return to see
-        if the user is authenticated and allowed access to the application. It
-        is PAMs task underlyingly to see where to authenticate against (such
-        as a central database or LDAP server).</para>
+        <para>For these reasons, it is recommended that backups are scheduled
+        outside the important activity windows.</para>
 
         <figure>
-          <title>Schematic representation of PAM</title>
+          <title>Backup (cannot be more simpler than this ;-)</title>
 
           <mediaobject>
             <imageobject>
-              <imagedata fileref="images/02-pam.png"/>
+              <imagedata fileref="images/02-flow-backup.png"/>
             </imageobject>
           </mediaobject>
         </figure>
 
-        <para>The strength of PAM is that everyone can build PAM modules to
-        integrate with any PAM-enabled service or application. If a company
-        releases a new service for authentication, all it needs to do is
-        provide a PAM module that interacts with its service, and then all
-        software that uses PAM can work with this service immediately: no need
-        to rebuild or enhance those software titles.</para>
+        <para>Often, you do not want to take full backups every day. Most
+        backup solutions support full backup, differential backup (changes
+        since last full or differential) and incremental backup (changes since
+        last backup, regardless of type). The backup scheme then decides what
+        to backup when, optimizing the backup volumes while keeping restore
+        durations in mind.</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Taking full backups every time requires large volumes, but
+            restore of the data is rather quick (as no other backup set needs
+            to be consulted).</para>
+          </listitem>
+
+          <listitem>
+            <para>Taking a single full backup and then incremental backups
+            requires small volumes (except for the first full of course), but
+            restore of the data will take some time as potentially all
+            incremental backup sets need to be consulted</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>A possible backup scheme would be to</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>take a full backup on Saturday night</para>
+          </listitem>
+
+          <listitem>
+            <para>take a differential backup on Tuesday night</para>
+          </listitem>
+
+          <listitem>
+            <para>take incremental backups on the other dates</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>Also, keep in mind how long you want backups to retain. You
+        might want to keep them for 1 month (around 4 full backups +
+        remainder), but it might also be interesting to keep the first full
+        backup of every month for an entire year, and the first full of each
+        year (almost) eternally. It all depends on your retention requirements
+        and pricing concerns (lots of backups requires lots of
+        storage).</para>
       </section>
 
       <section>
-        <title>Managing PAM configuration</title>
+        <title>Logging data</title>
 
-        <para>PAM configuration files are stored in
-        <filename>/etc/pam.d</filename> and are named after the service for
-        which the configuration applies. As the service name used by an
-        application is often application-specific, you will need to consult
-        the application documentation to know which service name it uses in
-        PAM.</para>
+        <para>Logging data is usually sent from the system logger<indexterm>
+            <primary>syslog</primary>
+          </indexterm> (<command>syslog</command>) towards a central server.
+        We use a central server as this allows to correlate events from
+        multiple systems, as well as keep log management central. </para>
 
-        <important>
-          <para>As the PAM configuration file defines how to authenticate
-          users, it is extremely important that these files are very difficult
-          to tamper with. It is recommended to audit changes on these files,
-          perform integrity validation, keep backups and more.</para>
-        </important>
+        <figure>
+          <title>Log flows from server to central log server</title>
 
-        <para>Next to the configuration files, we also have the PAM modules
-        themselves inside <filename>/lib/security</filename> or
-        <filename>/lib64/security</filename>. These locations are often
-        forgotten by administrators to keep track of, even though these
-        locations are equally important as the configuration files. If an
-        attacker can overwrite modules or substitute them with his own, then
-        he also might have full control over the authentication results of the
-        application.</para>
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/02-flow-logging.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
 
-        <important>
-          <para>As the PAM libraries are the heart of the authentication steps
-          and methods, it too is extremely important to make it very difficult
-          to tamper with. Again, auditing, integrity validation and backups
-          are seriously recommended.</para>
-        </important>
+        <para>The system logger receives its events from the
+        <filename>/dev/log</filename> socket (well, there are a few other
+        sources as well, but <filename>/dev/log</filename> is the most
+        prominent one) from the various daemons. The local system logger is
+        then configured to send the data to the central log server, and
+        depending on the administrators' needs, locally as well.</para>
 
-        <para>The PAM configuration files are provided on a per-application
-        basis, although one application configuration file can refer to other
-        configuration file(s) to use the same authentication steps. Let's look
-        at a PAM configuration file for an unnamed service:</para>
+        <para>If local logs are needed, make sure that the logs are properly
+        rotated (using <command>logrotate</command> and a regular cron
+        job).</para>
+      </section>
+    </section>
 
-        <programlisting>auth         required        pam_env.so
+    <section>
+      <title>Administration</title>
+
+      <para>To administer the system (and the components hosted on it), we
+      will use OpenSSH (for access to the system) and Puppet (for managing
+      configuration settings).</para>
+
+      <figure>
+        <title>Operating system administration</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-platform-administration.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>Standard operator/administrator access to the operating system is
+      handled through the SSH secure shell. The OpenSSH daemon will be
+      configured to use a central user repository for its authentication of
+      users. This allows administrators to, for instance, change their
+      password on a single system and ensure that the new password is then in
+      use for all other systems as well. The SSH client is configured to
+      download SSH fingerprints from the DNS server in case of a first-time
+      connection to the server.</para>
+
+      <para>The configuration management will be handled through Puppet, whose
+      configuration repository will be managed through a version-controlled
+      system and pulled from the systems.</para>
+    </section>
+
+    <section>
+      <title>Monitoring</title>
+
+      <para>We will monitor the systems (and the components and services that
+      we host further) through Icinga.</para>
+
+      <figure>
+        <title>Operating system monitoring</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-platform-monitoring.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The Icinga agent supports various plugins that allow us to monitor
+      various aspects of the operating system and the services that run on it.
+      The results of each "query" is then sent to the central Icinga database.
+      The monitoring web interface, which we will discuss later, interacts
+      with the database to visually represent the state of your
+      environment.</para>
+    </section>
+
+    <section>
+      <title>Operations</title>
+
+      <para>Considering this is a regular platform (with no additional
+      services on yet), there is no specific operations defined yet.</para>
+    </section>
+
+    <section>
+      <title>Users</title>
+
+      <para>For the user management on a Linux system, we use a central LDAP
+      service for the end user accounts (and administrator accounts). The
+      functional accounts though (the Linux users under which daemons run) are
+      defined locally. This ensures that there is no dependency on the network
+      or LDAP for those services. However, for security reasons, it is
+      important that these users cannot be used to interactively log on to the
+      system.</para>
+
+      <para>The root account, which should only be directly used in case of
+      real emergencies, should have a very complex password managed by a
+      secured password management application.</para>
+
+      <para>End users are made part of one or more groups. These groups define
+      the SELinux user assigned to them, and thus the rights they have on the
+      system (even if they need root rights, their actions will be limited to
+      those tasks needed for their role).</para>
+    </section>
+
+    <section>
+      <title>Security</title>
+
+      <para>Additional services on the server are</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>compliance validation using <command>openscap</command></para>
+        </listitem>
+
+        <listitem>
+          <para>inventory assessment using <command>openscap</command></para>
+        </listitem>
+
+        <listitem>
+          <para>auditing through the Linux <command>auditd</command> daemon
+          (and sent through the system logger for immediate transport)</para>
+        </listitem>
+
+        <listitem>
+          <para>host-based firewall using <command>iptables</command> (and
+          managed through Puppet)</para>
+        </listitem>
+
+        <listitem>
+          <para>integrity validation of critical files</para>
+        </listitem>
+      </itemizedlist>
+
+      <section>
+        <title>Compliance validation</title>
+
+        <para>To support a central compliance validation method, we use a
+        local SCAP scanner (openscap) and centrally manage the configurations
+        and results. This is implemented in a tool called
+        <emphasis>pmcs<indexterm>
+            <primary>pmcs</primary>
+          </indexterm> (Poor Man Central SCAP)</emphasis>.</para>
+
+        <figure>
+          <title>Running compliance (and inventory) validation</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/02-security-pmcs.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>The communication between the central server and the local
+        server is HTTP(S) based.</para>
+      </section>
+
+      <section>
+        <title>Inventory management</title>
+
+        <para>As we would be using SCAP content to do inventory assessment, we
+        will re-use pmcs.</para>
+      </section>
+
+      <section>
+        <title>Auditing</title>
+
+        <para>Auditing on Linux systems is usually done through the Linux
+        audit subsystem. The audit daemon can be configured to provide
+        auditing functionalities on various OS calls, and most security
+        conscious services are well able to integrate with auditd.</para>
+
+        <para>The important part we still need to cover is to send the audit
+        events to a central server. We will leverage the system logger for
+        this, and configure <command>auditd</command> to dispatch audit events
+        to the local syslog.</para>
+      </section>
+
+      <section>
+        <title>Host-based firewall</title>
+
+        <para>A host-based firewall will assist in reducing the attack space
+        towards the server, ensuring that network-reachable services are only
+        accessed from (more or less) trusted locations.</para>
+
+        <para>Managing host-based firewall rules can be complex. We use the
+        Puppet configuration management services to automatically provide the
+        necessary firewall rules automatically.</para>
+      </section>
+
+      <section>
+        <title>Integrity validation of critical files</title>
+
+        <para>Critical files on the system are also checked for (possibly
+        unwanted) manipulations. We will use AIDE (Advanced Intrusion
+        Detection Environment) for this.</para>
+
+        <para>In order to do offline scanning (so that malicious software
+        inside the host cannot meddle with the integrity validation scans) we
+        will use snapshotting on storage level and do the scan on the
+        hypervisor.</para>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Pluggable Authentication Modules</title>
+
+    <para>Authentication management (part of access management) on a Linux
+    server can be handled by <emphasis>PAM<indexterm>
+        <primary>PAM</primary>
+      </indexterm><indexterm>
+        <primary>Pluggable Authentication Modules</primary>
+      </indexterm> (Pluggable Authentication Modules)</emphasis>. With PAM,
+    services do not need to provide authentication services themselves.
+    Instead, they rely on the PAM modules available on the system. Each
+    service can use a different PAM configuration if it wants, although most
+    of the time authentication is handled similarly across services. By
+    calling PAM modules, services can support two-factor authentication
+    out-of-the-box, immediately use centralized authentication repositories
+    and more.</para>
+
+    <para>PAM provides a flexible, modular architecture for the following
+    services:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>Authentication management, to verify if a user is who it says it
+        is</para>
+      </listitem>
+
+      <listitem>
+        <para>Account management, to check if that users' password has expired
+        or if the user is allowed to access this particular service</para>
+      </listitem>
+
+      <listitem>
+        <para>Session management, to execute certain tasks on logon or logoff
+        of a user (auditing, mounting of file systems, ...)</para>
+      </listitem>
+
+      <listitem>
+        <para>Password management, offering an interface for password resets
+        and the like</para>
+      </listitem>
+    </itemizedlist>
+
+    <section>
+      <title>Principles behind PAM</title>
+
+      <para>When working with PAM, administrators quickly find out what the
+      principles are that PAM works with.</para>
+
+      <para>The first one is <emphasis>back-end independence</emphasis>.
+      Applications that are PAM-aware do not need to incorporate any logic to
+      deal with back-ends such as databases, LDAP service, password files,
+      WS-Security enabled web services or other back-ends that have not been
+      invented yet. By using PAM, applications segregate the back-end
+      integration logic from their own. All they need to do is call PAM
+      functions.</para>
+
+      <para>Another principle is <emphasis>configuration
+      independence</emphasis>. Administrators do not need to learn how to
+      configure dozens of different applications on how to interact with an
+      LDAP server for authentication. Instead, they use the same configuration
+      structure provided by PAM.</para>
+
+      <para>The final principle, which is part of the PAM name, is its
+      <emphasis>pluggable architecture</emphasis>. When new back-ends need to
+      be integrated, all the administrator has to do is to install the library
+      for this back-end (by placing it in the right directory on the system)
+      and configure this module (most of the modules use a single
+      configuration file). From that point onward, the module is usable for
+      applications. Administrators can configure the authentication to use
+      this back-end and usually just need to restart the application.</para>
+    </section>
+
+    <section>
+      <title>How PAM works</title>
+
+      <para>Applications that want to use PAM link with the PAM library
+      (libpam) and call the necessary functions that reflect the above
+      services. Other than that, the application does not need to implement
+      any specific features for these services, as it is all handled by PAM.
+      So when a user wants to authenticate itself against, say, a web
+      application, then this web application calls PAM (passing on the user id
+      and perhaps password or challenge) and checks the PAM return to see if
+      the user is authenticated and allowed access to the application. It is
+      PAMs task underlyingly to see where to authenticate against (such as a
+      central database or LDAP server).</para>
+
+      <figure>
+        <title>Schematic representation of PAM</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-pam.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The strength of PAM is that everyone can build PAM modules to
+      integrate with any PAM-enabled service or application. If a company
+      releases a new service for authentication, all it needs to do is provide
+      a PAM module that interacts with its service, and then all software that
+      uses PAM can work with this service immediately: no need to rebuild or
+      enhance those software titles.</para>
+    </section>
+
+    <section>
+      <title>Managing PAM configuration</title>
+
+      <para>PAM configuration files are stored in
+      <filename>/etc/pam.d</filename> and are named after the service for
+      which the configuration applies. As the service name used by an
+      application is often application-specific, you will need to consult the
+      application documentation to know which service name it uses in
+      PAM.</para>
+
+      <important>
+        <para>As the PAM configuration file defines how to authenticate users,
+        it is extremely important that these files are very difficult to
+        tamper with. It is recommended to audit changes on these files,
+        perform integrity validation, keep backups and more.</para>
+      </important>
+
+      <para>Next to the configuration files, we also have the PAM modules
+      themselves inside <filename>/lib/security</filename> or
+      <filename>/lib64/security</filename>. These locations are often
+      forgotten by administrators to keep track of, even though these
+      locations are equally important as the configuration files. If an
+      attacker can overwrite modules or substitute them with his own, then he
+      also might have full control over the authentication results of the
+      application.</para>
+
+      <important>
+        <para>As the PAM libraries are the heart of the authentication steps
+        and methods, it too is extremely important to make it very difficult
+        to tamper with. Again, auditing, integrity validation and backups are
+        seriously recommended.</para>
+      </important>
+
+      <para>The PAM configuration files are provided on a per-application
+      basis, although one application configuration file can refer to other
+      configuration file(s) to use the same authentication steps. Let's look
+      at a PAM configuration file for an unnamed service:</para>
+
+      <programlisting>auth         required        pam_env.so
 auth         required        pam_ldap.so
 
 account      required        pam_ldap.so
@@ -435,400 +754,307 @@ session      required        pam_log.so level=audit
 session      required        pam_selinux.so open multiple
 session      optional        pam_mail.so</programlisting>
 
-        <para>We see that the configuration file is structured in the four
-        service domains that PAM supports: authentication, account management,
-        password management and session management. </para>
+      <para>We see that the configuration file is structured in the four
+      service domains that PAM supports: authentication, account management,
+      password management and session management.</para>
 
-        <para>Each of the sections in the configuration file calls one or more
-        PAM modules. For instance, <filename>pam_env.so</filename> sets the
-        environment variable which can be used by subsequent modules. The
-        return code provided by the PAM module, together with the control
-        directive (required or optional in the above example), allow PAM to
-        decide how to proceed. </para>
+      <para>Each of the sections in the configuration file calls one or more
+      PAM modules. For instance, <filename>pam_env.so</filename> sets the
+      environment variable which can be used by subsequent modules. The return
+      code provided by the PAM module, together with the control directive
+      (required or optional in the above example), allow PAM to decide how to
+      proceed.</para>
 
-        <variablelist>
-          <varlistentry>
-            <term>required</term>
-
-            <listitem>
-              <para>The provided PAM module must succeed in order for the
-              entire service (such as authentication) to succeed. If a PAM
-              module fails, other PAM modules are still called upon (even
-              though it is already certain that the service itself will be
-              denied). </para>
-            </listitem>
-          </varlistentry>
-
-          <varlistentry>
-            <term>requisite</term>
-
-            <listitem>
-              <para>The provided PAM module must succeed in order for the
-              entire service to succeed. Unlike required, if the PAM module
-              fails, control is immediately handed back and the service itself
-              is denied. </para>
-            </listitem>
-          </varlistentry>
-
-          <varlistentry>
-            <term>sufficient</term>
-
-            <listitem>
-              <para>If the provided PAM module succeeds, then the entire
-              service is granted. The remainder of the PAM modules is not
-              checked. If however the PAM module fails, then the remainder of
-              the PAM modules is handled and the failure of this particular
-              PAM module is ignored.</para>
-            </listitem>
-          </varlistentry>
-
-          <varlistentry>
-            <term>optional</term>
-
-            <listitem>
-              <para>The success or failure of this particular PAM module is
-              only important if it is the only module in the stack. </para>
-            </listitem>
-          </varlistentry>
-        </variablelist>
-
-        <para>Chaining of modules allows for multiple authentications to be
-        done, multiple tasks to be performed upon creating a session and
-        more.</para>
-      </section>
-
-      <section>
-        <title>Learning more about PAM</title>
-
-        <para>Most, if not all PAM modules have their own dedicated manual
-        page.</para>
-
-        <programlisting>$ <command>man pam_env</command></programlisting>
-
-        <para>Other information is easily available on the Internet,
-        including:</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>the Linux PAM project at <link
-            xlink:href="http://www.linux-pam.org/">http://www.linux-pam.org/</link></para>
-          </listitem>
+      <variablelist>
+        <varlistentry>
+          <term>required</term>
 
           <listitem>
-            <para>the PAM System Administration Guide at <link
-            xlink:href="http://linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html">http://linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html</link></para>
+            <para>The provided PAM module must succeed in order for the entire
+            service (such as authentication) to succeed. If a PAM module
+            fails, other PAM modules are still called upon (even though it is
+            already certain that the service itself will be denied).</para>
           </listitem>
-        </itemizedlist>
-      </section>
+        </varlistentry>
+
+        <varlistentry>
+          <term>requisite</term>
+
+          <listitem>
+            <para>The provided PAM module must succeed in order for the entire
+            service to succeed. Unlike required, if the PAM module fails,
+            control is immediately handed back and the service itself is
+            denied.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>sufficient</term>
+
+          <listitem>
+            <para>If the provided PAM module succeeds, then the entire service
+            is granted. The remainder of the PAM modules is not checked. If
+            however the PAM module fails, then the remainder of the PAM
+            modules is handled and the failure of this particular PAM module
+            is ignored.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>optional</term>
+
+          <listitem>
+            <para>The success or failure of this particular PAM module is only
+            important if it is the only module in the stack.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <para>Chaining of modules allows for multiple authentications to be
+      done, multiple tasks to be performed upon creating a session and
+      more.</para>
     </section>
 
     <section>
-      <title>Architecture</title>
+      <title>Configuring PAM on the system</title>
 
-      <para>In our reference architecture, the given services will be filled
-      in with the following components.</para>
+      <para>In order to connect the authentication of our system to a central
+      LDAP server, we need to add in the following lines in the
+      <filename>/etc/pam.d/system-auth</filename> file (don't replace the
+      file, just add the lines):</para>
 
-      <figure>
-        <title>Components for operating system platform</title>
+      <programlisting>auth       sufficient   pam_ldap.so use_first_pass
+account    sufficient   pam_ldap.so
+password   sufficient   pam_ldap.so use_authtok use_first_pass
+session    optional     pam_ldap.so</programlisting>
 
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="images/02-platform-components.png"/>
-          </imageobject>
-        </mediaobject>
-      </figure>
+      <para>Also install the <package>sys-auth/pam_ldap</package> (and
+      <package>sys-auth/nss_ldap</package>) packages.</para>
 
-      <para>The activities involved with those components are described in the
-      next few sections.</para>
+      <para>We also need to configure pam_ldap.so. For
+      <filename>/etc/ldap.conf</filename>, the following template can be used.
+      Make sure to substitute the domain information with the one used in your
+      environment:</para>
 
-      <section>
-        <title>Flows and feeds</title>
+      <programlisting>suffix          "dc=genfic,dc=com"
 
-        <para>A regular system has the following data flows enabled:</para>
+bind_policy soft
+bind_timelimit 2
+ldap_version 3
+nss_base_group ou=Group,dc=genfic,dc=com
+nss_base_hosts ou=Hosts,dc=genfic,dc=com
+nss_base_passwd ou=People,dc=genfic,dc=com
+nss_base_shadow ou=People,dc=genfic,dc=com
+pam_filter objectclass=posixAccount
+pam_login_attribute uid
+pam_member_attribute memberuid
+pam_password exop
+scope one
+timelimit 2
+uri ldap://ldap.genfic.com/ ldap://ldap1.genfic.com ldap://ldap2.genfic.com</programlisting>
 
-        <orderedlist>
-          <listitem>
-            <para>Backup data is sent to the backup environment; the volumes
-            of backups can be quite large, so take care to schedule backups
-            during proper time windows.</para>
-          </listitem>
+      <para>Secondly, <filename>/etc/openldap/ldap.conf</filename> needs to be
+      available on all systems too:</para>
 
-          <listitem>
-            <para>Monitoring metrics are sent continuously to the monitoring
-            environment</para>
-          </listitem>
+      <programlisting>BASE         dc=genfic, dc=com
+URI          ldap://ldap.genfic.com:389/ ldap://ldap1.genfic.com:389/ ldap://ldap2.genfic.com:389/
+TLS_REQCERT  allow
+TIMELIMIT    2</programlisting>
 
-          <listitem>
-            <para>Compliance and inventory information is sent to the SCAP
-            repository</para>
-          </listitem>
-        </orderedlist>
+      <para>Finally, edit <filename>/etc/nsswitch.conf</filename> so that
+      other services can also use the LDAP server (next to central
+      authentication):</para>
 
-        <para>The services that will be mostly important for the larger flows
-        are the software management services (through Portage) and the
-        backup/restore routines (through Bacula).</para>
-
-        <para>Let's first consider the <emphasis>software
-        management</emphasis> part. As we are using Gentoo Linux, we will use
-        Gentoo's Portage package management called Portage<indexterm>
-            <primary>Portage</primary>
-          </indexterm>. However, to support large-scale deployments, we will
-        use the Portage binary package support. This allows us to build
-        packages once, and make them available for others. We will discuss the
-        build server for Gentoo later in this book.</para>
-
-        <para>We can choose how we make the binary packages available from a
-        number of methods:</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>Use a central file server on which the packages are hosted.
-            We can use an NFS server for this, or any of the various other
-            methods (including caching-enabled systems such as
-            OpenAFS).</para>
-          </listitem>
-
-          <listitem>
-            <para>Use a web server that serves the packages, and have Portage
-            pull the packages from the web server</para>
-          </listitem>
-        </itemizedlist>
-
-        <para>The advantage of a web server is that it offers nice logging
-        capabilities, and we can put in additional security measures (such as
-        requiring the use of SSL with mutual authentication). Also, load
-        balancing is quite simple, as is controlling all data flows (and
-        request queueing, etc.)</para>
-
-        <para>The second flows is the backup/restore flows. These are governed
-        by the Bacula backup software. Depending on the configuration, this
-        might give a significant overhead (network-wise). As we are using
-        virtualized systems, I suggest to use host-based snapshot methods for
-        backing up entire virtual images (allowing for "bare-metal"
-        recovery).</para>
-      </section>
-
-      <section>
-        <title>Administration</title>
-
-        <para>To administer the system (and the components hosted on it), we
-        will use OpenSSH (for access to the system) and Puppet (for managing
-        configuration settings).</para>
-
-        <figure>
-          <title>Operating system administration</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/02-platform-administration.png"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-
-        <para>Standard operator/administrator access to the operating system
-        is handled through the SSH secure shell. The OpenSSH daemon will be
-        configured to use a central user repository for its authentication of
-        users. This allows administrators to, for instance, change their
-        password on a single system and ensure that the new password is then
-        in use for all other systems as well.</para>
-
-        <para>The configuration management will be handled through Puppet,
-        whose configuration repository will be managed through various
-        version-controlled systems and eventually exported on NFS towards the
-        systems. If needed, different NFS services or definitions can be used
-        to limit which systems can see the configuration settings of other
-        systems.</para>
-      </section>
-
-      <section>
-        <title>Monitoring</title>
-
-        <para>We will monitor the systems (and the components and services
-        that we host further) through Icinga.</para>
-
-        <figure>
-          <title>Operating system monitoring</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/02-platform-monitoring.png"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-
-        <para>The icinga agent supports various plugins that allow us to
-        monitor various aspects of the operating system and the services that
-        run on it. The results of each "query" is then sent to the central
-        Icinga database. The monitoring web interface, which we will discuss
-        later, interacts with the database to visually represent the state of
-        your environment.</para>
-      </section>
+      <programlisting>passwd:         files ldap
+group:          files ldap
+shadow:         files ldap</programlisting>
     </section>
 
     <section>
-      <title>The choice of Gentoo Hardened</title>
+      <title>Learning more about PAM</title>
 
-      <para>To increase security of the deployments, all systems in this
-      reference architecture will use a Gentoo Hardened deployment. Within the
-      Gentoo Linux community, Gentoo Hardened is a project that oversees the
-      research, implementation and maintenance of security-oriented projects
-      in Gentoo Linux. It focuses on delivering viable security strategies for
-      high stability production environments and is therefor absolutely
-      suitable for this reference architecture.</para>
+      <para>Most, if not all PAM modules have their own dedicated manual
+      page.</para>
 
-      <para>Within our scope, we will implement all services on a Gentoo
-      Hardened deployment with the following security measures in
-      place:</para>
+      <programlisting>$ <command>man pam_env</command></programlisting>
+
+      <para>Other information is easily available on the Internet,
+      including:</para>
 
       <itemizedlist>
         <listitem>
-          <para>PaX</para>
+          <para>the Linux PAM project at <link
+          xlink:href="http://www.linux-pam.org/">http://www.linux-pam.org/</link></para>
         </listitem>
 
         <listitem>
-          <para>PIE/PIC/SSP</para>
-        </listitem>
-
-        <listitem>
-          <para>SELinux as MAC</para>
-        </listitem>
-
-        <listitem>
-          <para>grSecurity kernel improvements</para>
+          <para>the PAM System Administration Guide at <link
+          xlink:href="http://linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html">http://linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html</link></para>
         </listitem>
       </itemizedlist>
+    </section>
+  </section>
 
-      <para>The installation of a Gentoo Hardened system is similar to a
-      regular Gentoo Linux one. You can find all necessary information on the
-      Gentoo Hardened project page. Later, we'll describe how to use images of
-      a (succesful) installation for seeding new servers and systems.</para>
+  <section>
+    <title>Gentoo Hardened</title>
 
-      <section>
-        <title>PaX</title>
+    <para>To increase security of the deployments, all systems in this
+    reference architecture will use a Gentoo Hardened deployment. Within the
+    Gentoo Linux community, Gentoo Hardened is a project that oversees the
+    research, implementation and maintenance of security-oriented projects in
+    Gentoo Linux. It focuses on delivering viable security strategies for high
+    stability production environments and is therefor absolutely suitable for
+    this reference architecture.</para>
 
-        <para>The PaX<indexterm>
-            <primary>PaX</primary>
-          </indexterm> project (part of grSecurity) aims to update the Linux
-        kernel with <link
-        xlink:href="http://pax.grsecurity.net/docs/pax.txt">defense
-        mechanisms</link> against exploitation of software bugs that allow an
-        attacker access to the software's address space (memory). By
-        exploiting this access, a malicious user could introduce or execute
-        arbitrary code, execute existing code without the applications'
-        intended behavior, or with different data than expected.</para>
+    <para>Within our scope, we will implement all services on a Gentoo
+    Hardened deployment with the following security measures in place:</para>
 
-        <para>One of the defence mechanisms introduced is NOEXEC<indexterm>
-            <primary>NOEXEC</primary>
-          </indexterm>. With this enabled, memory pages of an application
-        cannot be marked writeable and executable. So either a memory page
-        contains application code, but cannot be modified (kernel enforced),
-        or it contains data and cannot be executed (kernel enforced). The
-        enforcement methods used are beyond the scope of this book, but are
-        described <link
-        xlink:href="http://pax.grsecurity.net/docs/noexec.txt">online</link>.
-        Enforcing NOEXEC does have potential consequences: some applications
-        do not work when PaX enforces this behavior. Because of this, PaX
-        allows administrators to toggle the enforcement on a per-binary basis.
-        For more information about this, see the Hardened Gentoo PaX
-        Quickstart document (see resources at the end of this chapter). Note
-        that this also requires PIE/PIC built code (see later).</para>
+    <itemizedlist>
+      <listitem>
+        <para>PaX</para>
+      </listitem>
 
-        <para>Another mechanism used is ASLR<indexterm>
-            <primary>ASLR</primary>
-          </indexterm>, or Address Space Layout Randomization. This thwarts
-        attacks that need advance knowledge of addresses (for instance through
-        observation of previous runs). With ASLR enabled, the address space is
-        randomized for each application, which makes it much more difficult to
-        guess where a certain code (or data) portion is loaded, and as such
-        attacks will be much more difficult to execute succesfully. This
-        requires the code to be PIE built.</para>
+      <listitem>
+        <para>PIE/PIC/SSP</para>
+      </listitem>
 
-        <para>To enable PaX, you will need to install the hardened-sources
-        kernel in Gentoo Linux and configure it according to the instructions
-        found on the Hardened Gentoo PaX Quickstart document. You should also
-        install <command>paxctl</command><indexterm>
-            <primary>paxctl</primary>
-          </indexterm>.</para>
+      <listitem>
+        <para>SELinux as MAC</para>
+      </listitem>
 
-        <programlisting># <command>emerge hardened-sources</command>
+      <listitem>
+        <para>grSecurity kernel improvements</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>The installation of a Gentoo Hardened system is similar to a regular
+    Gentoo Linux one. You can find all necessary information on the Gentoo
+    Hardened project page. Later, we'll describe how to use images of a
+    (succesful) installation for seeding new servers and systems.</para>
+
+    <section>
+      <title>PaX</title>
+
+      <para>The PaX<indexterm>
+          <primary>PaX</primary>
+        </indexterm> project (part of grSecurity) aims to update the Linux
+      kernel with <link
+      xlink:href="http://pax.grsecurity.net/docs/pax.txt">defense
+      mechanisms</link> against exploitation of software bugs that allow an
+      attacker access to the software's address space (memory). By exploiting
+      this access, a malicious user could introduce or execute arbitrary code,
+      execute existing code without the applications' intended behavior, or
+      with different data than expected.</para>
+
+      <para>One of the defence mechanisms introduced is NOEXEC<indexterm>
+          <primary>NOEXEC</primary>
+        </indexterm>. With this enabled, memory pages of an application cannot
+      be marked writeable and executable. So either a memory page contains
+      application code, but cannot be modified (kernel enforced), or it
+      contains data and cannot be executed (kernel enforced). The enforcement
+      methods used are beyond the scope of this book, but are described <link
+      xlink:href="http://pax.grsecurity.net/docs/noexec.txt">online</link>.
+      Enforcing NOEXEC does have potential consequences: some applications do
+      not work when PaX enforces this behavior. Because of this, PaX allows
+      administrators to toggle the enforcement on a per-binary basis. For more
+      information about this, see the Hardened Gentoo PaX Quickstart document
+      (see resources at the end of this chapter). Note that this also requires
+      PIE/PIC built code (see later).</para>
+
+      <para>Another mechanism used is ASLR<indexterm>
+          <primary>ASLR</primary>
+        </indexterm>, or Address Space Layout Randomization. This thwarts
+      attacks that need advance knowledge of addresses (for instance through
+      observation of previous runs). With ASLR enabled, the address space is
+      randomized for each application, which makes it much more difficult to
+      guess where a certain code (or data) portion is loaded, and as such
+      attacks will be much more difficult to execute succesfully. This
+      requires the code to be PIE built.</para>
+
+      <para>To enable PaX, you will need to install the hardened-sources
+      kernel in Gentoo Linux and configure it according to the instructions
+      found on the Hardened Gentoo PaX Quickstart document. You should also
+      install <command>paxctl</command><indexterm>
+          <primary>paxctl</primary>
+        </indexterm>.</para>
+
+      <programlisting># <command>emerge hardened-sources</command>
 # <command>emerge paxctl</command></programlisting>
-      </section>
+    </section>
 
-      <section>
-        <title>PIE/PIC/SSP</title>
+    <section>
+      <title>PIE/PIC/SSP</title>
 
-        <para>The given abbreviations describe how source code is built into
-        binary, executable code.</para>
+      <para>The given abbreviations describe how source code is built into
+      binary, executable code.</para>
 
-        <para>PIC<indexterm>
-            <primary>PIC</primary>
-          </indexterm> (Position Independent Code) is used for shared
-        libraries to support the fact that they are loaded in memory
-        dynamically (and without prior knowledge to the addresses). Whereas
-        older methods use load-time relocation (where address pointers are all
-        rewritten the moment the code is loaded in memory), PIC uses a higher
-        abstraction of indirection towards data and function references. By
-        building shared objects with PIC, relocations in the text segment in
-        memory (which contains the application code) are not needed anymore.
-        As such, these pages can be marked as non-writeable.</para>
+      <para>PIC<indexterm>
+          <primary>PIC</primary>
+        </indexterm> (Position Independent Code) is used for shared libraries
+      to support the fact that they are loaded in memory dynamically (and
+      without prior knowledge to the addresses). Whereas older methods use
+      load-time relocation (where address pointers are all rewritten the
+      moment the code is loaded in memory), PIC uses a higher abstraction of
+      indirection towards data and function references. By building shared
+      objects with PIC, relocations in the text segment in memory (which
+      contains the application code) are not needed anymore. As such, these
+      pages can be marked as non-writeable.</para>
 
-        <para>To find out if you have libraries that still support text
-        relocations<indexterm>
-            <primary>text relocation</primary>
-          </indexterm>, you can install the pax-utils package and scan your
-        libraries for text relocations:</para>
+      <para>To find out if you have libraries that still support text
+      relocations<indexterm>
+          <primary>text relocation</primary>
+        </indexterm>, you can install the pax-utils package and scan your
+      libraries for text relocations:</para>
 
-        <programlisting># <command>emerge pax-utils</command>
+      <programlisting># <command>emerge pax-utils</command>
 $ <command>scanelf -lpqt</command>
 TEXTREL  /opt/Citrix/ICAClient/libctxssl.so</programlisting>
 
-        <para>In the above example, the libctxssl.so file is not built with
-        PIC and as such could be more vulnerable to attacks as its
-        code-containing memory pages might not be marked as
-        non-writeable.</para>
+      <para>In the above example, the libctxssl.so file is not built with PIC
+      and as such could be more vulnerable to attacks as its code-containing
+      memory pages might not be marked as non-writeable.</para>
 
-        <para>With PIE<indexterm>
-            <primary>PIE</primary>
-          </indexterm> (Position Independent Executables) enabled, executables
-        are built in a fashion similar to shared objects: their base address
-        can be relocated and as such, PaX' ASLR method can be put in effect to
-        randomize the address in use. An application binary that is PIE-built
-        will show up as a shared object file rather than an executable file
-        when checking its ELF header</para>
+      <para>With PIE<indexterm>
+          <primary>PIE</primary>
+        </indexterm> (Position Independent Executables) enabled, executables
+      are built in a fashion similar to shared objects: their base address can
+      be relocated and as such, PaX' ASLR method can be put in effect to
+      randomize the address in use. An application binary that is PIE-built
+      will show up as a shared object file rather than an executable file when
+      checking its ELF header</para>
 
-        <programlisting>$ <command>readelf -h /bin/ls | grep Type</command>
+      <programlisting>$ <command>readelf -h /bin/ls | grep Type</command>
   Type:            DYN (Shared object file)
 
 $ <command>readelf -h /opt/Citrix/ICAClient/wfcmgr.bin | grep Type</command>
   Type:            EXEC (Executable file)</programlisting>
 
-        <para>SSP<indexterm>
-            <primary>SSP</primary>
-          </indexterm> finally stands for Stack Smashing Protection. Its
-        purpose is to add in additional buffers after memory allocations (for
-        variables and such) which contain a cryptographic marker (often called
-        the canary). When an overflow occurs, this marker is also overwritten
-        (after all, that's how overflows work). When a function would return,
-        this marker is first checked to see if it is still valid. If not, then
-        an overflow has occurred and the application is stopped
-        abruptly.</para>
-      </section>
+      <para>SSP<indexterm>
+          <primary>SSP</primary>
+        </indexterm> finally stands for Stack Smashing Protection. Its purpose
+      is to add in additional buffers after memory allocations (for variables
+      and such) which contain a cryptographic marker (often called the
+      canary). When an overflow occurs, this marker is also overwritten (after
+      all, that's how overflows work). When a function would return, this
+      marker is first checked to see if it is still valid. If not, then an
+      overflow has occurred and the application is stopped abruptly.</para>
+    </section>
 
-      <section>
-        <title>Checking PaX and PIE/PIC/SSP results</title>
+    <section>
+      <title>Checking PaX and PIE/PIC/SSP results</title>
 
-        <para>If you want to verify the state of your system after applying
-        the security measures identified earlier, install paxtest and run it.
-        The application supports two modes: kiddie and blackhat. The blackhat
-        test gives the worst-case scenario back whereas the kiddie-mode runs
-        tests that are more like the ones script-kiddies would run. The
-        paxtest application simulates certain attacks and presents plausible
-        results to the reader.</para>
+      <para>If you want to verify the state of your system after applying the
+      security measures identified earlier, install paxtest and run it. The
+      application supports two modes: kiddie and blackhat. The blackhat test
+      gives the worst-case scenario back whereas the kiddie-mode runs tests
+      that are more like the ones script-kiddies would run. The paxtest
+      application simulates certain attacks and presents plausible results to
+      the reader.</para>
 
-        <para>A full explanation on the tests ran can be found in the
-        <filename>/usr/share/doc/paxtest-*/README</filename> file.</para>
+      <para>A full explanation on the tests ran can be found in the
+      <filename>/usr/share/doc/paxtest-*/README</filename> file.</para>
 
-        <programlisting># <command>emerge paxtest</command>
+      <programlisting># <command>emerge paxtest</command>
 # <command>paxtest blackhat</command>
 
 PaXtest - Copyright(c) 2003,2004 by Peter Busser &lt;peter@adamantix.org&gt;
@@ -855,12 +1081,12 @@ Executable shared library data           : Killed
 Writable text segments                   : Killed
 </programlisting>
 
-        <para>These tests will try to write data and then execute it. The
-        tests do this in different locations to verify if the memory
-        protection measures are working. Killed means that it works as the
-        attempt is stopped.</para>
+      <para>These tests will try to write data and then execute it. The tests
+      do this in different locations to verify if the memory protection
+      measures are working. Killed means that it works as the attempt is
+      stopped.</para>
 
-        <programlisting>Executable anonymous mapping (mprotect)  : Killed
+      <programlisting>Executable anonymous mapping (mprotect)  : Killed
 Executable bss (mprotect)                : Killed
 Executable data (mprotect)               : Killed
 Executable heap (mprotect)               : Killed
@@ -869,11 +1095,11 @@ Executable shared library bss (mprotect) : Killed
 Executable shared library data (mprotect): Killed
 </programlisting>
 
-        <para>These are virtually the same tests as before, but now the
-        application first tries to reset or change the protection bits on the
-        pages using mprotect.</para>
+      <para>These are virtually the same tests as before, but now the
+      application first tries to reset or change the protection bits on the
+      pages using mprotect.</para>
 
-        <programlisting>Anonymous mapping randomisation test     : 33 bits (guessed)
+      <programlisting>Anonymous mapping randomisation test     : 33 bits (guessed)
 Heap randomisation test (ET_EXEC)        : 13 bits (guessed)
 Heap randomisation test (PIE)            : 40 bits (guessed)
 Main executable randomisation (ET_EXEC)  : No randomisation
@@ -883,13 +1109,13 @@ Stack randomisation test (SEGMEXEC)      : 40 bits (guessed)
 Stack randomisation test (PAGEEXEC)      : 40 bits (guessed)
 </programlisting>
 
-        <para>The randomisation tests try to find out which level of
-        randomisation is put in place. Although randomisation by itself does
-        not offer protection, it obscures the view malicious users have on the
-        memory structures. The higher the randomisation, the better. On Gentoo
-        Hardened, (almost) all binaries are PIE.</para>
+      <para>The randomisation tests try to find out which level of
+      randomisation is put in place. Although randomisation by itself does not
+      offer protection, it obscures the view malicious users have on the
+      memory structures. The higher the randomisation, the better. On Gentoo
+      Hardened, (almost) all binaries are PIE.</para>
 
-        <programlisting>Return to function (strcpy)              : paxtest: return address \
+      <programlisting>Return to function (strcpy)              : paxtest: return address \
                                            contains a NULL byte.
 Return to function (memcpy)              : Vulnerable
 Return to function (strcpy, PIE)         : paxtest: return address \
@@ -897,41 +1123,40 @@ Return to function (strcpy, PIE)         : paxtest: return address \
 Return to function (memcpy, PIE)         : Vulnerable
 </programlisting>
 
-        <para>These types of attacks are very difficult to thwart by kernel
-        protection measures only. The author of the paxtest application has
-        put those in because he can, even though he knows PaX does not protect
-        against them. In effect, he tries to show users that PaX is not an
-        all-safe method and that additional security layers are still
-        important.</para>
-      </section>
+      <para>These types of attacks are very difficult to thwart by kernel
+      protection measures only. The author of the paxtest application has put
+      those in because he can, even though he knows PaX does not protect
+      against them. In effect, he tries to show users that PaX is not an
+      all-safe method and that additional security layers are still
+      important.</para>
+    </section>
 
-      <section>
-        <title>SELinux as MAC</title>
+    <section>
+      <title>SELinux as MAC</title>
 
-        <para>With a MAC<indexterm>
-            <primary>MAC</primary>
-          </indexterm> (Mandatory Access Control<indexterm>
-            <primary>Mandatory Access Control</primary>
-          </indexterm>), the system administrator can control which accesses
-        are allowed and which not, and can enforce that the user cannot
-        override this. Regular access patterns in Linux are discretionary, so
-        the user can define this himself. In this book, we will use
-        SELinux<indexterm>
-            <primary>SELinux</primary>
-          </indexterm> as the MAC system. Another supported MAC in Gentoo
-        Hardened is grSecurity's RBAC model.</para>
+      <para>With a MAC<indexterm>
+          <primary>MAC</primary>
+        </indexterm> (Mandatory Access Control<indexterm>
+          <primary>Mandatory Access Control</primary>
+        </indexterm>), the system administrator can control which accesses are
+      allowed and which not, and can enforce that the user cannot override
+      this. Regular access patterns in Linux are discretionary, so the user
+      can define this himself. In this book, we will use SELinux<indexterm>
+          <primary>SELinux</primary>
+        </indexterm> as the MAC system. Another supported MAC in Gentoo
+      Hardened is grSecurity's RBAC model.</para>
 
-        <para>Installing and configuring Hardened Gentoo with SELinux is
-        described in the Gentoo SELinux handbook. It is seriously recommended
-        to read through this resource a few times, as SELinux is not just
-        about enabling a feature - it is a change in the security model and
-        requires experience with it.</para>
+      <para>Installing and configuring Hardened Gentoo with SELinux is
+      described in the Gentoo SELinux handbook. It is seriously recommended to
+      read through this resource a few times, as SELinux is not just about
+      enabling a feature - it is a change in the security model and requires
+      experience with it.</para>
 
-        <para>We will use the SELinux strict policy (so no unconfined domains)
-        for regular services, or MCS (without unconfined domains) when we want
-        to use the multi-tenancy support.</para>
+      <para>We will use the SELinux strict policy (so no unconfined domains)
+      for regular services, or MCS (without unconfined domains) when we want
+      to use the multi-tenancy support.</para>
 
-        <programlisting>$ <command>id -Z</command>
+      <programlisting>$ <command>id -Z</command>
 staff_u:staff_r:staff_t
 
 # <command>sestatus</command>
@@ -944,112 +1169,200 @@ Mode from config file:          enforcing
 Policy MLS status:              disabled
 Policy deny_unknown status:     denied
 Max kernel policy version:      26</programlisting>
-      </section>
-
-      <section>
-        <title>grSecurity kernel improvements</title>
-
-        <para>Next to the previously mentioned grSecurity updates, grSecurity
-        also adds in additional kernel protection measures. This includes
-        additional hardening on chroot jails (to make it a lot more difficult
-        to break out of a chroot) and file system abuse (like getting
-        information from pseudo-filesystems to improve attacks).</para>
-
-        <para>For more information on enabling grSecurity, see the Gentoo
-        grSecurity v2 Guide.</para>
-      </section>
-
-      <section>
-        <title>Using IMA and EVM</title>
-
-        <para>Another set of security subsystems available in recent Linux
-        kernels are the Integrity Measurement Architecture and Extended
-        Verification Modules subsystems.</para>
-
-        <para>With IMA<indexterm>
-            <primary>IMA</primary>
-          </indexterm>, the integrity of files is validated (checksum or
-        digital signature) against the recorded value in the extended
-        attribute of that file. If the integrity matches, then the system
-        allows to read (and if it isn't a digital signature, even modify) the
-        file. If the checksum doesn't match, then the access to the file is
-        prohibited.</para>
-
-        <para>EVM<indexterm>
-            <primary>EVM</primary>
-          </indexterm> then ensures that the extended attributes of the file
-        are not tampered with (as it stores the security information from IMA
-        as well as SELinux information). This is accomplished using a HMAC
-        value or a digital signature of the security related extended
-        attributes. Because of the use of cryptographic methods, offline
-        tampering of this data is not that simple - the attacker needs access
-        to the key used by the HMAC or even the private key used for
-        generating the signatures.</para>
-
-        <para>For more information on enabling IMA/EVM, see the Gentoo
-        Integrity subproject documentation.</para>
-      </section>
     </section>
 
     <section>
-      <title>Deployment and uses</title>
+      <title>grSecurity kernel improvements</title>
 
-      <section>
-        <title>Partitioning and LVM</title>
+      <para>Next to the previously mentioned grSecurity updates, grSecurity
+      also adds in additional kernel protection measures. This includes
+      additional hardening on chroot jails (to make it a lot more difficult to
+      break out of a chroot) and file system abuse (like getting information
+      from pseudo-filesystems to improve attacks).</para>
 
-        <para>In our architecture, we will be using directly attached storage
-        (so no SAN nor NAS for every possible file system) and deal with the
-        consequences of having distributed storage differently. One of the
-        methods we will be using is to use LVM wherever we can, including for
-        the root file system. It is recommended that the internal storage is
-        somewhat protected against disk failure through RAID. Although the
-        author is a proponent of RAID1, <link
-        xlink:href="http://assets.en.oreilly.com/1/event/27/Linux%20Filesystem%20Performance%20for%20Databases%20Presentation.pdf">tests</link>
-        have shown that RAID5 performs equally well.</para>
-
-        <para>We will use a non-LVM partition (RAID1 protected) for the /boot
-        location, and use LVM volumes for the rest. We will also define
-        different volume groups for system versus data.</para>
-
-        <programlisting># <command>pvcreate /dev/md1</command>
-# <command>vgcreate vg_system /dev/md1</command>
-# <command>lvcreate -l 20G -n lv_root vg_system</command>
-# <command>lvcreate -l 10G -n lv_home vg_system</command></programlisting>
-
-        <para>Through this approach, the root file system will be hosted on
-        <filename>/dev/mapper/vg_system-lv_root</filename> and as such be
-        expandable (if necessary) as well as protected by the underlying RAID
-        system. If you keep enough free space in the volume group, you can
-        work with snapshots to support flexible backup methods.</para>
-      </section>
-
-      <section>
-        <title>Selection of used system software</title>
-
-        <para>The following set of system software components will be
-        installed (and thus part of the base setup).</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>syslog-ng, as the acting system logger and system log
-            daemon</para>
-          </listitem>
-
-          <listitem>
-            <para>vixie-cron, as the acting cron daemon (for running scheduled
-            tasks in the background)</para>
-          </listitem>
-        </itemizedlist>
-      </section>
-
-      <section>
-        <title>Network settings</title>
-
-        <para>We will be using IPv6 exclusively in this architecture, but for
-        some applications, we still need to support IPv4. When this is the
-        case, we will try to only use 127.0.0.1.</para>
-      </section>
+      <para>For more information on enabling grSecurity, see the Gentoo
+      grSecurity v2 Guide.</para>
     </section>
+
+    <section>
+      <title>Using IMA and EVM</title>
+
+      <para>Another set of security subsystems available in recent Linux
+      kernels are the Integrity Measurement Architecture and Extended
+      Verification Modules subsystems.</para>
+
+      <para>With IMA<indexterm>
+          <primary>IMA</primary>
+        </indexterm>, the integrity of files is validated (checksum or digital
+      signature) against the recorded value in the extended attribute of that
+      file. If the integrity matches, then the system allows to read (and if
+      it isn't a digital signature, even modify) the file. If the checksum
+      doesn't match, then the access to the file is prohibited.</para>
+
+      <para>EVM<indexterm>
+          <primary>EVM</primary>
+        </indexterm> then ensures that the extended attributes of the file are
+      not tampered with (as it stores the security information from IMA as
+      well as SELinux information). This is accomplished using a HMAC value or
+      a digital signature of the security related extended attributes. Because
+      of the use of cryptographic methods, offline tampering of this data is
+      not that simple - the attacker needs access to the key used by the HMAC
+      or even the private key used for generating the signatures.</para>
+
+      <para>For more information on enabling IMA/EVM, see the Gentoo Integrity
+      subproject documentation.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>OpenSSH</title>
+
+    <para>OpenSSH is the most popular secure shell daemon available, and is
+    free software. For remotely managing Linux systems, we will use OpenSSH,
+    but this also requires OpenSSH to be set up correctly (and
+    securely).</para>
+
+    <section>
+      <title>Key management</title>
+
+      <para>Providing secure shells requires keys. In case of an SSH session,
+      a handshake between the client and server occurs. During this handshake,
+      key information is exchanged.</para>
+
+      <para>The server keys are stored in <filename>/etc/ssh</filename> and
+      are usually generated by the system when OpenSSH is started for the
+      first time.</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>ssh_host_key</term>
+
+          <listitem>
+            <para>This file provides the SSH version 1 (protocol version) RSA
+            private key. SSH version 1 is considered insecure so should no
+            longer be used.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>ssh_host_dsa_key</term>
+
+          <listitem>
+            <para>This file provides the SSH version 2 DSA private key.
+            <emphasis>DSA<indexterm>
+                <primary>DSA</primary>
+              </indexterm> (Digital Signature Algorithm)</emphasis> is a
+            standard for creating digital signatures; every SSH client will
+            support this.</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>ssh_host_ecdsa_key</term>
+
+          <listitem>
+            <para>This file provides the SSH version 2 ECDSA private key.
+            <emphasis>ECDSA<indexterm>
+                <primary>ECSDA</primary>
+              </indexterm> (Elliptic Curve DSA)</emphasis> is a recent
+            addition; not all SSH clients support it yet (although the SSH
+            client provided by OpenSSH of course does)</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>ssh_host_rsa_key</term>
+
+          <listitem>
+            <para>This file provides the SSH versino 2 RSA private key. RSA is
+            a market standard and thus also very well supported.</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <para>SSH also supports client certificates, a popular method for
+      offering a more secure remote shell, as passwords can be leaked easily
+      (or remembered by the wrong people) whereas SSH keys are a bit more
+      difficult to memorize ;-) Recent OpenSSH versions also support chaining
+      authentication methods.</para>
+    </section>
+
+    <section>
+      <title>Securing OpenSSH</title>
+
+      <para>There are a few guides available online to secure OpenSSH.
+      Basically, these will recommend to</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>disable remote root logon</para>
+        </listitem>
+
+        <listitem>
+          <para>enable public key authentication</para>
+        </listitem>
+
+        <listitem>
+          <para>enable authentication chaining (first requires public key
+          authentication, then password)</para>
+        </listitem>
+
+        <listitem>
+          <para>disable protocol version 1</para>
+        </listitem>
+
+        <listitem>
+          <para>enable PAM</para>
+        </listitem>
+      </itemizedlist>
+    </section>
+
+    <section>
+      <title>Using DNS SSHFP fields</title>
+
+      <para>When an SSH client connects to an unknown server, it (depending on
+      the configuration) will warn users about the server. It presents the SSH
+      finger print (a checksum on the key) to the user, asking the user to
+      validate that the key is indeed correct. This is needed to prevent a
+      <emphasis>MITM<indexterm>
+          <primary>MITM</primary>
+        </indexterm> (Man In the Middle)</emphasis> attack. Of course, most
+      users do not check this (and some administrators would not even know how
+      to check it themselves).</para>
+
+      <programlisting># <command>ssh-keygen -l -f /etc/ssh/ssh_host_ecdsa_key</command>
+256    a1:0b:dd:5b:d0:38:ec:a2:26:fa:c1:74:06:fb:9c:c2  root@hpl (ECDSA)</programlisting>
+
+      <para>To simplify this while remaining secure, we can add the SSH finger
+      print data in the DNS records for the server (in an SSHFP field). The
+      SSH client can then be configured to automatically trust the SSH
+      fingerprint data in the DNS record (and to make it more secure - only
+      when the records are signed properly through DNSSEC).</para>
+
+      <para>The SSHFP record can be generated using
+      <command>ssh-keygen</command>:</para>
+
+      <programlisting># <command>ssh-keygen -r hpl -f /etc/ssh/ssh_host_dsa_key</command>
+hpl IN SSHFP 2 1 68da815fa78336cbaf69eacad7b5c9ebf67f518</programlisting>
+    </section>
+  </section>
+
+  <section>
+    <title>Logging and auditing</title>
+
+    <para>To handle auditing, we need to configure the Linux audit daemon. We
+    will configure it to send its audit events towards the central system
+    logger, which is configured to forward these events as soon as possible to
+    a central log server.</para>
+  </section>
+
+  <section>
+    <title>Privilege escalation through sudo</title>
+
+    <para>With <command>sudo</command> (super user do) we can allow regular
+    users to call certain commands with elevated privileges. To manage which
+    commands are allowed by whom, we will also use the central LDAP
+    server.</para>
   </section>
 
   <section>

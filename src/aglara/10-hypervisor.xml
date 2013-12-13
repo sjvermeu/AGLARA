@@ -370,4 +370,22 @@ $ <command>screen -x kvm-pg1</command>
       </section>
     </section>
   </section>
+
+  <section>
+    <title>Offline operations</title>
+
+    <para/>
+
+    <section>
+      <title>Bare metal recovery (snapshot backups)</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Integrity validation (offline AIDE scans)</title>
+
+      <para/>
+    </section>
+  </section>
 </chapter>

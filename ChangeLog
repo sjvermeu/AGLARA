@@ -1,3 +1,6 @@
+** (2013-12-13) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Update platform information
+
 ** (2013-12-10) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Move hypervisor as separate chapter
 	- Update platform choice, add in PAM info

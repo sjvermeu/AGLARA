@@ -42,7 +42,7 @@ echo "done";
 echo -n "Adding style information... ";
 for F in *.html;
 do
-  sed -i -e 's:</head:<link type="text/css" rel="stylesheet" href="style.css" title="default" media="all" /></head:g' ${F};
+  sed -i -e 's:</head:<link type="text/css" rel="stylesheet" href="style.css" title="default" media="all" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head:g' ${F};
 done
 echo "done";
 

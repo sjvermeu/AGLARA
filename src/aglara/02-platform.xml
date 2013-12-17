@@ -11,12 +11,12 @@
   <section>
     <title>Gentoo Linux</title>
 
-    <para>Within the reference architecture, we standardize on Gentoo Linux.
+    <para>Within the reference architecture, Gentoo Linux is the standard.
     Standardization on a single platform allows organizations to keep the cost
-    sufficiently low, but also offers the advantage that you can use solutions
-    specific for the platform, rather than having to look for solutions that
-    must support a multitude of platforms. Of course, the choice of picking
-    Gentoo Linux here might seem weird - why not CentOS (as that has a
+    sufficiently low, but also offers the advantage that these solutions might
+    be specific for the platform, rather than having to look for solutions
+    that must support a multitude of platforms. Of course, the choice of
+    picking Gentoo Linux here might seem weird - why not CentOS (as that has a
     possible commercial backing towards RedHat Enterprise Linux when
     needed)?</para>
 
@@ -29,47 +29,47 @@
         its current (fictional) engineers are all Gentoo Linux developers, or
         because it has ties with regional Gentoo Linux supporting services. In
         light of many organizations, when there is choice between Linux
-        distributions, one thing to consider is which distribution your
+        distributions, one thing to consider is which distribution the
         engineers are most likely to work with. Alright, asking them will
         probably result in some heavy fighting to see which distribution is
-        best (perhaps you can use the <link
+        best (perhaps the <link
         xlink:href="https://en.wikipedia.org/wiki/Condorcet_method">Condorcet
-        method</link> to find the best selection), but picking a distribution
-        your engineers are less eager to support will result in bad
-        administration anyhow.</para>
+        method</link> can be used to find the best selection), but picking a
+        distribution the engineers are less eager to support will result in
+        bad administration anyhow.</para>
       </listitem>
 
       <listitem>
         <para>The reason to use CentOS (RHEL) could be to have certified
         hosting of certain products which are only supported on RHEL (or
-        similar). However, because we will only use free software solutions,
-        this is no requirement for our case. But it is understandable that
+        similar). However, because the focus here is to use free software
+        solutions, this is no requirement. But it is understandable that
         companies that do run proprietary software choose a distribution that
         is supported by their vendors.</para>
       </listitem>
 
       <listitem>
         <para>Gentoo Linux offers a fairly flexible approach on supported
-        features. Thanks to a good balance of USE flags, we can install
-        servers and services that offer just those services we need, without
-        any additional dependencies or features that we will have to disable
-        (in order to secure the services) anyhow. This leads to somewhat
-        better performance, but also to a saving in storage requirements,
-        patching frequency, etc. Gentoo is also quite fast in adopting new
-        technologies, which might help the business stand out against the
-        other competitors.</para>
+        features. Thanks to a good balance of USE flags, servers and services
+        can be installed that offer just those services that are needed,
+        without any additional dependencies or features that need to be
+        disabled (in order to secure the services) anyhow. This leads to
+        somewhat better performance, but also to a saving in storage
+        requirements, patching frequency, etc. Gentoo is also quite fast in
+        adopting new technologies, which might help the business stand out
+        against the other competitors.</para>
       </listitem>
 
       <listitem>
         <para>Gentoo uses rolling upgrades. That might not seem like a good
-        way in enterprises, but allow me to convince you - it is. If an
-        organization is doing things right, it is already distributing and
-        rolling out patches and minor upgrades regularly. With Gentoo, this
-        process is a bit more intrusive (as it might contain larger changes as
-        well) but because the administrators are used to it, it is very much
-        under control. As a result, whereas other organizations have to
-        schedule large (expensive and time-consuming) upgrades every 3 to 5
-        years, Gentoo just moves along...</para>
+        way in enterprises, but it is. If an organization is doing things
+        right, it is already distributing and rolling out patches and minor
+        upgrades regularly. With Gentoo, this process is a bit more intrusive
+        (as it might contain larger changes as well) but because the
+        administrators are used to it, it is very much under control. As a
+        result, whereas other organizations have to schedule large (expensive
+        and time-consuming) upgrades every 3 to 5 years, Gentoo just moves
+        along...</para>
       </listitem>
 
       <listitem>
@@ -90,15 +90,15 @@
     <itemizedlist>
       <listitem>
         <para>Gentoo Linux is primarily a source-based distribution, which is
-        frequently frowned upon in the enterprise market. Weirdly enough, they
-        don't find it strange that their development and operational teams
-        keep on building frameworks and tools themselves because of lack of
-        good tools. This is exactly where Gentoo Linux outshines the others:
-        it offers many tools out-of-the-box to support every possible
-        requirement.</para>
+        frequently frowned upon in the enterprise market. Weirdly enough,
+        enterprises don't find it strange that their development and
+        operational teams keep on building frameworks and tools themselves
+        because of lack of good tools. This is exactly where Gentoo Linux
+        outshines the others: it offers many tools out-of-the-box to support
+        every possible requirement.</para>
 
-        <para>To reduce the impact of its source-only stigma, we will dedicate
-        a chapter in this book on the use of build servers and binhost support
+        <para>To reduce the impact of its source-only stigma, a chapter in
+        this book is dedicated to the use of build servers and binhost support
         for improved manageability.</para>
       </listitem>
 
@@ -107,51 +107,51 @@
         tools for malicious users to build exploits on the server
         itself.</para>
 
-        <para>In my opinion, it is fairly easy to hide the compiler or at
-        least have some group-based access control on it. But regardless of
-        that - the moment a malicious user has (shell) access to your system,
-        you're screwed anyhow. It is fairly easy to transfer files (even full
-        applications) towards the system then.</para>
+        <para>It is fairly easy to hide the compiler or at least have some
+        group-based access control on it. But regardless of that - the moment
+        a malicious user has (shell) access to a system, the system is screwed
+        anyhow. It is fairly easy to transfer files (even full applications)
+        towards the system then.</para>
 
-        <para>To reduce possible impact here, we will be using a Mandatory
-        Access Control system which isolates processes and even users,
+        <para>To reduce possible impact here, a Mandatory Access Control
+        system should be used which isolates processes and even users,
         confining them to just what they need to get their job done.</para>
       </listitem>
     </itemizedlist>
 
-    <para>We will standardize on the x86_64 architecture (amd64), partially
-    because it is the widest known in the Gentoo Linux development community,
-    but also because its hardware is widely available and sufficiently cheap.
-    It is also a processor architecture that is constantly evolving and has
-    many vendors working on it (less monopolizing strategies) which makes it a
-    better platform for consumers in my opinion.</para>
+    <para>As architecture, focusing only on the x86_64 architecture (amd64) is
+    beneficial, partially because it is the widest known in the Gentoo Linux
+    development community, but also because its hardware is widely available
+    and sufficiently cheap. It is also a processor architecture that is
+    constantly evolving and has many vendors working on it (less monopolizing
+    strategies) which makes it a better platform for consumers in my
+    opinion.</para>
 
-    <para>That being said, we'll also use the no-multilib approach in Gentoo
-    Linux. Systems need to be fully x86_64 driven, partially for
-    standardization as well, but also to make debugging easier. The fewer
-    special cases you need to think about, the faster you can resolve
-    problems. Generally though, this gives little (to no) additional advantage
-    towards a multilib profile. But as this is a reference architecture, I'll
-    stick with this.</para>
+    <para>That being said, this might be a good time to use a no-multilib
+    approach in Gentoo Linux. Systems need to be fully x86_64 driven,
+    partially for standardization as well, but also to make debugging easier.
+    The fewer special cases that need to be thought about, the faster problems
+    can be resolved. Generally though, this gives little (to no) additional
+    advantage towards a multilib profile.</para>
   </section>
 
   <section>
     <title>Basic OS - the requirements</title>
 
-    <para>When we position an operating system platform such as Gentoo Linux,
+    <para>When positioning an operating system platform such as Gentoo Linux,
     quite a few aspects already need to be considered in its design. It isn't
     sufficient to just create an image (or installation procedure) and be done
-    with it. We need to consider basic services on operating systems, such as
-    backup/restore routines, updates &amp; upgrades, etc. Most of the
+    with it. Basic services on operating systems need to be considered, such
+    as backup/restore routines, updates &amp; upgrades, etc. Most of the
     infrastructure needed to accomplish all that will be talked about
     further.</para>
 
     <section>
       <title>Services</title>
 
-      <para>When you are going to manage multiple servers, you will need some
-      sort of centralized services. This doesn't require a daemon/server
-      architecture for all services though, as we will see later on.</para>
+      <para>When managing multiple servers, some sort of centralized services
+      are needed. This doesn't require a daemon/server architecture for all
+      services though, as will be seen later on.</para>
 
       <figure>
         <title>Services for an operating system platform</title>
@@ -164,7 +164,7 @@
       </figure>
 
       <para>The mentioned services on the above drawing are quite basic
-      services, which you will need to properly manage in order to get a well
+      services, which will need to be properly managed in order to get a well
       functioning environment.</para>
     </section>
 
@@ -189,11 +189,11 @@
         </listitem>
       </itemizedlist>
 
-      <para>As we are using Gentoo Linux, the most probable component for
-      authenticating users on the operating system level is OpenSSH. But in
-      order to properly provide access services, we don't only look at the
-      OpenSSH daemon itself, but also the centralized access management
-      services (which will be OpenLDAP based).</para>
+      <para>In Gentoo Linux, the most probable component for authenticating
+      users on the operating system level is OpenSSH. But in order to properly
+      provide access services, not only the OpenSSH daemon itself is looked
+      on, but also the centralized access management services (which will be
+      OpenLDAP based).</para>
 
       <para>Authorization on the operating system level is handled through the
       Linux <emphasis>DAC<indexterm>
@@ -220,17 +220,16 @@
       service failure.</para>
 
       <para>Service failures, like "I cannot resolve IP addresses" or "The web
-      site is not reachable" are difficult to debug if you are lacking
-      monitoring. Proper monitoring implementations allow you to get an idea
-      of the entire state of the architecture and its individual components.
-      If monitoring tells you that the web server processes are running and
-      that remote web site retrieval agents are still pulling in site details,
-      then you're most likely to look at the connectivity between the client
-      and the site (such as potential proxy servers or even networking or
-      firewalls). On the other hand, if the monitoring is telling you that a
-      web gateway daemon is not responsive, you'll quickly be able to handle
-      the problem as you have a fairly good idea at where the problem
-      lies.</para>
+      site is not reachable" are difficult to debug when lacking monitoring.
+      Proper monitoring implementations allow to get an idea of the entire
+      state of the architecture and its individual components. If monitoring
+      sais that the web server processes are running and that remote web site
+      retrieval agents are still pulling in site details, then there is most
+      likely an issue with the connectivity between the client and the site
+      (such as potential proxy servers or even networking or firewalls). On
+      the other hand, if the monitoring shows that a web gateway daemon is not
+      responsive, it is fairly easy to handle the problem as it is quite
+      obvious where the problem lies.</para>
     </section>
 
     <section>
@@ -242,17 +241,17 @@
       <para>Even on regular servers, backups will be important to support fast
       recovery from human errors or application malpractices. Users, including
       administrators, make mistakes. Being able to quickly recover from
-      deleted files or modifications will save you hours of work later.</para>
+      deleted files or modifications will save hours of work later.</para>
     </section>
 
     <section>
       <title>Configuration management</title>
 
       <para>In order to properly update/upgrade the systems, as well as
-      configure it to match the needs of the organization, you will need some
-      configuration management approach. Whereas smaller deployments can be
-      perfectly managed manually, decent configuration management allows you
-      to quickly deploy new systems, reconfigure systems when needed, support
+      configure it to match the needs of the organization, some configuration
+      management approach is needed. Whereas smaller deployments can be
+      perfectly managed manually, decent configuration management allows to
+      quickly deploy new systems, reconfigure systems when needed, support
       testing of configuration changes, etc.</para>
     </section>
 
@@ -272,16 +271,16 @@
     <section>
       <title>Distributed resource management</title>
 
-      <para>In order to support automation tasks across multiple systems, we
-      will use JobScheduler services. This allows us to combine tasks to
-      automate more complex activities across systems.</para>
+      <para>In order to support automation tasks across multiple systems,
+      JobScheduler services are used. This allows to combine tasks to automate
+      more complex activities across systems.</para>
     </section>
   </section>
 
   <section>
     <title>Architecture</title>
 
-    <para>In our reference architecture, the given services will be filled in
+    <para>In this reference architecture, the given services will be filled in
     with the following components.</para>
 
     <figure>
@@ -335,11 +334,11 @@
           </mediaobject>
         </figure>
 
-        <para>Often, you do not want to take full backups every day. Most
-        backup solutions support full backup, differential backup (changes
-        since last full or differential) and incremental backup (changes since
-        last backup, regardless of type). The backup scheme then decides what
-        to backup when, optimizing the backup volumes while keeping restore
+        <para>Often, full backups taken every day are not optimal. Most backup
+        solutions support full backup, differential backup (changes since last
+        full or differential) and incremental backup (changes since last
+        backup, regardless of type). The backup scheme then decides what to
+        backup when, optimizing the backup volumes while keeping restore
         durations in mind.</para>
 
         <itemizedlist>
@@ -373,13 +372,12 @@
           </listitem>
         </itemizedlist>
 
-        <para>Also, keep in mind how long you want backups to retain. You
-        might want to keep them for 1 month (around 4 full backups +
-        remainder), but it might also be interesting to keep the first full
-        backup of every month for an entire year, and the first full of each
-        year (almost) eternally. It all depends on your retention requirements
-        and pricing concerns (lots of backups requires lots of
-        storage).</para>
+        <para>Also, keep in mind how long backups need to be retained. Backups
+        might want to be kept for 1 month (around 4 full backups + remainder),
+        but it might also be interesting to keep the first full backup of
+        every month for an entire year, and the first full of each year
+        (almost) eternally. It all depends on the retention requirements and
+        pricing concerns (lots of backups requires lots of storage).</para>
       </section>
 
       <section>
@@ -387,8 +385,8 @@
 
         <para>Logging data is usually sent from the system logger<indexterm>
             <primary>syslog</primary>
-          </indexterm> (<command>syslog</command>) towards a central server.
-        We use a central server as this allows to correlate events from
+          </indexterm> (<command>syslog</command>) towards a central server. A
+        central server is used as this allows to correlate events from
         multiple systems, as well as keep log management central.</para>
 
         <figure>
@@ -417,9 +415,9 @@
     <section>
       <title>Administration</title>
 
-      <para>To administer the system (and the components hosted on it), we
-      will use OpenSSH (for access to the system) and Puppet (for managing
-      configuration settings).</para>
+      <para>To administer the system (and the components hosted on it),
+      OpenSSH (for access to the system) and Puppet (for managing
+      configuration settings) are used.</para>
 
       <figure>
         <title>Operating system administration</title>
@@ -448,8 +446,8 @@
     <section>
       <title>Monitoring</title>
 
-      <para>We will monitor the systems (and the components and services that
-      we host further) through Icinga.</para>
+      <para>Systems (and the components and services that are hosted further)
+      will be monitored through Icinga.</para>
 
       <figure>
         <title>Operating system monitoring</title>
@@ -461,12 +459,11 @@
         </mediaobject>
       </figure>
 
-      <para>The Icinga agent supports various plugins that allow us to monitor
+      <para>The Icinga agent supports various plugins that allow to monitor
       various aspects of the operating system and the services that run on it.
       The results of each "query" is then sent to the central Icinga database.
-      The monitoring web interface, which we will discuss later, interacts
-      with the database to visually represent the state of your
-      environment.</para>
+      The monitoring web interface, which is discussed later, interacts with
+      the database to visually represent the state of the environment.</para>
     </section>
 
     <section>
@@ -479,8 +476,8 @@
     <section>
       <title>Users</title>
 
-      <para>For the user management on a Linux system, we use a central LDAP
-      service for the end user accounts (and administrator accounts). The
+      <para>For the user management on a Linux system, a central LDAP service
+      for the end user accounts (and administrator accounts) is used. The
       functional accounts though (the Linux users under which daemons run) are
       defined locally. This ensures that there is no dependency on the network
       or LDAP for those services. However, for security reasons, it is
@@ -553,8 +550,8 @@
       <section>
         <title>Inventory management</title>
 
-        <para>As we would be using SCAP content to do inventory assessment, we
-        will re-use pmcs.</para>
+        <para>As SCAP content is used to do inventory assessment, pmcs is used
+        here as well.</para>
       </section>
 
       <section>
@@ -565,10 +562,10 @@
         auditing functionalities on various OS calls, and most security
         conscious services are well able to integrate with auditd.</para>
 
-        <para>The important part we still need to cover is to send the audit
-        events to a central server. We will leverage the system logger for
-        this, and configure <command>auditd</command> to dispatch audit events
-        to the local syslog.</para>
+        <para>The important part still need to be covered is to send the audit
+        events to a central server. The system logger is leveraged for this,
+        and <command>auditd</command> configured to dispatch audit events to
+        the local syslog.</para>
       </section>
 
       <section>
@@ -587,12 +584,12 @@
         <title>Integrity validation of critical files</title>
 
         <para>Critical files on the system are also checked for (possibly
-        unwanted) manipulations. We will use AIDE (Advanced Intrusion
-        Detection Environment) for this.</para>
+        unwanted) manipulations. AIDE (Advanced Intrusion Detection
+        Environment) can be used for this.</para>
 
         <para>In order to do offline scanning (so that malicious software
-        inside the host cannot meddle with the integrity validation scans) we
-        will use snapshotting on storage level and do the scan on the
+        inside the host cannot meddle with the integrity validation scans)
+        snapshotting is used on storage level and scanning is done on the
         hypervisor.</para>
       </section>
     </section>
@@ -754,7 +751,7 @@ session      required        pam_log.so level=audit
 session      required        pam_selinux.so open multiple
 session      optional        pam_mail.so</programlisting>
 
-      <para>We see that the configuration file is structured in the four
+      <para>Notice that the configuration file is structured in the four
       service domains that PAM supports: authentication, account management,
       password management and session management.</para>
 
@@ -818,23 +815,23 @@ session      optional        pam_mail.so</programlisting>
     <section>
       <title>Configuring PAM on the system</title>
 
-      <para>In order to connect the authentication of our system to a central
-      LDAP server, we need to add in the following lines in the
+      <para>In order to connect the authentication of a system to a central
+      LDAP server, the following lines need to be added in the
       <filename>/etc/pam.d/system-auth</filename> file (don't replace the
       file, just add the lines):</para>
 
-      <programlisting>auth       sufficient   pam_ldap.so use_first_pass
+      <programlisting>auth       sufficient   pam_ldap.so  use_first_pass
 account    sufficient   pam_ldap.so
-password   sufficient   pam_ldap.so use_authtok use_first_pass
+password   sufficient   pam_ldap.so  use_authtok use_first_pass
 session    optional     pam_ldap.so</programlisting>
 
       <para>Also install the <package>sys-auth/pam_ldap</package> (and
       <package>sys-auth/nss_ldap</package>) packages.</para>
 
-      <para>We also need to configure <filename>pam_ldap.so</filename>. For
-      <filename>/etc/ldap.conf</filename>, the following template can be used.
-      Make sure to substitute the domain information with the one used in your
-      environment:</para>
+      <para>A second step is to configure <filename>pam_ldap.so</filename>.
+      For <filename>/etc/ldap.conf</filename>, the following template can be
+      used. Make sure to substitute the domain information with the one used
+      in the environment:</para>
 
       <programlisting>suffix          "dc=genfic,dc=com"
 
@@ -906,7 +903,7 @@ shadow:         files ldap</programlisting>
     stability production environments and is therefor absolutely suitable for
     this reference architecture.</para>
 
-    <para>Within our scope, we will implement all services on a Gentoo
+    <para>Within this book's scope, all services are implemented on a Gentoo
     Hardened deployment with the following security measures in place:</para>
 
     <itemizedlist>
@@ -928,9 +925,8 @@ shadow:         files ldap</programlisting>
     </itemizedlist>
 
     <para>The installation of a Gentoo Hardened system is similar to a regular
-    Gentoo Linux one. You can find all necessary information on the Gentoo
-    Hardened project page. Later, we'll describe how to use images of a
-    (succesful) installation for seeding new servers and systems.</para>
+    Gentoo Linux one. All necessary information can be found on the Gentoo
+    Hardened project page.</para>
 
     <section>
       <title>PaX</title>
@@ -971,10 +967,10 @@ shadow:         files ldap</programlisting>
       attacks will be much more difficult to execute succesfully. This
       requires the code to be PIE built.</para>
 
-      <para>To enable PaX, you will need to install the hardened-sources
-      kernel in Gentoo Linux and configure it according to the instructions
-      found on the Hardened Gentoo PaX Quickstart document. You should also
-      install <command>paxctl</command><indexterm>
+      <para>To enable PaX, the hardened-sources kernel in Gentoo Linux needs
+      to be installed and configured according to the instructions found on
+      the Hardened Gentoo PaX Quickstart document. Also install
+      <command>paxctl</command><indexterm>
           <primary>paxctl</primary>
         </indexterm>.</para>
 
@@ -1000,11 +996,11 @@ shadow:         files ldap</programlisting>
       contains the application code) are not needed anymore. As such, these
       pages can be marked as non-writeable.</para>
 
-      <para>To find out if you have libraries that still support text
+      <para>To find out if there are libraries that still support text
       relocations<indexterm>
           <primary>text relocation</primary>
-        </indexterm>, you can install the pax-utils package and scan your
-      libraries for text relocations:</para>
+        </indexterm>, install the pax-utils package and scan the libraries for
+      text relocations:</para>
 
       <programlisting># <command>emerge pax-utils</command>
 $ <command>scanelf -lpqt</command>
@@ -1043,7 +1039,7 @@ $ <command>readelf -h /opt/Citrix/ICAClient/wfcmgr.bin | grep Type</command>
     <section>
       <title>Checking PaX and PIE/PIC/SSP results</title>
 
-      <para>If you want to verify the state of your system after applying the
+      <para>If the state of the system needs to be verified after applying the
       security measures identified earlier, install paxtest and run it. The
       application supports two modes: kiddie and blackhat. The blackhat test
       gives the worst-case scenario back whereas the kiddie-mode runs tests
@@ -1141,10 +1137,10 @@ Return to function (memcpy, PIE)         : Vulnerable
         </indexterm>), the system administrator can control which accesses are
       allowed and which not, and can enforce that the user cannot override
       this. Regular access patterns in Linux are discretionary, so the user
-      can define this himself. In this book, we will use SELinux<indexterm>
+      can define this himself. In this book, SELinux<indexterm>
           <primary>SELinux</primary>
-        </indexterm> as the MAC system. Another supported MAC in Gentoo
-      Hardened is grSecurity's RBAC model.</para>
+        </indexterm> is used as the MAC system. Another supported MAC in
+      Gentoo Hardened is grSecurity's RBAC model.</para>
 
       <para>Installing and configuring Hardened Gentoo with SELinux is
       described in the Gentoo SELinux handbook. It is seriously recommended to
@@ -1152,9 +1148,9 @@ Return to function (memcpy, PIE)         : Vulnerable
       enabling a feature - it is a change in the security model and requires
       experience with it.</para>
 
-      <para>We will use the SELinux strict policy (so no unconfined domains)
-      for regular services, or MCS (without unconfined domains) when we want
-      to use the multi-tenancy support.</para>
+      <para>The SELinux strict policy (so no unconfined domains) is used for
+      regular services, or MCS (without unconfined domains) when multi-tenancy
+      support is needed.</para>
 
       <programlisting>$ <command>id -Z</command>
 staff_u:staff_r:staff_t
@@ -1350,10 +1346,10 @@ hpl IN SSHFP 2 1 68da815fa78336cbaf69eacad7b5c9ebf67f518</programlisting>
   <section>
     <title>Logging and auditing</title>
 
-    <para>To handle auditing, we need to configure the Linux audit daemon. We
-    will configure it to send its audit events towards the central system
-    logger, which is configured to forward these events as soon as possible to
-    a central log server.</para>
+    <para>To handle auditing, the Linux audit daemon needs to be configured to
+    send its audit events towards the central system logger, which is
+    configured to forward these events as soon as possible to a central log
+    server.</para>
 
     <section>
       <title>System logging</title>
@@ -1604,9 +1600,8 @@ format = string</programlisting>
   <section>
     <title>Resources</title>
 
-    <para>For more information about the topics in this chapter, you can
-    divulge yourself in the information available at the following
-    resources...</para>
+    <para>For more information about the topics in this chapter, more
+    information is available at the following resources...</para>
 
     <para>Gentoo Hardened:</para>
 

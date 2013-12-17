@@ -389,7 +389,7 @@
             <primary>syslog</primary>
           </indexterm> (<command>syslog</command>) towards a central server.
         We use a central server as this allows to correlate events from
-        multiple systems, as well as keep log management central. </para>
+        multiple systems, as well as keep log management central.</para>
 
         <figure>
           <title>Log flows from server to central log server</title>
@@ -831,7 +831,7 @@ session    optional     pam_ldap.so</programlisting>
       <para>Also install the <package>sys-auth/pam_ldap</package> (and
       <package>sys-auth/nss_ldap</package>) packages.</para>
 
-      <para>We also need to configure pam_ldap.so. For
+      <para>We also need to configure <filename>pam_ldap.so</filename>. For
       <filename>/etc/ldap.conf</filename>, the following template can be used.
       Make sure to substitute the domain information with the one used in your
       environment:</para>
@@ -1354,6 +1354,236 @@ hpl IN SSHFP 2 1 68da815fa78336cbaf69eacad7b5c9ebf67f518</programlisting>
     will configure it to send its audit events towards the central system
     logger, which is configured to forward these events as soon as possible to
     a central log server.</para>
+
+    <section>
+      <title>System logging</title>
+
+      <para>The syslog protocol is an IETF standard described in <link
+      xlink:href="https://tools.ietf.org/html/rfc5424">RFC5424</link>. It
+      offers a standard protocol for submitting log events across services. A
+      log event is labeled with two important codes: the facility and the
+      severity.</para>
+
+      <para>The facility defines what service the origin is of a log event.
+      The supported facilities are:</para>
+
+      <variablelist>
+        <varlistentry>
+          <term>auth</term>
+
+          <listitem>
+            <para>security and authorization messages</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>authpriv</term>
+
+          <listitem>
+            <para>security and authorization messages</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>daemon</term>
+
+          <listitem>
+            <para>system daemons</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>cron</term>
+
+          <listitem>
+            <para>system scheduler messages</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>ftp</term>
+
+          <listitem>
+            <para>FTP daemon</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>lpr</term>
+
+          <listitem>
+            <para>printing messages</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>kern</term>
+
+          <listitem>
+            <para>kernel messages</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>mail</term>
+
+          <listitem>
+            <para>mail system</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>news</term>
+
+          <listitem>
+            <para>network news subsystem messages</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>syslog</term>
+
+          <listitem>
+            <para>messages generated internally by the system logger</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>user</term>
+
+          <listitem>
+            <para>user-level messages</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>uucp</term>
+
+          <listitem>
+            <para>UUCP subsystem</para>
+          </listitem>
+        </varlistentry>
+
+        <varlistentry>
+          <term>local0..local7</term>
+
+          <listitem>
+            <para>local use facilities</para>
+          </listitem>
+        </varlistentry>
+      </variablelist>
+
+      <para>The severities supported are emergency, alert, critical, error,
+      warning, notice, info and debug. Their description is provided by the
+      previously mentioned RFC.</para>
+
+      <para>The syslog standard uses UDP as transport method. As such, message
+      delivery across a network might not be guaranteed. Most system loggers
+      support TCP-based message delivery as well nowadays.</para>
+
+      <section>
+        <title>How syslog works</title>
+
+        <para>Most, if not all system loggers use a socket called /dev/log
+        through which local daemons can send syslog events. Scripts or
+        applications that do not use the /dev/log socket can use the logger
+        command to send events. The local system logger then writes the log
+        events to the proper log files and/or sends it to remote system
+        loggers.</para>
+
+        <figure>
+          <title>Syslog mode of operations</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/02-syslog.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>System loggers can also be configured to receive syslog events
+        from remote sources.</para>
+      </section>
+
+      <section>
+        <title>Balabit Syslog NG</title>
+
+        <para>Balabit's syslog-ng (provided through the
+        <package>app-admin/syslog-ng</package> package) allows sending syslog
+        events to a remote TCP-bound system logger through the following
+        destination directive:</para>
+
+        <programlisting>destination myloghost {
+  tcp("10.5.2.10" port(514));
+};</programlisting>
+
+        <para>Similarly, to have it receive syslog events, the following
+        source directive can be used:</para>
+
+        <programlisting>source src {
+  tcp(port(514) keep-alive(yes));
+};</programlisting>
+      </section>
+
+      <section>
+        <title>rSyslog</title>
+
+        <para>To enable TCP syslog transmission on rsyslog (provided through
+        the <package>app-admin/rsyslog</package> package):</para>
+
+        <programlisting>$RuleSet remote
+*.* @@10.5.2.10:514</programlisting>
+
+        <para>To enable it to receive syslog events:</para>
+
+        <programlisting>$ModLoad imtcp
+$InputTCPServerBindRuleset remote
+$InputTCPServerRun 514</programlisting>
+      </section>
+    </section>
+
+    <section>
+      <title>Auditing</title>
+
+      <para>Linux audit daemon interacts with the audit subsystem in the Linux
+      kernel, and stores audit information in the necessary audit log files.
+      The audit daemon can also dispatch audit events to other systems,
+      including remote audit daemons.</para>
+
+      <figure>
+        <title>Audit operations</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/02-audit.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>On a Linux system, all system call activities can be audited and
+      filters can be enabled to select what exactly (and when) auditing of
+      activities is to be performed.</para>
+
+      <section>
+        <title>Configuring audit to syslog</title>
+
+        <para>The Linux audit daemon can send out the audit events to the
+        system logger by using its audisp (Audit Dispatch) method. This is a
+        plugin-like system in the Linux audit daemon that handles dispatching
+        audit events based on certain rules.</para>
+
+        <para>To send all rules, edit
+        <filename>/etc/audisp/plugins.d/syslog.conf</filename> and make sure
+        <varname>active</varname> is set to "yes":</para>
+
+        <programlisting>active = yes
+direction = out
+path = builtin_syslog
+type = builting
+args = LOG_INFO
+format = string</programlisting>
+      </section>
+    </section>
   </section>
 
   <section>
@@ -1363,6 +1593,12 @@ hpl IN SSHFP 2 1 68da815fa78336cbaf69eacad7b5c9ebf67f518</programlisting>
     users to call certain commands with elevated privileges. To manage which
     commands are allowed by whom, we will also use the central LDAP
     server.</para>
+
+    <section>
+      <title>Centralized sudoers file</title>
+
+      <para>TODO</para>
+    </section>
   </section>
 
   <section>
@@ -1420,26 +1656,6 @@ hpl IN SSHFP 2 1 68da815fa78336cbaf69eacad7b5c9ebf67f518</programlisting>
         <para><link
         xlink:href="http://www.gentoo.org/proj/en/hardened/integrity">Gentoo
         Hardened Integrity subproject</link> (Gentoo Linux)</para>
-      </listitem>
-    </itemizedlist>
-
-    <para>KVM virtualization &amp; Ganeti:</para>
-
-    <itemizedlist>
-      <listitem>
-        <para><link xlink:href="http://www.lancealbertson.com/">Lance
-        Albertson's blog</link> (high focus on Ganeti and Gentoo)</para>
-      </listitem>
-
-      <listitem>
-        <para><link
-        xlink:href="http://docs.ganeti.org/ganeti/current/html/">Ganeti
-        documentation</link></para>
-      </listitem>
-
-      <listitem>
-        <para><link xlink:href="http://notes.ceondo.com/ganeti/">Ganeti
-        deployment notes</link> (Céondo)</para>
       </listitem>
     </itemizedlist>
   </section>

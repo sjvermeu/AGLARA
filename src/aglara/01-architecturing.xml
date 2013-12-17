@@ -12,8 +12,8 @@
   <section>
     <title>Introduction</title>
 
-    <para>When you're dealing with larger environments, you have undoubtedly
-    heard about IT infrastructure architecturing. It is the "art" of capturing
+    <para>When dealing with larger environments, IT infrastructure
+    architecture will be voiced as a common term. It is the "art" of capturing
     organizational requirements, translating them into well defined services,
     creating building blocks that adhere to the functional and non-functional
     requirements, integrating those building blocks in a larger deployment
@@ -24,27 +24,27 @@
     this is perfectly doable, although there is something to say about
     properly documenting it anyhow.</para>
 
-    <para>Larger scale deployments (several dozen servers, possibly even
-    hundreds which might also be deployed across multiple sites) are more of a
-    concern here, usually because the requirements put into the architecture
+    <para>Larger scale deployments (several hundreds servers, possibly even
+    thousands which might also be deployed across multiple sites) are more of
+    a concern here, usually because the requirements put into the architecture
     by the organization are more broadly defined and focus on things such as
     maintainability or manageability, enhanced security, ... These
     requirements are often written down into process-like approaches on how to
     deal with your infrastructure, because that improves the quality of
     activities done on your infrastructure and provides a way to streamline
-    handover of activities or jobs within the organization.</para>
+    hand over of activities or jobs within the organization.</para>
 
     <para>When dealing with large-scale free software deployments, this is not
     different. Within the next few sections, we will elaborate on how to match
     requirements and which processes you need to look at.</para>
 
     <section>
-      <title>Architecturing frameworks</title>
+      <title>Architecture frameworks</title>
 
-      <para>Many IT infrastructure architecturing frameworks exist. When you
-      are working for a large enterprise, these frameworks will most likely be
-      translated into the companies internal architecturing framework. Small
-      and medium-sized enterprises usually do not invest that much in managing
+      <para>Many IT infrastructure architecture frameworks exist. When you are
+      working for a large enterprise, these frameworks will most likely be
+      translated into the companies internal architecture framework. Small and
+      medium-sized enterprises usually do not invest that much in managing
       their own infrastructure architecture framework and instead work with
       online published and managed frameworks as good (or as bad) as they
       can.</para>
@@ -55,19 +55,18 @@
         </indexterm>, which is an acronym for Control Objectives for IT. CObIT
       dives into the requirements and deliverables of an IT organization,
       based on the business requirements of the organization and the processes
-      involved in managing IT infrastructure. I personally find CObIT a very
-      interesting resource from which you can learn a lot. When reading
-      through it, it might seem very difficult to implement, but that's ok.
-      Most of the time, organizations gradually grow into the objectives.
-      Trying to implement the objectives immediately will not work. But having
-      a good read through the framework allows you to investigate and prepare
-      a good "path" towards a more process-like, mature IT organization.
-      Still, most organizations that want to have a high degree of CObIT
-      implementation will be large. Medium-sized organizations might want to
-      keep CObIT as a valuable resource to see how they can mature, without
-      going into the full deployment of CObIT in the organization.</para>
+      involved in managing IT infrastructure. When reading through CObIT, it
+      might seem very difficult to implement, but that's ok. Most of the time,
+      organizations gradually grow into the objectives. Trying to implement
+      the objectives immediately will not work. But having a good read through
+      the framework allows you to investigate and prepare a good "path"
+      towards a more process-like, mature IT organization. Still, most
+      organizations that want to have a high degree of CObIT implementation
+      will be large. Medium-sized organizations might want to keep CObIT as a
+      valuable resource to see how they can mature, without going into the
+      full deployment of CObIT in the organization.</para>
 
-      <para>When we talk about processes, <link
+      <para>When processes come around the corner, <link
       xlink:href="http://www.itil-officialsite.com/home/home.aspx">ITIL</link><indexterm>
           <primary>ITIL</primary>
         </indexterm> is most likely the resource for process maturity. It
@@ -79,20 +78,20 @@
       handling incidents and questions, ...), security management (including
       central authentication and authorization, auditing services, ...),
       configuration management and more. Knowing what ITIL wants to achieve
-      and which services it defines is very important if you grow towards a
-      larger enterprise, because those are the services you will need to
-      consider and deploy. However, unlike CObIT, which is fairly technical
-      driven, ITIL stays on a higher abstraction level.</para>
+      and which services it defines is very important to grow towards a larger
+      enterprise, because those services need to be consider and deployed.
+      However, unlike CObIT, which is fairly technical driven, ITIL stays on a
+      higher abstraction level.</para>
 
-      <para>Security management is, in my opinion, too often seen as a
-      mandatory component that removes flexibility from the organization. This
-      is not true. When properly done, security means that you have a high
-      degree of manageability across your organization. Security is more than
-      just authentication and authorization, it strives on automation (which
-      improves the time-to-market and reduces possible human errors),
-      standardization (which lowers total cost of ownership), advanced log
-      management (including accountability, but also very important for
-      quality assurance and incident handling) and more. The <link
+      <para>Security management is too often seen as a mandatory component
+      that removes flexibility from the organization. This is not true. When
+      properly done, security means to have a high degree of manageability
+      across the organization. Security is more than just authentication and
+      authorization, it strives on automation (which improves the
+      time-to-market and reduces possible human errors), standardization
+      (which lowers total cost of ownership), advanced log management
+      (including accountability, but also very important for quality assurance
+      and incident handling) and more. The <link
       xlink:href="https://en.wikipedia.org/wiki/ISO/IEC_27000-series">ISO/IEC
       27000</link><indexterm>
           <primary>ISO/IEC 27000</primary>
@@ -109,9 +108,9 @@
       itself, providing valuable information about architecture lifecycle,
       planning, and more.</para>
 
-      <para>Yet many readers will undoubtedly thing this is all quite too
-      high-level or abstract to work with. If so, then please read on, because
-      that is what we want to help you with in this book!</para>
+      <para>Yet all this is often still quite too high-level or abstract to
+      work with. If so, then please read on, because that is what this book
+      will (also) help with!</para>
     </section>
 
     <section>
@@ -121,13 +120,13 @@
       architecture frameworks more tangible, a reference architecture can be
       documented.</para>
 
-      <para>A reference architecture shows how you could potentially design
-      your infrastructure, working with known software services (like Apache
-      for web services, OpenLDAP for directory services, etc.) and management
+      <para>A reference architecture shows how to potentially design
+      infrastructure, working with known software services (like Apache for
+      web services, OpenLDAP for directory services, etc.) and management
       components (like Puppet for configuration management). This is more in
-      line with what many readers expect and know, because we are then talking
-      about the technologies readers know and deploy themselves. Many vendors
-      that have a huge portfolio of software and server services have their
+      line with what many readers expect and know, because those are the
+      technologies known and are often deployed already. Many vendors that
+      have a huge portfolio of software and server services have their
       reference architectures as well, which is often used by administrators
       as a first resource reference to their own infrastructure.</para>
 
@@ -158,10 +157,10 @@
       their own development departments (is our offering sufficient and
       necessary).</para>
 
-      <para>Throughout the rest of this book, I'm going to go design a
-      reference architecture, with primary focus on the components used, the
-      reason for these components and possible process implementations that
-      are related to it.</para>
+      <para>Throughout the rest of this book, a reference architecture will be
+      designed, with primary focus on the components used, the reason for
+      these components and possible process implementations that are related
+      to it.</para>
     </section>
   </section>
 
@@ -195,8 +194,8 @@
         </listitem>
       </orderedlist>
 
-      <para>These steps are simply put the order of doing things, but they are
-      all but very easy.</para>
+      <para>These steps are simply put the order of doing things; the hardest
+      part though lays in the beginning.</para>
 
       <section>
         <title>Capturing the requirements</title>
@@ -239,7 +238,7 @@
         <para>The non-functional requirements can be thought of through the
         FURPS(+)<indexterm>
             <primary>FURPS</primary>
-          </indexterm> acronym. We covered the F already (which stands for
+          </indexterm> acronym. The F is covered already (which stands for
         Functional), but the other letters in the acronym give a nice overview
         of non-functional requirements that might exist: Usability,
         Reliability, Performance, Supportability. The + in the acronym focuses
@@ -263,12 +262,12 @@
         Although you can go extremely far in this (asking hundreds of
         questions), be sure to take a pragmatic approach and inform the
         stakeholders about possible consequences too (like the cost and
-        time-to-market influence of additional requirements). I personally
-        like a iterative production approach where a first set of requirements
-        is captured, a design is made after which some sort of storyboard
+        time-to-market influence of additional requirements). Using an
+        iterative production approach (where a first set of requirements is
+        captured, a design is made after which some sort of storyboard
         approach is used to describe to the organization how the design looks
-        like. It will give the organization time to react or give their ideas
-        (or additional requirements).</para>
+        like) will give the organization time to react or give their ideas (or
+        additional requirements).</para>
       </section>
 
       <section>
@@ -276,17 +275,17 @@
 
         <para>A logical design visualizes and describes a solution without
         going into the details of the implementation. The idea of logical
-        designs is that you can modularize them, designing one component after
-        another, and using building blocks to give a high-level overview of
-        the solution you are designing. This high-level design allows you to
-        keep track of your architecture whereas the components logical design
+        designs is that they can be modularized them, designing one component
+        after another, and using building blocks to give a high-level overview
+        of the solution you are designing. This high-level design allows
+        tracking of the architecture whereas the components logical design
         documents go into the details of a single building block.</para>
 
-        <para>When a logical design is made, you should try to keep
-        implementation details out of it. Details such as IP addresses, number
-        of parallel instances, memory details, ... might not be needed in
-        order to track and manage your architecture. These implementation
-        details go into the later stage.</para>
+        <para>When a logical design is made, try to keep the implementation
+        details out of it. Details such as IP addresses, number of parallel
+        instances, memory details, ... are not needed in order to track and
+        manage the architecture. These implementation details go into the
+        later stage.</para>
       </section>
 
       <section>
@@ -296,12 +295,12 @@
         process between designing the architecture and implementing it.
         Whereas the logical design can be reused in other projects or
         sometimes even other organizations, the implementation details are
-        more about how it all works in your own infrastructure. Overview of
-        instances, IP addresses, functional accounts in use, location of files
-        and certificates, etc. are all implementation details that are
-        important to manage properly (and will often be managed through a
-        configuration management database) but not that vital in understanding
-        the architecture by itself.</para>
+        more about how it all works in a specific infrastructure deployment.
+        Overview of instances, IP addresses, functional accounts in use,
+        location of files and certificates, etc. are all implementation
+        details that are important to manage properly (and will often be
+        managed through a configuration management database) but not that
+        vital in understanding the architecture by itself.</para>
       </section>
 
       <section>
@@ -315,45 +314,44 @@
     <section>
       <title>Logical design</title>
 
-      <para>For the author personally, the logical design is where he does
-      most of his work. Whereas requirements capturing is the most important,
-      the logical design is where we start writing and documenting how the
+      <para>Whereas requirements capturing is the most important, the logical
+      design is where architects start writing and documenting how the
       architecture looks like, translating the requirements in services (or
-      even immediately into technologies). In this book we'll also use a
-      lightweight logical design method to describe why decisions are made in
-      the reference architecture. We will not be providing full logical design
-      documents (that would be a bit overkill for now, especially since it is
-      just a fictional company) but the methods and structures used can help
-      you in your quest to find out what you need to think about.</para>
+      even immediately into technologies). In this book a lightweight logical
+      design method will be used to describe why decisions are made in the
+      reference architecture. There will not be full logical design documents
+      (that would be a bit overkill for now, especially since it is just a
+      fictional company) but the methods and structures used can help in the
+      quest to find out what a larger organization might want.</para>
 
       <para>A lightweight logical design document starts off with (a subset
       of) requirements that is used during the design and which influences the
       decisions made. Alongside the requirements a design might also include
-      assumptions, although you might want to remove assumptions before it is
-      too late - after all, every assumption that isn't validated is a risk
-      for your design.</para>
+      assumptions, although it is recommended to remove assumptions before it
+      is too late - after all, every assumption that isn't validated is a risk
+      for a design.</para>
 
-      <para>Next, the logical design itself is made, for which the author uses
-      the FAMOUS abbreviation:</para>
+      <para>Next, the logical design itself is made, for which the FAMOUS
+      abbreviation is introduced:</para>
 
       <itemizedlist>
         <listitem>
-          <para>Feeds or flows that are important for the design</para>
+          <para>Feeds and flows that are important for the design</para>
 
           <para>This information provides insight in the occasional data
           transports that occur towards the system. This might be the shipping
           of the database backup file towards a remote location, the flow of
           log entries that are sent to a central log server, an incoming daily
           snapshot of configuration settings that need to be loaded in an
-          LDAP, etc. By properly documenting these feeds or flows, you are
-          quickly able to find possible attention points (storage volume
+          LDAP, etc. By properly documenting these feeds and flows, it is much
+          easier to find possible attention points (storage volume
           requirements, network traffic shaping needs, heavy I/O timeframes,
           ...) that need to be tackled.</para>
 
           <para>In many cases, integration-requirements can also be found from
           this. A flow of log entries towards a central log server will help
-          you document the log structure &amp; communication standard that you
-          want to have in the organization. An incoming configuration file
+          in documenting the log structure &amp; communication standard that
+          might be wanted in an organization. An incoming configuration file
           will need to adhere to a certain format in order to make automation
           possible.</para>
         </listitem>
@@ -364,35 +362,34 @@
           <para>In many cases, administration is often forgotten to be
           designed. Yet the administration of components is an important
           aspect since it is often (flawed) administration that is causing
-          vulnerabilities or exploits. The more administrative accesses you
-          notice, the more "attack vectors" exist that might be exploitable.
-          By properly designing the administration of the components, you're
-          most likely to find a good method that is both secure as well as
-          supported by your administration team.</para>
+          vulnerabilities or exploits. The more administrative accesses that
+          are noticed, the more "attack vectors" exist that might be
+          exploitable. By properly designing the administration of the
+          components, it is much more likely to find a good method that is
+          both secure as well as supported by the administration team.</para>
         </listitem>
 
         <listitem>
           <para>Monitoring of the components</para>
 
           <para>Monitoring is more than having a cronjob checking if a process
-          is still running. It means you need to design what you want to
-          verify periodically (and how frequent) as well as the consequences
-          when certain events occur. So next to process monitoring (and
-          perhaps automatically restarting the process), also consider
-          resource monitoring (file system capacity, memory pressure, network
-          I/O) and service monitoring (automatic processes that perform
-          end-to-end tests on services).</para>
+          is still running. A design is needed to see what to verify
+          periodically (and how frequent) as well as the consequences when
+          certain events occur. So next to process monitoring (and perhaps
+          automatically restarting the process), also consider resource
+          monitoring (file system capacity, memory pressure, network I/O) and
+          service monitoring (automatic processes that perform end-to-end
+          tests on services).</para>
         </listitem>
 
         <listitem>
           <para>Operational flows (runtime behavior)</para>
 
-          <para>Designing the operational flow is less about your
-          (integration) architecture, but more about understanding what the
-          service is actually doing. Usually, you can find this information
-          from the products' project page (or vendor), but it never hurts to
-          verify this yourself and draw it so you understand it
-          yourself.</para>
+          <para>Designing the operational flow is less about the (integration)
+          architecture, but more about understanding what the service is
+          actually doing. Usually, this information can be found on the
+          products' project page (or vendor), but it never hurts to verify
+          this and draw it to understand it.</para>
 
           <para>An example operational flow could be the high-level working of
           Apache (with a master process bound to port 80, but that is
@@ -412,31 +409,28 @@
           <para>Many services delegate user management to another service. Be
           it direct LDAP access, or authentication through SASL or any other
           method: properly designing and documenting how user management for
-          the service is done helps you figure out potential improvements as
+          the service is done helps to figure out potential improvements as
           well as integration aspects of the service. Don't forget to think
           about the internal authentication &amp; authorization as well: does
-          the service offer role-based access? Which roles do you think you'll
-          need? What are the rights and privileges that these roles should
-          have?</para>
+          the service offer role-based access? Which roles are needed? What
+          are the rights and privileges that these roles should have?</para>
         </listitem>
 
         <listitem>
           <para>Security details</para>
 
-          <para>Finally, you might need to design particular security
-          requirements. Based on the earlier design flows, you can check if
-          you need firewall capabilities (or host filters), encryption (if
-          you're working with sensitive business data), certain audit
-          requirements you need to take care of, gateways you need to
-          implement that offer additional filtering or even request rewrites,
-          etc.</para>
+          <para>Finally, there is the design of particular security
+          requirements. Based on the earlier design flows, check if these need
+          firewall capabilities (or host filters), encryption (when working
+          with sensitive business data), certain audit requirements that need
+          to be taken care of, gateways that need to be implemented that offer
+          additional filtering or even request rewrites, etc.</para>
         </listitem>
       </itemizedlist>
 
-      <para>After this logical design, we can also write down further details
-      about the design that are less about the components and more about how
-      they will or could be used. For this, the author uses the FASTCARD
-      abbreviation:</para>
+      <para>After this logical design, write down further details about the
+      design that are less about the components and more about how they will
+      or could be used. For this we use the FASTCARD abbreviation:</para>
 
       <itemizedlist>
         <listitem>
@@ -444,41 +438,40 @@
 
           <para>If the service has particular licensing restrictions, document
           how the license works. Is it core-based? User-based? Instance-based?
-          If allowed, you should document what the cost is of this license as
-          that helps you decide on the usability (and evolution) of the
-          service. Document how you map contracts towards the
-          component.</para>
+          If allowed, document what the cost is of this license as that helps
+          to decide on the usability (and evolution) of the service. Document
+          how to map contracts towards the component.</para>
         </listitem>
 
         <listitem>
           <para>Aftermath (future development or evolution)</para>
 
-          <para>Your design is most likely either not finished, or is based on
-          the capacity you can currently provide whereas evolutions are in
-          sight. For instance, you might have documented an LDAP using a
-          master/slave approach, but you know you're going towards a
-          master/master situation later. Document the changes you think are
-          needed or will be done in the future.</para>
+          <para>The design is most likely either not finished, or is based on
+          the short-term resources available whereas more evolutions are still
+          in sight. For instance, an LDAP can be documented using a
+          master/slave approach, knowing very well that a master/master
+          situation might be in scope later. Document the changes thought to
+          be needed or will be done in the future.</para>
         </listitem>
 
         <listitem>
           <para>Selection criteria</para>
 
           <para>The service probably can serve multiple requests (or types of
-          requests). In many cases, you'll need to provide a decision chart or
+          requests). In many cases, it is best to provide a decision chart or
           decision table to help administrators and engineers decide if the
           design fits their needs. For instance, for a web server, the
           decision table might provide input as to when SSL encryption is
           needed, when SSL encryption with client certificate validation is
-          needed, etc. For a database, you want to include if (and when)
-          encryption or compression is needed, and so forth.</para>
+          needed, etc. For a database, include if (and when) encryption or
+          compression is needed, and so forth.</para>
         </listitem>
 
         <listitem>
           <para>Technology lifecycle</para>
 
           <para>If the project or vendor has described it, document how long
-          this particular version will last. If you have a support contract
+          this particular version will last. If there is a support contract
           with a particular vendor, verify if this contract deals with
           upgrades as well.</para>
         </listitem>
@@ -504,8 +497,8 @@
           <para>Issues that cannot be solved by the logical design by itself
           and thus need to be taken care of during integration or through
           other means. For instance, if a service does not offer SSL/TLS
-          encryption upon accessing it, you might have a residual risk
-          regarding plain-text network communication.</para>
+          encryption upon accessing it, a residual risk regarding plain-text
+          network communication should be documented.</para>
         </listitem>
 
         <listitem>
@@ -515,12 +508,12 @@
         </listitem>
       </itemizedlist>
 
-      <para>By documenting these two aspects, we usually have all information
-      we need about one building block or architecture. It is this information
-      that the author keeps alive during the lifecycle of the components
-      within the architecture. Don't worry if the acronyms are currently too
-      illogical for you - they will become more clear when you start looking
-      at the example designs that are described further down the book.</para>
+      <para>By documenting these two aspects, all information needed about one
+      building block or architecture is readily available. This information
+      should be kept alive during the lifecycle of the components within the
+      architecture. Don't worry if the acronyms are currently too illogical -
+      they will become more clear while looking at the example designs that
+      are described further down the book.</para>
     </section>
   </section>
 

@@ -17,9 +17,7 @@
     and structure (which tree in the LDAP?). Servers could be for one customer
     or another. Having a high-level structure for positioning components
     provides a quick way of dealing with more general requirements: allowed
-    data flows, location of the central user repository and more. But most
-    importantly, it provides a structure in which security measurements can be
-    positioned.</para>
+    data flows, location of the central user repository and more.</para>
 
     <para>In an attempt to structure services in a large, hypothetical
     company, the following hierarchy is used:</para>
@@ -48,120 +46,23 @@
       </listitem>
     </orderedlist>
 
-    <para/>
+    <para>Within this reference architecture, I will be using IPv6 (as it
+    proves to be a nice exercise, but also to show that IPv6 is not something
+    to be afraid of) and a logical way of naming the hosts and services using
+    DNS names. In this book, the used DNS names will reflect the function and
+    "position" of the services in the architecture, but you are not required
+    to follow this. Some organizations even want to keep the naming
+    conventions of their services (including DNS) as obscure as possible, not
+    to give too much information available when a leak occurs.</para>
 
     <section>
       <title>Multi-tenancy</title>
 
-      <para>In a multi-tenant organization, several larger customers (be it
-      internal or not) are identified. Each of these customers probably has
-      very different requirements and might take risks in their architecture
-      that other tenants won't. For this reason alone, differentiation between
-      tenants is at the highest level (the most segregated level).</para>
-
-      <figure>
-        <title>Multi-tenant setup</title>
-
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="images/03-tenants.png"/>
-          </imageobject>
-        </mediaobject>
-      </figure>
-
-      <para>The most important part here is that anything used within a tenant
-      that might be shared across tenants (such as user ids for
-      administration) is <emphasis>pushed</emphasis> to the tenant, never used
-      directly from the tenant hub. This provides a clean, modular approach to
-      handling tenants. When a tenant wants to leave the organization, the
-      data flow is stopped and the tenant can continue with its internal
-      architecture (with little to no immediate adaptations). When a new
-      tenant enters the organization, data is pushed and converted towards
-      that tenants' internal services.</para>
-
-      <para>Communication between the tenants directly should be done through
-      the external gateways as it is seen as <emphasis>B2B (Business to
-      Business)</emphasis> communication.</para>
-    </section>
-
-    <section>
-      <title>User groups</title>
-
-      <para>Within a particular architecture, services will be positioned for
-      several user groups or actor types. A simple example would be internal
-      users versus customers versus anonymous (internet) users. Another one
-      could be administrators, developers, end users.</para>
-
-      <figure>
-        <title>User group segregation</title>
-
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="images/03-usergroups.png"/>
-          </imageobject>
-        </mediaobject>
-      </figure>
-
-      <para>The important part here is that user groups are mostly
-      differentiated based on their access method. Internet users have a
-      different way of accessing services than internal users, for instance,
-      although overlap might (and will) exist. Each user group has its own set
-      of systems (depicted as system groups). If those systems need to
-      communicate with each other, a system bus architecture is used to govern
-      the communication flows (and ensure that the security requirements of
-      the data is fulfilled).</para>
-
-      <para>Some services will remain user group agnostic though. These should
-      only be accessible through the system bus as well.</para>
-    </section>
-
-    <section>
-      <title>SLA groups</title>
-
-      <para>Larger environments will have different SLA groups. Those could be
-      called "production", "preproduction", "testing" and "sandbox" for
-      instance. Smaller organizations might have just two, or even one SLA
-      group.</para>
-
-      <figure>
-        <title>SLA group structure</title>
-
-        <mediaobject>
-          <imageobject>
-            <imagedata fileref="images/03-sla-groups.png"/>
-          </imageobject>
-        </mediaobject>
-      </figure>
-
-      <para>The segregation between the SLA groups not only makes proper
-      service level agreements possible on the various services, but also
-      controls communication flows between these SLA groups.</para>
-
-      <para>For instance, communication of data between production and
-      pre-production might be possible, but has to be governed through the
-      proper gateways or control points. In the above figure, the SLA groups
-      are layered so direct communication between production and sandbox
-      should not be possible unless through the three gateway levels. However,
-      that is definitely not a mandatory setup.</para>
-
-      <para>To properly design such SLA groups, make sure communication flows
-      in either direction (which not only includes synchronous communication,
-      but also file transfers and such) are properly documented and
-      checked.</para>
+      <para/>
     </section>
 
     <section>
       <title>Example network segment</title>
-
-      <para>Within this reference architecture, I will be using IPv6 (as it
-      proves to be a nice exercise, but also to show that IPv6 is not
-      something to be afraid of) and a logical way of naming the hosts and
-      services using DNS names. In this book, the used DNS names will reflect
-      the function and "position" of the services in the architecture, but you
-      are not required to follow this. Some organizations even want to keep
-      the naming conventions of their services (including DNS) as obscure as
-      possible, not to give too much information available when a leak
-      occurs.</para>
 
       <para>The following drawing gives a high-level impression on the network
       segments identified for use in this book. I will be using the

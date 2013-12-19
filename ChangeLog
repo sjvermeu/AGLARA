@@ -1,3 +1,7 @@
+** (2013-12-19) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Update architecture structure (TSAC now)
+	- Update DNS (BIND) setup
+
 ** (2013-12-17) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Add info on audit/syslog
 	- Add introduction to architecture structure (TUSAC)

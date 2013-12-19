@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<chapter version="5.0" xml:id="network" xmlns="http://docbook.org/ns/docbook"
+<chapter version="5.0" xml:id="dnsserver"
+         xmlns="http://docbook.org/ns/docbook"
          xmlns:xlink="http://www.w3.org/1999/xlink"
          xmlns:xi="http://www.w3.org/2001/XInclude"
          xmlns:svg="http://www.w3.org/2000/svg"
@@ -215,7 +216,7 @@
       </figure>
 
       <section>
-        <title>Process running and bound</title>
+        <title>Process running and bound to the right interface</title>
 
         <para>Checking if processes are running is a primitive check, but
         quite important to troubleshoot potential failures. The check should
@@ -347,24 +348,231 @@
           e-mails and provide the DKIM public key in the DNS records so
           DKIM-supporting mail servers can validate the signatures.</para>
         </listitem>
+
+        <listitem>
+          <para>Enable DMARC (Domain-based Message Authentication, Reporting
+          and Conformance) to receive reports on how mails from that domain
+          are treated, as well as identify which protective measures the
+          domain takes</para>
+        </listitem>
       </itemizedlist>
 
       <section>
         <title>DNSSEC</title>
 
-        <para/>
+        <para>The DNSSEC structure adds in a number of DNS records that help
+        with the authentication of the DNS data, as well as verification of
+        the integrity of this data. This protects the DNS records from both
+        hijacking as well as tampering.</para>
+
+        <figure>
+          <title>DNSSEC overview</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/04-dnssec.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+
+        <para>The idea is that a record (in the example the record for
+        www.genfic.com) has its various types signed. In the example, two
+        types are provided (A and AAAA), each of these has its own signature
+        in an <emphasis>RRSIG<indexterm>
+            <primary>RRSIG</primary>
+          </indexterm><indexterm>
+            <primary>Resource Record Signature</primary>
+          </indexterm> (Resource Record Signature)</emphasis> field. The RRSIG
+        fields are digital signatures made with a private key called the
+        <emphasis>ZSK<indexterm>
+            <primary>ZSK</primary>
+          </indexterm><indexterm>
+            <primary>Zone Signing Key</primary>
+          </indexterm> (Zone Signing Key)</emphasis> of which the public key
+        part is available in the zone, in a <emphasis>DNSKEY<indexterm>
+            <primary>DNSKEY</primary>
+          </indexterm> (DNS public Key)</emphasis> field. This field is also
+        signed by a private key called the <emphasis>KSK<indexterm>
+            <primary>KSK</primary>
+          </indexterm><indexterm>
+            <primary>Key Signing Key</primary>
+          </indexterm> (Key Signing Key)</emphasis> also available in a DNSKEY
+        field in the zone.</para>
+
+        <para>Now, to verify that the KSK public key is the proper key, it is
+        also signed with the KSK private key, but also by the zone signing key
+        of the parent domain (in our example, the .com zone). This domain has
+        a <emphasis>DS<indexterm>
+            <primary>DS</primary>
+          </indexterm><indexterm>
+            <primary>Delegation Signer</primary>
+          </indexterm> (Delegation Signer)</emphasis> field in the genfic.com
+        zone record, which contains a hash of the genfic.com KSK public key
+        (the field itself), and this hash is signed through the parent zone
+        RRSIG field.</para>
+
+        <para>In the drawing <emphasis>NSEC<indexterm>
+            <primary>NSEC</primary>
+          </indexterm><indexterm>
+            <primary>Next Secure</primary>
+          </indexterm> (Next Secure)</emphasis> fields are also shown. This
+        "chains" multiple secure records with each other, providing a way for
+        requestors to make sure a record really does not exist (upon retrieval
+        of a nonexisting record, the DNS server replies with data pointing out
+        that between records 1 and 2, there is no record for the requested
+        one).</para>
+
+        <para>Next to NSEC, it is also possible to use NSEC3. NSEC3 covers one
+        of the possible security holes that NSEC provides: malicious people
+        can "walk" across all the NSECs to get a view of the entire zone. For
+        fully public zones, this is not an issue, but many DNS servers want
+        only to expose a few of the records in a zone, and NSEC requires that
+        all records are public. With <emphasis>NSEC3<indexterm>
+            <primary>NSEC3</primary>
+          </indexterm><indexterm>
+            <primary>DNSSEC Hashed Authenticated Denial of Existence</primary>
+          </indexterm> (DNSSEC Hashed Authenticated Denial of
+        Existence)</emphasis> not the record name itself (like "www") but a
+        hashed value of it is used. This prevents "walking" over the entire
+        zone, while still providing validation that records do (or don't)
+        exist.</para>
       </section>
 
       <section>
-        <title>SPF</title>
+        <title>SPF - Sender Policy Framework</title>
 
-        <para/>
+        <para>In <emphasis>SMTP<indexterm>
+            <primary>SMTP</primary>
+          </indexterm><indexterm>
+            <primary>Simple Mail Transfer Protocol</primary>
+          </indexterm> (Simple Mail Transfer Protocol)</emphasis> mail clients
+        need to pass on information about the mail they are sending. It starts
+        with the HELO (or EHLO) statements, telling the mail server who the
+        client system is, followed by information whom the mail is from (MAIL
+        FROM) and to who the mail should be sent (RCPT TO):</para>
+
+        <programlisting>220 mail.internal.genfic.com
+&gt; <command>HELO relay.internal.genfic.com</command>
+250 relay.internal.genfic.com Hello relay.internal.genfic.com [10.24.2.3], pleased to meet you
+&gt; <command>MAIL FROM: &lt;someone@genfic.com&gt;</command>
+250 someone@genfic.com... Sendor ok
+&gt; <command>RCPT TO: &lt;otherone@genfic.com&gt;</command>
+250 otherone@genfic.com... Recipient ok (will queue)
+&gt; <command>DATA</command>
+354 Enter mail, end with "." on a line by itself
+...</programlisting>
+
+        <para>A first check that mail servers (should) do is validate that the
+        fully qualified hostname provided through the HELO (or EHLO) commands
+        really comes from that host. If it doesn't, then it is possibly a fake
+        mail. But other than that, there are little checks done to see if the
+        mail is truly sent from and to those mail boxes.</para>
+
+        <para>With SPF<indexterm>
+            <primary>SPF</primary>
+          </indexterm><indexterm>
+            <primary>Sender Policy Framework</primary>
+          </indexterm> mail servers will do one or two more checks:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>the mail server will first check if the host (as provided by
+            the HELO/EHLO) is allowed to send mails, and</para>
+          </listitem>
+
+          <listitem>
+            <para>the mail server will then check if this host is allowed to
+            send mail for the given domain (as provided by the MAIL
+            FROM)</para>
+          </listitem>
+        </itemizedlist>
+
+        <para>For this to happen, specific fields are added to the host
+        record:</para>
+
+        <programlisting>.genfic.com.  IN  SPF  "v=spf1 mx a -all"
+.genfic.com.  MX  10   relay.internal.genfic.com
+
+relay.internal.genfic.com   IN   SPF   "v=spf1  ip4:10.24.2.3 a -all"
+relay.internal.genfic.com    A   10.24.2.3</programlisting>
+
+        <para>The SPF records can be read as:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>Mails sent for the genfic.com domain are allowed to be sent
+            from any system that is defined as an MX record; all others are
+            denied</para>
+          </listitem>
+
+          <listitem>
+            <para>The relay.internal.genfic.com system is allowed to send mail
+            (as long as it is really this system, with IP 10.24.2.3).</para>
+          </listitem>
+        </itemizedlist>
       </section>
 
       <section>
         <title>DKIM</title>
 
-        <para/>
+        <para>DKIM (DomainKeys Identified Mail) uses cryptographic signatures
+        on the e-mail (and important headers of the e-mail) to provide
+        authenticity on the mail. Mail servers that use DKIM will sign the
+        outgoing e-mails with a private key (whose public component can be
+        obtained through DNS, on the
+        <code>&lt;hostname&gt;._domainkey.&lt;domain&gt;</code> TXT record).
+        Receiving mail servers can then validate that the mail they receive,
+        if it has a DKIM signature, has not been tampered with along the
+        way.</para>
+
+        <para>A mail can have DKIM signatures of non-authorative domains
+        though (domains that are not related to the mail). An extension on
+        DKIM, called <emphasis>ADSP<indexterm>
+            <primary>ADSP</primary>
+          </indexterm><indexterm>
+            <primary>Author Domain Signing Practices</primary>
+          </indexterm> (Author Domain Signing Practices)</emphasis> provides a
+        signature that is authenticated through the same domain as the mail
+        says it is from. If ADSP is used, then an additional TXT record exists
+        that informs recipients of this. Recipients should check this field to
+        see if they should find a proper DKIM signature (from that domain) or
+        not.</para>
+
+        <para>This TXT record is for
+        <code>_adsp._domainkey.&lt;domain&gt;</code>.</para>
+      </section>
+
+      <section>
+        <title>DMARC</title>
+
+        <para><emphasis>DMARC<indexterm>
+            <primary>DMARC</primary>
+          </indexterm> (Domain-based Message Authentication, Reporting and
+        Conformance)</emphasis> is used to inform other systems how to treat
+        non-conformance (if mails are not according to the SPF requests, or
+        DKIM signatures are missing, or...). This information is available
+        through the <code>_dmarc.&lt;domain&gt;</code> record and uses tags
+        (similar to SPF).</para>
+
+        <programlisting>.genfic.com    TXT    "v=DMARC1 p=quarantine pct=20 rua=mailto:dmarc@genfic.com sp=r aspf=r"</programlisting>
+
+        <para>The above record tells other parties that:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>If mails fail the DKIM/SPF checks (generally called the
+            DMARC checks), then 20% of those mails should be quarantined.
+            Daily reports are sent to dmarc@genfic.com</para>
+          </listitem>
+
+          <listitem>
+            <para>The policy for subdomains (sp) is relaxed</para>
+          </listitem>
+
+          <listitem>
+            <para>The alignment mode for SPF (aspf) is related</para>
+          </listitem>
+        </itemizedlist>
       </section>
     </section>
   </section>

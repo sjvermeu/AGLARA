@@ -11,17 +11,90 @@
   <section>
     <title>DHCP</title>
 
-    <para>When you have systems that require dynamically allocated IP
-    addresses, you will need a DHCP service.</para>
-
     <para>DHCP<indexterm>
         <primary>DHCP</primary>
       </indexterm> stands for Dynamic Host Configuration Protocol and is the
-    de-facto standard for dynamic IP allocation. In our architecture, we will
-    be using DHCP for the workstations, VPN and other devices that are in the
-    "bring your own device" pool, because all those devices might be started
-    on different locations and as such are difficult to manage with fixed IP
-    addresses.</para>
+    de-facto standard for dynamic IP allocation. The basic premise is that a
+    client, who does not know what IP address it has (or should have), asks it
+    to the DHCP server. The flow used is shown in the next figure.</para>
+
+    <figure>
+      <title>Standard DHCP flow</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/05-dhcp-flow.png"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+    <para>Initially, the client does not know where the server is, so it
+    broadcasts the DHCP discover request on the entire subnet. Network
+    administrators will configure the routers on each subnet to forward the
+    DHCP related messages to the proper server, or can deploy DHCP Relay
+    services in the subnet that do the forwarding for them.</para>
+
+    <para>DHCP has a few advanced usages as well though.</para>
+
+    <section>
+      <title>Bootstrap Protocol</title>
+
+      <para>The <emphasis>Bootstrap Protocol (BOOTP)</emphasis><indexterm>
+          <primary>BOOTP</primary>
+        </indexterm><indexterm>
+          <primary>Bootstrap Protocol</primary>
+        </indexterm> allows for a client to obtain not only IP address
+      information, but also images that the client should download and boot.
+      Unlike DHCP itself, which is usually triggered when the operating system
+      on the client has already booted, BOOTP is meant to be executed before
+      an operating system is loaded. Historically, BOOTP was created for
+      diskless systems, but this feature is still used often.</para>
+
+      <para>One of the situations where BOOTP can come in handy is to create
+      bare metal backups of desktops. By default, the DHCP/BOOTP server does
+      not pass any information back, and all desktops or workstations get no
+      reply to the BOOTP requests and thus boot further into their operating
+      system. But when a bare metal backup (or restore) needs to be executed,
+      the administrator toggles the BOOTP server. When the workstation
+      reboots, it now receives the necessary information from the BOOTP
+      server, downloads an autonomous operating system image (such as a Linux
+      OS with imaging software on it, such as PartImage) and performs the
+      backup (or restore) operation that the administrator has
+      configured.</para>
+
+      <para>After backing up the file, the workstation is rebooted and the
+      BOOTP server becomes silent again, allowing the workstation to continue
+      to boot regularly.</para>
+
+      <para> </para>
+    </section>
+
+    <section>
+      <title>Various DHCP options</title>
+
+      <para>DHCP servers can pass on additional options to the clients, which
+      are used to configure other services on the client. These options have
+      unique integer as identifiers.</para>
+
+      <para>Most of these options are to point the client to other centralized
+      services, such as the syslog server to use (28), NTP Server (47-49),
+      mail server (69) and more. If both server and clients are fully
+      controlled by the organization, additional custom options can be used to
+      configure systems further.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Architecture</title>
+
+    <para/>
+  </section>
+
+  <section>
+    <title>ISC DHCP</title>
+
+    <para>When you have systems that require dynamically allocated IP
+    addresses, you will need a DHCP service.</para>
 
     <section>
       <title>DHCP Architecture</title>

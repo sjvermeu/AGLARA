@@ -31,8 +31,9 @@
     <para>Initially, the client does not know where the server is, so it
     broadcasts the DHCP discover request on the entire subnet. Network
     administrators will configure the routers on each subnet to forward the
-    DHCP related messages to the proper server, or can deploy DHCP Relay
-    services in the subnet that do the forwarding for them.</para>
+    DHCP related messages to the proper server (actually enable a DHCP relay
+    function in the router - forwarding alone is not sufficient), or can
+    deploy DHCP Relay services in the subnet separate from the router.</para>
 
     <para>DHCP has a few advanced usages as well though.</para>
 
@@ -65,8 +66,6 @@
       <para>After backing up the file, the workstation is rebooted and the
       BOOTP server becomes silent again, allowing the workstation to continue
       to boot regularly.</para>
-
-      <para> </para>
     </section>
 
     <section>
@@ -87,7 +86,114 @@
   <section>
     <title>Architecture</title>
 
-    <para/>
+    <para>The basic setup shown further uses a high-available architecture
+    where the DHCP services keep track of the leases granted to the systems,
+    as well as balance free IP addresses between the two DHCP servers. This
+    allows, if a network split occurs, that each DHCP service can act
+    independently as it has its own pool of free IP addresses, and has
+    knowledge of the lease state of all currently assigned addresses.</para>
+
+    <figure>
+      <title>Standard HA architecture for DHCP</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/05-dhcp-ha.png"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+    <important>
+      <para>Make sure that the two DHCP servers have their time synchronized,
+      so the use of an NTP service for both systems is seriously
+      recommended.</para>
+    </important>
+
+    <section>
+      <title>Flows and feeds</title>
+
+      <para>No flows or feeds are identified as of yet.</para>
+    </section>
+
+    <section>
+      <title>Administration</title>
+
+      <para>To administer DHCPd, a configuration management tool (puppet) is
+      used to update configurations. Regular operations on the DHCP daemon
+      (stopping/starting) is done through the standard Unix services.</para>
+
+      <figure>
+        <title>Administering DHCPd</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/05-dhcp-admin.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+
+    <section>
+      <title>Monitoring</title>
+
+      <para>To monitor DHCP operations, log events need to be captured. This
+      allows the monitoring infrastructure to follow up on the IP pool
+      balance.</para>
+
+      <para>On regular times, the following log entries will be shown with the
+      current balancing information:</para>
+
+      <programlisting>Oct 24 09:33:21 src &lt;at&gt; intranet dhcpd: pool 8124898 total 759 free 238 backup 266 lts -14
+Oct 24 09:33:32 src &lt;at&gt; intranet dhcpd: pool 8124898 total 759 free 237 backup 266 lts -14</programlisting>
+
+      <para>In the above example, from a pool with currently 759 IP addresses,
+      237 are not assigned and "owned" by the server while the backup server
+      has 266 IP addresses free. The lts parameter (which stands for "leases
+      to send") tells that the system is to receive 14 leases (negative
+      number) in order to balance the available IP addresses.</para>
+
+      <para>Other monitoring is of course </para>
+    </section>
+
+    <section>
+      <title>Operations</title>
+
+      <para>In standard operation mode, the DHCP daemon receives requests and
+      updates from DHCP relay services (or directly from servers in the same
+      subnet). Any activity is logged through the system logger, who forwards
+      the events to the log server for further processing.</para>
+
+      <para>An NTP service is explicitly mentioned on the drawing as time
+      synchronisation is very important for the fail-over setup of the DHCP
+      service.</para>
+
+      <figure>
+        <title>Operational flows and activities on DHCP service</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/05-dhcp-operations.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+
+    <section>
+      <title>Users</title>
+
+      <para>The DHCP daemon is an anonymous service; no users are defined
+      beyond the administrators (on operating system level).</para>
+    </section>
+
+    <section>
+      <title>Security</title>
+
+      <para>ISC DHCP is a popular components, so exploits are not that hard to
+      find against older versions.</para>
+
+      <para>Make sure that the DHCP service is running on the latest patch
+      level, and is properly hardened.</para>
+    </section>
   </section>
 
   <section>
@@ -95,53 +201,6 @@
 
     <para>When you have systems that require dynamically allocated IP
     addresses, you will need a DHCP service.</para>
-
-    <section>
-      <title>DHCP Architecture</title>
-
-      <para>Within our architecture, we will be positioning two DHCP servers
-      internally, in an active/standby setup. Because ISC's DHCP (which we
-      will use here) does not support high-available mode for IPv6 yet, we are
-      forced to use a "standard" setup. When ISC supports failover mode for
-      IPv6 as well, I will update the architecture accordingly.</para>
-
-      <para>We also implement DHCP relay daemons within the target subnets
-      where the workstations and other devices will need one.</para>
-
-      <section>
-        <title>General architecture</title>
-
-        <para>The next figure displays the general architecture being put in
-        place for our needs.</para>
-
-        <figure>
-          <title>General DHCP architecture</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/03-dhcp.png" scalefit="0"
-                         width="100%"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-
-        <para>The given architecture is fairly simple:</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>The workstation requests a dynamic IP address
-            (<emphasis>Request IP</emphasis>) which gets captured by the relay
-            server.</para>
-          </listitem>
-
-          <listitem>
-            <para>The relay server forwards the request (<emphasis>Forward
-            request</emphasis>) to the DHCP servers. They eventually complete
-            the DHCP handshake through the relay server</para>
-          </listitem>
-        </itemizedlist>
-      </section>
-    </section>
 
     <section>
       <title>Installation and configuration</title>
@@ -152,13 +211,11 @@
       <section>
         <title>Installation</title>
 
-        <para>First install the DHCP server. We will use ISC's DHCP server
-        here.</para>
+        <para>First install the DHCP server.</para>
 
         <programlisting># <command>emerge dhcp</command></programlisting>
 
-        <para>Do the same on the relay servers. We will, however, not start
-        the main server there but the relay service only.</para>
+        <para>Do the same on the relay servers.</para>
 
         <para>Next, edit <filename>/etc/conf.d/dhcpd</filename> to configure
         the DHCP daemon to use IPv6.</para>
@@ -182,6 +239,22 @@ authorative;
 default-lease-time 600;
 max-lease-time 7200;
 
+server-identifier adhcpp.internal.genfic.com;
+failover peer "dhcp-ha" {
+  primary;
+  split 128;
+  mclt 3600;
+  address 2001:db8:81:e2::fe12; # This server
+  port 519;
+  peer address 2001:db8:81:e4::822f; # Secondary server
+  peer port 519;
+  max-response-delay 60;
+  max-unacked-updates 10;
+  load balance max seconds 3;
+};
+
+# Shared part
+
 subnet6 2001:db8:81:e2::/64 {
   range6 2001:db8:81:e2::f00 2001:db8:81:e2::fff;
   option dhcp6.name-servers 2001:db8:81:21::ac:98ad:5fe1, \
@@ -193,9 +266,9 @@ subnet6 2001:db8:81:21::/64 {
   # Empty but must be declared so DHCPd starts
 }</programlisting>
 
-        <para>You can also have the DHCP server give a fixed IP address to a
-        system based on its MAC address. This is handled through the host
-        parameter:</para>
+        <para>It is also possible to have the DHCP server provide a fixed IP
+        address to a system based on its MAC address. This is handled through
+        the host parameter:</para>
 
         <programlisting>group {
   use-host-decl-names on;
@@ -213,14 +286,29 @@ subnet6 2001:db8:81:21::/64 {
         <programlisting># <command>rc-update add dhcpd default</command>
 # <command>rc-service dhcpd start</command></programlisting>
 
-        <para>Our secundary system will have a similar setup, but will use a
-        separate range (say :1000 to :10ff).</para>
+        <para>On the secondary server, the failover part of the configuration
+        would look like so:</para>
+
+        <programlisting>server-identifier adhcps.internal.genfic.com;
+failover peer "dhcp-ha" {
+  secondary;
+  address 2001:db8:81:e4::822f; # This server
+  port 519;
+  peer address 2001:db8:81:e2::fe12; # Primary server
+  peer port 519;
+  max-response-delay 60;
+  max-unacked-updates 10;
+  load balance max seconds 3;
+};</programlisting>
+
+        <para>The remainder of the configuration file is the same as on the
+        master.</para>
       </section>
 
       <section>
         <title>Relay services</title>
 
-        <para>When you configure a relay service, edit
+        <para>To configure a relay service, edit
         <filename>/etc/conf.d/dhcrelay</filename> and set the DHCRELAY_OPTS
         accordingly.</para>
 
@@ -228,9 +316,8 @@ subnet6 2001:db8:81:21::/64 {
 DHCRELAY_OPTS="-6 -l eth0 -u 2001:db8:81:21::f4:3303:40f4%eth0 -u \
   2001:db8:81:22::5f:3853:fe78%eth0"</programlisting>
 
-        <para>You also need to edit <filename>/etc/init.d/dhcrelay</filename>
-        currently as it forces two options that are only valid for
-        IPv4:</para>
+        <para>Also edit <filename>/etc/init.d/dhcrelay</filename> as it forces
+        two options that are only valid for IPv4:</para>
 
         <programlisting># <command>vim /etc/init.d/dhcrelay</command>
 (... 1. look for $(printf " -i %s" ${IFACE}) and delete it ...)
@@ -250,73 +337,13 @@ start-stop-daemon --start --exec /usr/sbin/dhcrelay \
     <section>
       <title>Logging</title>
 
-      <para>For the DHCP service, we want to have logs about the DHCP queries
-      made as well as their reply. These logs can be stored locally.</para>
-
-      <para>TODO</para>
+      <para>For the DHCP service, log entries are sent to the system
+      logger.</para>
     </section>
   </section>
 
   <section>
     <title>Resources</title>
-
-    <para>IP addresses, segmentation and IPv6:</para>
-
-    <itemizedlist>
-      <listitem>
-        <para><link
-        xlink:href="http://www.sans.org/reading_room/whitepapers/hsoffice/design-secure-network-segmentation-approach_1645">Design
-        Secure Network Segmentation Approach</link>, article on SANS</para>
-      </listitem>
-
-      <listitem>
-        <para><link
-        xlink:href="http://ipv6.com/articles/general/IPv6-Addressing.htm">IPv6
-        Addressing</link> (IPv6.com)</para>
-      </listitem>
-    </itemizedlist>
-
-    <para>On ISC BIND:</para>
-
-    <itemizedlist>
-      <listitem>
-        <para><link
-        xlink:href="http://en.gentoo-wiki.com/wiki/BIND">BIND</link>
-        (Gentoo-wiki.com)</para>
-      </listitem>
-
-      <listitem>
-        <para><link
-        xlink:href="http://www.zytrax.com/books/dns/ch7/xfer.html">DNS BIND
-        Zone Transfers and Updates</link> (Zytrax.com); this is part of a
-        bigger and interesting reference on BIND9 on Linux/Unix
-        systems.</para>
-      </listitem>
-
-      <listitem>
-        <para><link
-        xlink:href="http://www.cyberciti.biz/faq/unix-linux-bind-named-configuring-tsig/">Transaction
-        Signatures Configuration</link> (Cyberciti.biz)</para>
-      </listitem>
-
-      <listitem>
-        <para><link
-        xlink:href="http://benchmarks.cisecurity.org/en-us/?route=downloads.show.single.bind.200">CISecurity
-        BIND Benchmark</link> (CISecurity.org)</para>
-      </listitem>
-
-      <listitem>
-        <para><link
-        xlink:href="http://backreference.org/2010/11/17/dnssec-verification-with-dig/">DNSSEC
-        validation with dig</link> (backreference.org)</para>
-      </listitem>
-
-      <listitem>
-        <para><link
-        xlink:href="https://www.nlnetlabs.nl/publications/dnssec_howto/">DNSSEC
-        HOWTO</link> (nlnetlabs.nl)</para>
-      </listitem>
-    </itemizedlist>
 
     <para>On ISC DHCP:</para>
 

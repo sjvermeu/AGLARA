@@ -10,7 +10,7 @@
   <title>Certificates and PKI</title>
 
   <section>
-    <title>Why we need it</title>
+    <title>Why it is needed</title>
 
     <para>Now that some of the basic network services have been installed, it
     is time to look at certificate management.</para>
@@ -22,10 +22,9 @@
         <primary>certificate</primary>
       </indexterm>, but the problem with self-signed certificates is that
     every client that wants to communicate with a service using a self-signed
-    certificate needs to include this certificate in its trust store.</para>
-
-    <para>What is that you say? Let's give a quick explanation on certificates
-    then.</para>
+    certificate needs to include this certificate in its trust store, and that
+    the owner of the certificate usually does not keep track of when the
+    certificate is about to expire.</para>
 
     <section>
       <title>How do certificates work</title>
@@ -49,12 +48,19 @@
           the other party (as it would otherwise not be properly
           encrypted)</para>
         </listitem>
+
+        <listitem>
+          <para>if the data stream also contains time stamp information (or
+          challenge information) the parties can also ascertain that the
+          information is "fresh" and not resent from a previous communication
+          between the two</para>
+        </listitem>
       </itemizedlist>
 
       <para>The major difficulty comes from getting a "shared" encryption key
       without having to send it over the (clear) network so that a malicious
-      person (Carol or Charles, I'll use the gender-neutral "Chris" ;-) cannot
-      obtain it.</para>
+      person (Carol or Charles, let's use the gender-neutral "Chris" ;-)
+      cannot obtain it.</para>
 
       <section>
         <title>Symmetric keys</title>
@@ -63,11 +69,12 @@
         session key.</para>
 
         <para>A symmetric key is an encryption key which is used for
-        encryption and decryption. In our example of a secure communication,
-        the symmetric key is the secret encryption key that the two parties
-        (and only those two parties) should have a hold off. Such a symmetric
-        key is usually used with an algorithm that is fairly simple (and thus
-        has good performance) in regard of encryption and decryption.</para>
+        encryption and decryption. In the previous example of a secure
+        communication, the symmetric key is the secret encryption key that the
+        two parties (and only those two parties) should have a hold off. Such
+        a symmetric key is usually used with an algorithm that is fairly
+        simple (and thus has good performance) in regard of encryption and
+        decryption.</para>
 
         <para>This good performance requirement is needed because it will be
         used to encrypt and decrypt all traffic sent between the two services,
@@ -76,17 +83,16 @@
         be far too slow (or use too many resources on the systems).</para>
 
         <para>A way to get both parties to know a common, secret key is to
-        each use a secret algorithm (or known algorithm with secret data)
-        which has the property that, whatever order you use to apply the
-        algorithms, the result is always the same. Extremely simple examples
-        are addition or multiplication, but far more complex ones exist as
-        well. A non-mathematical example would be to add in colored paint to a
-        pre-agreed color: if you first add in blue and then red, or first red
-        and then blue, the result is always the same.</para>
+        each use a secret set of algorithms (or known algorithms with secret
+        data sets) which have the property that, whatever order is used to
+        apply the algorithms, the result is always the same. Extremely simple
+        examples are addition or multiplication, but far more complex ones
+        exist as well. A non-mathematical example would be to add in colored
+        paint to a pre-agreed color: if you first add in blue and then red, or
+        first red and then blue, the result is always the same.</para>
 
-        <para>Well, in our case (let's use addition), both Alice and Bob have
-        such a secret and will exchange the results of their
-        algorithms:</para>
+        <para>In the (very simple) case of addition, both Alice and Bob have a
+        secret and will exchange the results of their algorithms:</para>
 
         <programlisting>   Alice                 Bob
   "1000"                "1000"
@@ -101,7 +107,7 @@
         safer when its not) because, even with Chris knowing the numbers
         "1000, 8428, 6879", if that person does not know the algorithm (or
         data) used, it will be difficult for him to find out what the common
-        secret key will be. Of course, in our example, addition is quite
+        secret key will be. Of course, in this example, addition is quite
         simple, but at least it gives the idea on what such key exchange can
         be like.</para>
       </section>
@@ -109,8 +115,7 @@
       <section>
         <title>Public and private keys</title>
 
-        <para>What are public/private keys then? Well, the idea behind
-        public-key cryptography<indexterm>
+        <para>The idea behind public-key cryptography<indexterm>
             <primary>public-key cryptography</primary>
           </indexterm> is that, unlike a symmetric key, there are now two keys
         in play:</para>
@@ -127,19 +132,21 @@
           </listitem>
         </itemizedlist>
 
-        <para>The two keys play such that encryption of data happens with the
-        public key, but you cannot decrypt that data with the public key. To
-        decrypt it, you need the private key. But another aspect is that you
-        can encrypt with the private key and decrypt with the public, allowing
-        people to verify that data was indeed encrypted by that person (in
-        reality this is used to "sign" data, which is to make a checksum of
-        the file and then encrypt this checksum).</para>
+        <para>The two keys play such a role that encryption of data happens
+        with the public key, but it is not possible to decrypt that data with
+        the public key. To decrypt it, the private key is needed. Another
+        aspect is that it is possible to encrypt with the private key and
+        decrypt with the public, allowing people or systems to verify that
+        data was indeed encrypted by that person (in reality this is used to
+        "sign" data, which is to make a checksum of the file and then encrypt
+        this checksum).</para>
 
-        <para>In our communication problem from before, this would make it a
-        whole lot easier: Bob just takes Alice' public key, encrypts the data
-        he wants to send to Alice using the public key, and he's done. Alice
-        can do the same with Bob's public key so that two-way communication is
-        possible. However, there are a few drawbacks here:</para>
+        <para>In the previous communication problem from before, using
+        public/private keys would make it a whole lot easier: Bob just takes
+        Alice' public key, encrypts the data he wants to send to Alice using
+        the public key, and he's done. Alice can do the same with Bob's public
+        key so that two-way communication is possible. However, there are a
+        few drawbacks here:</para>
 
         <itemizedlist>
           <listitem>
@@ -148,7 +155,7 @@
 
             <para>For this reason, they are only used to exchange a symmetric
             key or part of a symmetric key (like the initial number "1000"
-            used in our previous example).</para>
+            used in the previous example).</para>
           </listitem>
 
           <listitem>
@@ -158,8 +165,8 @@
             public key, he would encrypt the data so that Chris can only read
             it. Chris then decrypts the data, encrypts it with Alice' real
             public key and sends it to Alice. A communication channel between
-            Alice and Bob come forth, but Chris is "in the middle" reading
-            (and perhaps even manipulating) the data. This is called a
+            Alice and Bob is made, but Chris is "in the middle" reading (and
+            perhaps even manipulating) the data. This is called a
             <emphasis>Man-In-The-Middle</emphasis><indexterm>
                 <primary>man-in-the-middle</primary>
               </indexterm> or MITM<indexterm>
@@ -168,10 +175,10 @@
           </listitem>
         </itemizedlist>
 
-        <para>The second part is the major "downside" of a public key - how
-        are you certain that this public key is actually of the target person
-        or service you want to communicate with? This is where certificates
-        come into play...</para>
+        <para>The second part is the major "downside" of a public key - how to
+        ensure that this public key is actually of the target person or
+        service that the communication is targeted towards? This is where
+        certificates come into play...</para>
       </section>
 
       <section>
@@ -179,12 +186,12 @@
 
         <para>A certificate is this same public key, together with data that
         identifies who the public/private key belongs to. This certificate
-        also has signatures attached that are generated by other certificates.
-        The idea is that, if both Alice and Bob know a public key
-        (certificate) of a party they <emphasis>both</emphasis> trust (and
-        know that this public key is indeed of the trusted party), then Alice
-        can send her own certificate, signed by this trusted party, to
-        Bob.</para>
+        also has signatures attached that are generated by the private keys of
+        other certificates. The idea is that, if both Alice and Bob know a
+        public key (certificate) of a party they <emphasis>both</emphasis>
+        trust (and know that this public key is indeed of the trusted party),
+        then Alice can send her own certificate, signed by this trusted party,
+        to Bob.</para>
 
         <figure>
           <title>Certificates and CAs in a nutshell</title>
@@ -202,9 +209,15 @@
         out, then Bob verifies if the certificate isn't in the list of revoked
         certificates (which is managed by the Certificate Authority). If that
         isn't the case, then Bob knows that the certificate he got is indeed
-        from Alice (because the trusted party sais so) and of which the
-        private key is not known to be lost or stolen (otherwise it would've
+        from Alice (because the trusted party says so) and of which the
+        private key is not known to be lost or stolen (otherwise it would have
         been mentioned in the revocation list).</para>
+
+        <para>The list of certificates that are trusted (the certificates of
+        the Certificate Authority) are stored in a <emphasis>trust
+        store</emphasis><indexterm>
+            <primary>trust store</primary>
+          </indexterm>.</para>
 
         <para>A malicious person now has a more difficult task. If a wrong
         certificate is generated, then the trusted party will probably not
@@ -225,17 +238,17 @@
       of trusted "authorative" actors. If the certificate is valid, then the
       client knows he is communicating with the correct service. Some magic
       occurs then to generate a session key only the client and the server
-      know (if you're interested, search on the internet for "ssl handshake
-      pre-master") so they can then use symmetric encryption algorithms for
-      the rest of the communication.</para>
+      know (isearch on the internet for "ssl handshake pre-master" for the
+      details on this) so they can then use symmetric encryption algorithms
+      for the rest of the communication.</para>
 
-      <para>If we were to use self-signed certificates, then all the clients
+      <para>If self-signed certificates would be used, then all the clients
       should have the public keys of all these systems in their own list of
-      trusted keys (this combination is called the <emphasis>trust
-      store</emphasis>), which is a nightmare to manage. And if you had to do
-      that, why not just keep the symmetric keys then and do not use public
-      key infrastructure... Or you could have your clients accept self-signed
-      certificates, but then you are vulnerable for MITM attacks.</para>
+      trusted keys (the trust store), which is a nightmare to manage. And if
+      this would be managed, why not just keep the symmetric keys then and do
+      not use public key infrastructure... It is also possible to have the
+      clients accept self-signed certificates, but then these systems are
+      vulnerable for MITM attacks.</para>
 
       <para>This is where good certificate management comes into play. Serious
       organizations need a way to "sign" certificates used in the architecture
@@ -274,33 +287,36 @@
         <itemizedlist>
           <listitem>
             <para>Such popular services are more likely target for hackers and
-            crackers. Once their keys are compromised, you should actively
-            revoke their public keys from your trust stores. However, that
-            also means that all certificates you use for your services that
-            are signed by these companies will effectively stop working as
-            your clients will not trust the certificates anymore.</para>
+            crackers. Once their keys are compromised, their public keys
+            should be removed from all trust stores (or, if proper validation
+            of keys against a revocation list is implemented, have these keys
+            available in the revocation list). However, that also means that
+            all certificates used for services that are signed by these
+            companies will effectively stop working as the clients will not
+            trust the certificates anymore.</para>
           </listitem>
 
           <listitem>
             <para>These services have a financial incentive to sign
             certificates. If they do not do proper validation of the
-            certificate requests they get, they might sign a certificate from
-            a malicious person (who is pretending to be a valid
+            certificate requests they get (because "volume" might be more
+            important to them than integrity), they might sign a certificate
+            from a malicious person (who is pretending to be a valid
             customer).</para>
           </listitem>
 
           <listitem>
-            <para>The more of these keys that are in your clients' trust
-            store, the more chance that a malicious certificate is seen by
-            your client as valid.</para>
+            <para>The more of these keys that are in the clients' trust store,
+            the more chance that a malicious certificate is seen by the client
+            as valid.</para>
           </listitem>
         </itemizedlist>
 
-        <para>The latter is important to remember. Assume that your clients'
-        truststore has 100 certificates that it "trusts", even though your
+        <para>The latter is important to remember. Assume that the clients'
+        trust store has 100 certificates that it "trusts", even though the
         organization only uses a single one. If a malicious user creates a
         certificate that identifies itself as one of your services and gets it
-        signed by one of those 100 CAs, then your client will trust the
+        signed by one of those 100 CAs, then the clients will trust the
         connection if it uses this (malicious) certificate (because it is
         signed with one of the trusted keys).</para>
       </section>
@@ -309,8 +325,8 @@
         <title>Keeping a lid on CAs</title>
 
         <para>To keep the risk sufficiently low that a malicious certificate
-        is being used, you need to find a CA that you trust fully, and keep
-        your trust store limited to that CA.</para>
+        is being used, find a CA that is trusted fully, and keep the trust
+        store limited to that CA.</para>
 
         <para>And who else to trust better than yourself ;-)</para>
 
@@ -320,193 +336,175 @@
 
         <itemizedlist>
           <listitem>
-            <para>You can create your own CA store</para>
+            <para>Create a CA store</para>
           </listitem>
 
           <listitem>
-            <para>You can sign requests of certificate requests that users
-            have sent to you</para>
+            <para>Sign requests of certificate requests that users have sent
+            in</para>
           </listitem>
 
           <listitem>
-            <para>You can revoke certificates (or at least, signatures you
-            made on certificates) for end user certificates that you should
-            not allow to trust anymore (for instance because they have been
-            compromised)</para>
+            <para>Revoke certificates (or at least, signatures made on
+            certificates) for end user certificates that should not be trusted
+            anymore (for instance because they have been compromised)</para>
           </listitem>
 
           <listitem>
-            <para>You can have users create a certificate (in case they don't
-            have the proper tools on their systems, although I seriously don't
-            recommend to generate private and public keys on a remote
-            server)</para>
+            <para>Have users create a certificate (in case they don't have the
+            proper tools on their systems, although it is not recommend to
+            generate private and public keys on a remote server)</para>
           </listitem>
 
           <listitem>
-            <para>You can have users submit a certificate signing request to
-            you for processing, and then download the signed certificate from
-            the site</para>
+            <para>Have users submit a certificate signing request to the
+            system for processing, and then download the signed certificate
+            from the site</para>
           </listitem>
         </itemizedlist>
 
-        <para>The use of a webbased software allows you to fully isolate the
-        service so that the number of attack vectors against the system is
-        very limited.</para>
+        <para/>
       </section>
     </section>
 
     <section>
       <title>CA service providers</title>
 
-      <para>If you find managing your own CA a bit too difficult, you can also
-      opt to use an online CA service provider. There are many paid-for
-      service providers as well as free ones. Regardless of the provider you
-      want, make sure that your internal certificates are only signed by a
-      root certificate authority that is specific to your environment, and
+      <para>If managing a private CA is seen as a bit too difficult, one can
+      also opt to use an online CA service provider. There are many paid-for
+      service providers as well as free ones. Regardless of the provider
+      chosen, make sure that the internal certificates are only signed by a
+      root certificate authority that is specific to this environment, and
       that the provider does not sign certificate requests by others with the
-      root CA you trust internally.</para>
+      root CA trusted internally.</para>
 
-      <para>For this reason, be careful which service provider you choose, and
-      make a clear distinction between certificates that you will be using
+      <para>For this reason, be careful which service provider to choose, and
+      make a clear distinction between certificates that will be used
       internally (not exposed to others) and those that are facing external
       environments.</para>
+    </section>
+
+    <section>
+      <title>Certificate management protocols</title>
+
+      <para>The <emphasis>Online Certificate Status Protocol<indexterm>
+          <primary>Online Certificate Status Protocol</primary>
+        </indexterm> (OCSP)<indexterm>
+          <primary>OCSP</primary>
+        </indexterm></emphasis> is a simple protocol that clients can use to
+      check if a certificate is still valid, without needing to (re)download
+      the <emphasis>Certificate Revocation List<indexterm>
+          <primary>Certificate Revocation List</primary>
+        </indexterm> (CRL)<indexterm>
+          <primary>CRL</primary>
+        </indexterm></emphasis> over and over again and parsing the list. An
+      advantage is that you don't need to expose "all the bad certificates"
+      that you know of (which might be a sort of information leakage) and that
+      clients don't need to parse the CRL themselves (as it is now handled on
+      a server level).</para>
     </section>
   </section>
 
   <section>
-    <title>CA Service Software</title>
+    <title>Architecture</title>
 
-    <para>As CA management software, we will use the command line interface of
-    <command>openssl</command>. Although more user friendly interfaces seem to
-    exist, they are either not properly maintained or very difficult to manage
-    in the long term. For this reason, we stick with the
-    <command>openssl</command> interface.</para>
+    <para>To provide a private CA, <command>openssl</command> will be used as
+    the main interface. The system itself should of course be very secure,
+    with an absolute minimum of users having access to the system (and even
+    those users should not have direct access to the private key). A
+    mail-driven system is used to allow users to request signing of their
+    certificates; the certificate signing requests are stored in a folder
+    where one of the certificate administrators can then sign the requests and
+    send them back to the client.</para>
+
+    <para>Also, an OCSP daemon will be running to provide the necessary
+    revocation validation.</para>
 
     <section>
-      <title>Architecture</title>
+      <title>Flows and feeds</title>
 
-      <para>I will be using OpenSSL as a Certificate Authority for internally
-      managed and handled certificates. The activities for handling the
-      certificates are handled through command-line usage by the proper
-      administrators (so no fancy website) but some automation will be put in
-      place through e-mails where requesters can send the certificate signing
-      requests by e-mail: the files are then automatically put in a directory.
-      The administrator can then sign certificates, and send them back to the
-      requester.</para>
+      <para>In the next picture, the two main flows are shown: the OCSP (to
+      check the validity of a certificate) and mail (with certificate signing
+      request).</para>
 
-      <para>Within the architecture, you'll also notice that I put in an OCSP
-      daemon. OCSP<indexterm>
-          <primary>OCSP</primary>
-        </indexterm> stands for Online Certificate Status Protocol and is a
-      simple protocol that clients can use to check if a certificate is still
-      valid, without needing to (re)download the CRL lists over and over again
-      and parsing the list. An advantage is that you don't need to expose "all
-      the bad certificates" that you know of (which might be a sort of
-      information leakage) and that clients don't need to parse the CRL
-      themselves (as it is now handled on a server level).</para>
+      <figure>
+        <title>Flows and feeds for the CA server</title>
 
-      <para>I'll use the built-in OCSP daemon provided by OpenSSL here, but
-      for larger volumes a dedicated OCSP infrastructure might be
-      wiser.</para>
-
-      <section>
-        <title>Feeds</title>
-
-        <para>The two flows that we identify currently are the signing request
-        mails, and of course the backups that need to be taken.</para>
-
-        <figure>
-          <title>Flows and feeds for the CA server</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/04-caserv-feed.png" scalefit="0"
-                         width="100%"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-      </section>
-
-      <section>
-        <title>Administration</title>
-
-        <para>Administration is handled manually through SSH and Puppet.
-        </para>
-      </section>
-
-      <section>
-        <title>Monitoring</title>
-
-        <para>From a monitoring perspective, we will need to keep a close eye
-        on the daemons (OCSP daemon for handling the certificate validation
-        requests, and the fetchmail daemon for pulling in e-mails from the
-        mail infrastructure). It is probably sufficient to provide plain
-        process monitoring and log file monitoring, although you can create an
-        automated OCSP request monitor to check of the OCSP daemon is still
-        working properly.</para>
-      </section>
-
-      <section>
-        <title>Operations</title>
-
-        <para>In regular operations, the person responsible for handling the
-        requests and certificates will do its standard operations through the
-        openssl command line interface. If needed, he sends out the signed
-        certificates by e-mail, or publishes the revocations somewhere (in the
-        drawing below, no tool is positioned for this - it can be a simple
-        file copy, e-mail or push of the file towards a network file
-        share).</para>
-
-        <figure>
-          <title>Operations on a CA server</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/04-caserv-operations.png"
-                         scalefit="0" width="100%"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-
-        <para>Also, the OCSP server is listening on the network for any
-        incoming certificate checks requested from clients (for instance,
-        browsers).</para>
-      </section>
-
-      <section>
-        <title>Users</title>
-
-        <para>On this server, only the certificate handler people needed
-        access. No specific role-based access control is needed yet, but can
-        be implemented using the standard operating system access controls
-        (discretionary or mandatory through SELinux).</para>
-      </section>
-
-      <section>
-        <title>Security</title>
-
-        <para>As this system is a security-sensitive system, it is wise to
-        properly harden the system and perform full auditing on it.</para>
-
-        <para>Backups that leave the system should be encrypted
-        beforehand.</para>
-      </section>
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/06-caserv-feed.png" scalefit="0"
+                       width="100%"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
     </section>
 
     <section>
-      <title>OpenSSL as CA</title>
+      <title>Administration</title>
 
-      <para>The OpenSSL stack is a very common, well maintained library for
-      handling encryption and encryption-related functions, including
-      certificate handling. Most, if not all Linux/Unix systems have it
-      installed, so you should be good to go.</para>
+      <para/>
+    </section>
+
+    <section>
+      <title>Monitoring</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Operations</title>
+
+      <para/>
+
+      <figure>
+        <title>Operations on a CA server</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/06-caserv-operations.png" scalefit="0"
+                       width="100%"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+    </section>
+
+    <section>
+      <title>Users</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Security</title>
+
+      <para/>
+    </section>
+  </section>
+
+  <section>
+    <title>OpenSSL as CA</title>
+
+    <para>As CA management software, the presented architecture uses the
+    command line interface of <command>openssl</command>. Although more user
+    friendly interfaces seem to exist, they are either not properly maintained
+    or very difficult to manage in the long term.</para>
+
+    <para>The OpenSSL stack is a very common, well maintained library for
+    handling encryption and encryption-related functions, including
+    certificate handling. Most, if not all Linux/Unix systems have it
+    installed.</para>
+
+    <section>
+      <title>Setting up the CA</title>
+
+      <para/>
 
       <section>
         <title>Setting the defaults</title>
 
         <para>The default settings for using OpenSSL are stored in the
-        /etc/ssl/openssl.cnf file. Below shows a few changes I suggest when
-        dealing with CA certificates.</para>
+        <filename>/etc/ssl/openssl.cnf</filename> file. Below shows a few
+        changes suggested when dealing with CA certificates.</para>
 
         <programlisting>[CA_default]
 dir = ./genficCA
@@ -520,9 +518,9 @@ default_bits = 2048</programlisting>
         <title>Setting up the root CA</title>
 
         <para>The root CA is the top-level key, which will be "ultimately
-        trusted". If you would use an HSM device, this key would be stored in
-        the HSM device itself and never leave. But in case this isn't
-        possible, you can create a root CA yourself:</para>
+        trusted". If an HSM device would be used, then this key would be
+        stored in the HSM device itself and never leave. But in case this
+        isn't possible, create a root CA as follows:</para>
 
         <programlisting># <command>cd /etc/ssl/private</command>
 # <command>openssl genrsa -des3 -out root-genfic.key 2048</command></programlisting>
@@ -530,13 +528,12 @@ default_bits = 2048</programlisting>
         <para>This generates root-genfic.key, which is the private key and
         will be used as the root key.</para>
 
-        <para>Next, create a certificate from this key. In the example, I'll
-        use a 20-year lifespan, but you should check what is the best lifespan
-        in your case. The shorter the lifespan, the faster you'll need to
-        refresh the key stores within your (entire) organization, which can be
-        a costly activity. However, the longer the period, the more time
-        malicious persons have to get to the key before you generate a new
-        one.</para>
+        <para>Next, create a certificate from this key. In the example, a
+        20-year lifespan is used. The shorter the lifespan, the faster there
+        is a need to refresh the key stores within the (entire) organization,
+        which can be a costly activity. However, the longer the period, the
+        more time malicious persons have to get to the key before a new one is
+        generated.</para>
 
         <programlisting># <command>openssl req -new -x509 -days 7205 -key root-genfic.key -out root-genfic.crt</command>
 Country Name (2 letter code) [AU]:<command>BE</command>
@@ -547,10 +544,10 @@ Organizational Unit Name (eg, section) []:
 Common Name (e.g. server FQDN or YOUR name) []:<command>GenFic Root CA</command>
 Email Address []:</programlisting>
 
-        <para>This provides us with the root-genfic.crt file, which is the
-        certificate (public key of the keypair created before, together with
-        identity information and key information). If you want to take a look
-        at what the certificate contains, use openssl x509:</para>
+        <para>This provides the <filename>root-genfic.crt</filename> file,
+        which is the certificate (public key of the key pair created before,
+        together with identity information and key information). To view the
+        certificate in its glory, use <command>openssl x509</command>:</para>
 
         <programlisting># <command>openssl x509 -noout -text -in root-genfic.crt</command></programlisting>
 
@@ -564,7 +561,7 @@ Email Address []:</programlisting>
     -out root-genfic.crl</command></programlisting>
 
         <para>Now put all files in the location(s) as defined in
-        openssl.cnf.</para>
+        <filename>openssl.cnf</filename>.</para>
       </section>
 
       <section>
@@ -576,50 +573,50 @@ Email Address []:</programlisting>
         hierarchy is to reflect the use of the certificates (end user
         certificates, system certificates) and, if the organization has
         multiple companies, these companies often have an intermediate
-        certificate authority. In our example, we'll use a simple hierarchy:
-        below the root certificate, we use signing certificates for end users
-        and for systems:</para>
+        certificate authority. In this example, a simple hierarchy is used:
+        below the root certificate, two signing certificates are used: one for
+        end users and one for systems.</para>
 
         <programlisting>root CA
 +- user CA
 `- system CA</programlisting>
 
-        <para>The root certificate (which was created earlier) will be stored
-        offline (not reachable through the network, and preferably in a shut
-        down state or on a HSM device) together with the certificates created
-        for the user and system CA's. This is needed in case you need to
-        revoke these certificates, since the process of revoking a certificate
-        (see later) requires the certificate.</para>
+        <para>The root certificate (created above) will be stored offline (not
+        reachable through the network, and preferably in a shut down state or
+        on a HSM device) together with the certificates created for the user
+        and system CA's. This is needed in case these certificates need to be
+        revoked, since the process of revoking a certificate (see later)
+        requires the certificate.</para>
 
-        <para>To support the two additional CA's, edit openssl.cnf
-        accordingly. Add sections for each CA you want to support - you can
-        copy the "[ CA_default ]" settings and edit the directory and other
-        settings where necessary. I use CA_root, CA_user and CA_system to
-        identify the different certificate authorities.</para>
+        <para>To support the two additional CA's, edit
+        <filename>openssl.cnf</filename> accordingly. Add sections for each CA
+        to support - copy the "[ CA_default ]" settings and edit the directory
+        and other settings where necessary. For instance, call them CA_root,
+        CA_user and CA_system to identify the different certificate
+        authorities.</para>
 
         <para>Then, create the keys:</para>
 
         <programlisting># <command>openssl genrsa -des3 -out user-genfic.key 2048</command>
 # <command>openssl genrsa -des3 -out system-genfic.key 2048</command></programlisting>
 
-        <para>Next, create certificate requests. Unlike the root CA, we will
-        not sign the certificate request with the same key, but rather with
-        the root CA key.</para>
+        <para>Next, create certificate requests. Unlike the root CA, these
+        will not be signed with the same key, but rather with the root CA
+        key.</para>
 
         <programlisting># <command>openssl req -new -days 1095 -key user-genfic.key -out user-genfic.csr</command>
 # <command>openssl req -new -days 1109 -key system-genfic.key -out system-genfic.csr</command></programlisting>
 
-        <para>If the command asks for a challenge password, you can leave that
-        empty. The purpose of the challenge password is that, if the
-        certificate is to be revoked, the challenge password needs to be given
-        again as well. This gives some assurance that rogue administrators
-        can't revoke certificates that they don't own, but in our case we will
-        store the root key offline (rather than a service) so that revocation
-        of the certificates requires (physical) access to the keys
-        anyhow.</para>
+        <para>If the command asks for a challenge password, leave that empty.
+        The purpose of the challenge password is that, if the certificate is
+        to be revoked, the challenge password needs to be given again as well.
+        This gives some assurance that rogue administrators can't revoke
+        certificates that they don't own, but as we will store the root key
+        offline (rather than keep it available as a service) revocation of the
+        certificates requires (physical) access to the keys anyhow.</para>
 
         <para>The .csr files (Certificate Signing Request) contain the public
-        key of the keypair generated, as well as identity information. Based
+        key of the key pair generated, as well as identity information. Based
         on the CSR, the root CA will sign and create a certificate:</para>
 
         <programlisting># <command>openssl ca -name CA_root -days 1095 -extensions v3_ca -out system-genfic.crt \
@@ -627,26 +624,25 @@ Email Address []:</programlisting>
 # <command>openssl ca -name CA_root -days 1109 -extensions v3_ca -out user-genfic.crt \
     -infiles user-genfic.csr</command></programlisting>
 
-        <para>You might have noticed I have different validation periods for
-        the certificates. This is to support the (plausible) management
-        activites that result when certificates are suddenly expired. If the
+        <para>Notice that there are different validation periods for the
+        certificates given. This is to support the (plausible) management
+        activities that result when certificates are suddenly expired. If the
         organization "forgets" that the certificates expire, their user
         certificates will expire first, and two weeks later the system
         certificates. Not only will this allow the continued servicing of the
         various systems while the user CA certificate is being updated, but
         will also allow the organization to prepare for the system CA update
-        in time (since they now have 14 days since they "noticed" that the
-        user CA certificate was expired until the system CA certificate
-        expires).</para>
+        in time (since they now have 14 days as they "noticed" that the user
+        CA certificate was expired and now have time until the system CA
+        certificate expires).</para>
 
-        <para>When the certificate signing requests are handled, you will
-        notice that the genficCA/newcerts directory contains the two
+        <para>When the certificate signing requests are handled, the
+        <filename>genficCA/newcerts</filename> directory contains the two
         certificates. This allows for the CA to revoke the certificates when
         needed.</para>
 
-        <para>Finally, we copy the signed certificates and prepare the
-        directory structure for the two certificate authorities as
-        well.</para>
+        <para>Finally, copy the signed certificates and prepare the directory
+        structure for the two certificate authorities as well.</para>
 
         <programlisting># <command>mkdir genficSystemCA</command>
 # <command>cd genficSystemCA</command>
@@ -661,19 +657,19 @@ Email Address []:</programlisting>
         <title>Protecting the root CA</title>
 
         <para>As mentioned before, it is good practice to protect the root CA.
-        You can do so by handling the system as a separate, offline system (no
-        network connection) although, with the other CAs in place, there is
-        little reason for the root CA to be permanently "available". In other
-        words, it is fine to move it to some offline medium (you can even
-        print it out if you want) and store this in a (very) safe location.
-        For instance put it on a flash disk (or tape if you have tape drives)
-        and put it in a safe (or better, two flash disks in two safes).</para>
+        This can be done by handling the system as a separate, offline system
+        (no network connection) although, with the other CAs in place, there
+        is little reason for the root CA to be permanently "available". In
+        other words, it is fine to move it to some offline medium (and even
+        print it out) and store this in a (very) safe location. For instance
+        put it on a flash disk (or tape) and put it in a safe (or even better,
+        two flash disks in two safes).</para>
       </section>
 
       <section>
         <title>Starting the OCSP Server</title>
 
-        <para>OpenSSL has an internal OCSP daemon that you can use to provide
+        <para>OpenSSL has an internal OCSP daemon that can be used to provide
         OCSP services internally.</para>
 
         <para>One way to start it is in a screen session:</para>
@@ -692,7 +688,7 @@ Waiting for OCSP client connections..</programlisting>
         he can run "<command>screen -x ocsp-server</command>" and he's
         attached to the session again.</para>
 
-        <para>Of course, you can create an init script for this as well
+        <para>Of course, an init script for this can be created as well
         (instead of using screen).</para>
       </section>
     </section>
@@ -700,10 +696,10 @@ Waiting for OCSP client connections..</programlisting>
     <section>
       <title>Mail service</title>
 
-      <para>To pull in the certificate signing requests through e-mail, we
-      need to configure fetchmail to pull in the mails, and procmail to handle
-      the attachments (i.e. extract them from the mail and store them in a
-      specific directory).</para>
+      <para>To pull in the certificate signing requests through e-mail,
+      configure <command>fetchmail</command> to pull in the mails, and
+      <command>procmail</command> to handle the attachments (extract them from
+      the mail and store them in a specific directory).</para>
 
       <section>
         <title>Fetchmail</title>
@@ -727,8 +723,8 @@ poll imap.internal.genfic.com protocol IMAP with option interval 1:
 
         <programlisting>$ <command>chmod 0600 /home/csrpull/.fetchmailrc</command></programlisting>
 
-        <para>Finally, start the fetchmail daemon. Don't forget to add it to
-        the default runlevel too.</para>
+        <para>Finally, start the <command>fetchmail</command> daemon. Don't
+        forget to add it to the default runlevel too.</para>
 
         <programlisting># <command>run_init rc-service fetchmail start</command>
 # <command>rc-update add fetchmail default</command></programlisting>
@@ -737,35 +733,37 @@ poll imap.internal.genfic.com protocol IMAP with option interval 1:
       <section>
         <title>Procmail</title>
 
-        <para>From the fetchmail, you notice that the mails that are pulled in
-        will be sent towards procmail, so we need to configure procmail to
-        automatically extract the certificate signing request files from the
-        mails and drop them in the proper directory (say
-        /home/csrpull/requests). Create a .procmailrc file in the csrpull home
-        directory with the following content:</para>
+        <para>From <command>fetchmail</command>, mails that are pulled in will
+        be sent towards <command>procmail</command>, so configure
+        <command>procmail</command> to automatically extract the certificate
+        signing request files from the mails and drop them in the proper
+        directory (like /home/csrpull/requests). Create a
+        <filename>.procmailrc</filename> file in the csrpull home directory
+        with the following content:</para>
 
         <programlisting>CSR_DROP_DIR=$HOME/requests
 :0c
 * ^To: csrpull@systems.genfic.com
 | munpack -q -C "$CSR_DROP_DIR"</programlisting>
 
-        <para>You can make the rules as powerful as you want. For instance, if
-        you don't want to manually sign the requests, you can have the
-        procmail recipe call the proper script which, after extracting the
-        request, signs it automatically and sends it back to the sender (or to
-        the address set in the certificate itself).</para>
+        <para>These rules can be made as powerful as necessary. For instance,
+        if the requests don't need to be signed manually, a procmail recipe
+        can be created that calls the proper script which, after extracting
+        the request, signs it automatically and sends it back to the sender
+        (or to the address set in the certificate itself).</para>
 
-        <para>With this file in place, fetchmail will automatically forward
-        any mails received towards the procmail recipe, which will then
-        extract the attachment(s) into the requests folder.</para>
+        <para>With this file in place, <command>fetchmail</command> will
+        automatically forward any mails received towards the
+        <command>procmail</command> recipe, which will then extract the
+        attachment(s) into the requests folder.</para>
       </section>
     </section>
 
     <section>
       <title>Daily handling</title>
 
-      <para>With the certificate authority files in place, we can now take
-      care of the daily operations involving certificates.</para>
+      <para>With the certificate authority files in place, let's look at the
+      daily operational tasks involved with certificates.</para>
 
       <section>
         <title>User certificates</title>
@@ -774,13 +772,14 @@ poll imap.internal.genfic.com protocol IMAP with option interval 1:
         towards services. Such certificates can be used to authenticate a user
         for operating system access, but a more common use of user
         certificates is access towards websites: the user has a key (and
-        certificate) loaded in the browser (or to which the browser has access
-        to, in case the key itself is on a smartcard or other HSM) and sites
-        that want the user to identify himself can ask for the user
+        certificate) loaded in the browser (or to some store that the browser
+        has access to, in case the key itself is on a smartcard or other HSM)
+        and sites that want the user to identify the user can ask for the user
         certificate.</para>
 
-        <para>A user can create his own key using the following openssl
-        command, and its accompanying certificate signing request:</para>
+        <para>A user can create his own key using the following
+        <command>openssl</command> command, and its accompanying certificate
+        signing request:</para>
 
         <programlisting># <command>openssl req -newkey rsa:2048 -keyout amber.key -out amber.req</command></programlisting>
 
@@ -807,7 +806,7 @@ poll imap.internal.genfic.com protocol IMAP with option interval 1:
         <programlisting># <command>openssl req -newkey rsa:2048 -nodes -keyout w03443ad.key -out w03443ad.req</command></programlisting>
 
         <para>It is a good practice to use, as e-mail address, the e-mail
-        address of the requestor (or a "shared" e-mail address that is known
+        address of the requestee (or a "shared" e-mail address that is known
         to remain fixed throughout the lifetime of the system). This
         information is used later to send e-mails regarding expiration dates
         or other important news.</para>
@@ -819,8 +818,8 @@ poll imap.internal.genfic.com protocol IMAP with option interval 1:
         <title>Listing certificate expirations</title>
 
         <para>To list the expiration date(s) of the certificates signed by a
-        CA, you can iterate over the files in the newcerts location, showing
-        the subject and its expiration date:</para>
+        CA, iterate over the files in the newcerts location, showing the
+        subject and its expiration date:</para>
 
         <programlisting># <command>openssl x509 -noout -subject -enddate -in 01.pem</command></programlisting>
       </section>
@@ -831,18 +830,17 @@ poll imap.internal.genfic.com protocol IMAP with option interval 1:
         <para>Suppose a user reports that his or her private key is lost (or
         even worse, compromised).</para>
 
-        <para>First, you need to find this users' (signed) certificate. You
-        can look at the index.txt file within the CA directory to find out
-        what number the certificate has, and then use this number for the
-        revokation:</para>
+        <para>First, find this users' (signed) certificate. Look at the
+        index.txt file within the CA directory to find out what number the
+        certificate has, and then use this number for the revocation:</para>
 
         <programlisting># <command>grep amber genficUserCA/index.txt</command>
 V ... 23    unknown /C=BE/.../CN=Amber McStone/emailAddress=...
 # <command>openssl ca -name CA_user -revoke genficUserCA/newcerts/23.pem</command></programlisting>
 
         <para>As a result, the database is now updated, showing that the
-        certificate itself is revoked. Next, you need to publish the new
-        certificate revocation list:</para>
+        certificate itself is revoked. Next, publish the new certificate
+        revocation list:</para>
 
         <programlisting># <command>openssl ca -name CA_user -gencrl -out genficUserCA/crl/user-genfic.crl</command></programlisting>
 

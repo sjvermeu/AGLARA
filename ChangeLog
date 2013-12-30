@@ -1,5 +1,6 @@
 ** (2013-12-30) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Update ISC DHCP setup
+	- Update certificate setup to use new structure
 
 ** (2013-12-19) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Update architecture structure (TSAC now)

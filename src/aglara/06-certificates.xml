@@ -442,13 +442,17 @@
     <section>
       <title>Administration</title>
 
-      <para/>
+      <para>Administration-wise, all actions are handled through logons on the
+      system. The usual configuration management services apply (such as using
+      Puppet for general system administration).</para>
     </section>
 
     <section>
       <title>Monitoring</title>
 
-      <para/>
+      <para>An important aspect in the setup is auditing. All CA activities
+      should be properly audited, as well as operating system
+      activities.</para>
     </section>
 
     <section>
@@ -471,13 +475,43 @@
     <section>
       <title>Users</title>
 
-      <para/>
+      <para>Three roles are identified for CA operations.</para>
+
+      <figure>
+        <title>User definitions for CA operations</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/06-caserv-admin.png"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>The first one is the regular system administrator. His job is to
+      keep the system available and has privileged access to the system.
+      However, the mandatory access control system in place prevents the admin
+      from (easily) reaching the private key(s) used by the CA
+      software.</para>
+
+      <para>The CA admin has no system privileges, but is allowed to call and
+      interact with the CA tools. The CA admin can generate new private keys
+      &amp; certificates, sign certificates, etc. However, he too cannot reach
+      the private keys.</para>
+
+      <para>The security admin has a few system privileges, but most
+      importantly has the ability to update the MAC policy and read the
+      private keys. The role is not involved in the daily operations
+      though.</para>
     </section>
 
     <section>
       <title>Security</title>
 
-      <para/>
+      <para>The mandatory access control in place (SELinux) prevents direct
+      access to the private key. Of course, next to the MAC policy, other
+      security requirements should be in place as well, such as limited role
+      assignment (only a few people in the organization should be security
+      admin), proper physical security of the system, etc.</para>
     </section>
   </section>
 
@@ -694,72 +728,6 @@ Waiting for OCSP client connections..</programlisting>
     </section>
 
     <section>
-      <title>Mail service</title>
-
-      <para>To pull in the certificate signing requests through e-mail,
-      configure <command>fetchmail</command> to pull in the mails, and
-      <command>procmail</command> to handle the attachments (extract them from
-      the mail and store them in a specific directory).</para>
-
-      <section>
-        <title>Fetchmail</title>
-
-        <para>The fetchmail daemon is provided by the
-        <package>net-mail/fetchmail</package> package. Once installed, create
-        a Linux system user (say "csrpull") with a configuration file similar
-        to the following as <filename>~/.fetchmailrc</filename>:</para>
-
-        <programlisting>set daemon 60
-
-poll imap.internal.genfic.com protocol IMAP with option interval 1:
-  user "csrpull@systems.genfic.com" is csrpull here
-  password 'thisIsOneHellOfAPassword'
-  keep
-  ssl
-  mda "/usr/bin/procmail -d %T"</programlisting>
-
-        <para>Once created, make sure it is only readable by the csrpull user
-        itself:</para>
-
-        <programlisting>$ <command>chmod 0600 /home/csrpull/.fetchmailrc</command></programlisting>
-
-        <para>Finally, start the <command>fetchmail</command> daemon. Don't
-        forget to add it to the default runlevel too.</para>
-
-        <programlisting># <command>run_init rc-service fetchmail start</command>
-# <command>rc-update add fetchmail default</command></programlisting>
-      </section>
-
-      <section>
-        <title>Procmail</title>
-
-        <para>From <command>fetchmail</command>, mails that are pulled in will
-        be sent towards <command>procmail</command>, so configure
-        <command>procmail</command> to automatically extract the certificate
-        signing request files from the mails and drop them in the proper
-        directory (like /home/csrpull/requests). Create a
-        <filename>.procmailrc</filename> file in the csrpull home directory
-        with the following content:</para>
-
-        <programlisting>CSR_DROP_DIR=$HOME/requests
-:0c
-* ^To: csrpull@systems.genfic.com
-| munpack -q -C "$CSR_DROP_DIR"</programlisting>
-
-        <para>These rules can be made as powerful as necessary. For instance,
-        if the requests don't need to be signed manually, a procmail recipe
-        can be created that calls the proper script which, after extracting
-        the request, signs it automatically and sends it back to the sender
-        (or to the address set in the certificate itself).</para>
-
-        <para>With this file in place, <command>fetchmail</command> will
-        automatically forward any mails received towards the
-        <command>procmail</command> recipe, which will then extract the
-        attachment(s) into the requests folder.</para>
-      </section>
-    </section>
-
-    <section>
       <title>Daily handling</title>
 
       <para>With the certificate authority files in place, let's look at the
@@ -847,6 +815,147 @@ V ... 23    unknown /C=BE/.../CN=Amber McStone/emailAddress=...
         <para>The resulting certificate revocation list then needs to be
         published where all users can find it.</para>
       </section>
+    </section>
+
+    <section>
+      <title>Scripted approach</title>
+
+      <para>Directly using openssl is prone to errors or to the use of
+      different parameters that might lead to confusion later. It is advised
+      to use a script or tool that simplifies this.</para>
+
+      <programlisting>certcli.sh &lt;command&gt; [&lt;options&gt;] &lt;value&gt;
+
+Command can be one of:
+  -r, --create-root             Create a root CA key named &lt;value&gt;
+  -c, --create-child            Create a child CA key named &lt;value&gt;
+  -s, --sign-request            Sign a certificate request (&lt;value&gt; is input)
+  -R, --create-request          Create a key and signing request named &lt;value&gt;.req
+  -x, --revoke                  Revoke the key matching &lt;value&gt;
+
+Options can be one of:
+  -p, --parent &lt;parent&gt;         Use &lt;parent&gt; as the parent key value
+  -o, --output &lt;file&gt;           Save resulting file as &lt;file&gt;
+  -v, --valid &lt;days&gt;            Number of days that the certificate is valid</programlisting>
+
+      <para>For instance, first a root key pair is created, valid for 20
+      years:</para>
+
+      <programlisting>$ sudo certcli.sh -r genfic -v 7300</programlisting>
+
+      <para>Next, child key pairs are created - one for system certificates
+      and one for user certificates. Both are valid for 10 years:</para>
+
+      <programlisting>$ sudo certcli.sh -p genfic -c genfic-system -v 3650
+$ sudo certcli.sh -p genfic -c genfic-user -v 3650</programlisting>
+
+      <para>New certificates (and key pairs) for systems can be generated from
+      the script itself (by creating a key and signing request, and then
+      signing):</para>
+
+      <programlisting>$ sudo certcli.sh -R /var/db/ca/self/myhostname
+$ sudo certcli.sh -p genfic-system -s /var/db/ca/self/myhostname.req -o /var/db/ca/self/myhostname.crt</programlisting>
+
+      <para>Revoking certificates can be done easily as well:</para>
+
+      <programlisting>$ sudo certcli.sh -p genfic-system -x myhostname.internal.genfic.com</programlisting>
+
+      <section>
+        <title>SELinux security</title>
+
+        <para>With a scripted approach, the <command>certcli.sh</command>
+        script itself can be protected by SELinux mandatory access control
+        policies, where the policy is designed such that:</para>
+
+        <itemizedlist>
+          <listitem>
+            <para>no-one except the security administrator can access the
+            private keys generated</para>
+          </listitem>
+
+          <listitem>
+            <para>no-one except the security administrator can update SELinux
+            policies</para>
+          </listitem>
+
+          <listitem>
+            <para>no-one except the security administrator can relabel scripts
+            to the ca_cli_t domain (used for certcli.sh) or relabel files from
+            the private key type (ca_private_key_t)</para>
+          </listitem>
+
+          <listitem>
+            <para>system administrators have no direct access to memory or
+            disk devices</para>
+          </listitem>
+        </itemizedlist>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Mail service</title>
+
+    <para>To pull in the certificate signing requests through e-mail,
+    configure <command>fetchmail</command> to pull in the mails, and
+    <command>procmail</command> to handle the attachments (extract them from
+    the mail and store them in a specific directory).</para>
+
+    <section>
+      <title>Fetchmail</title>
+
+      <para>The fetchmail daemon is provided by the
+      <package>net-mail/fetchmail</package> package. Once installed, create a
+      Linux system user (say "csrpull") with a configuration file similar to
+      the following as <filename>~/.fetchmailrc</filename>:</para>
+
+      <programlisting>set daemon 60
+
+poll imap.internal.genfic.com protocol IMAP with option interval 1:
+  user "csrpull@systems.genfic.com" is csrpull here
+  password 'thisIsOneHellOfAPassword'
+  keep
+  ssl
+  mda "/usr/bin/procmail -d %T"</programlisting>
+
+      <para>Once created, make sure it is only readable by the csrpull user
+      itself:</para>
+
+      <programlisting>$ <command>chmod 0600 /home/csrpull/.fetchmailrc</command></programlisting>
+
+      <para>Finally, start the <command>fetchmail</command> daemon. Don't
+      forget to add it to the default runlevel too.</para>
+
+      <programlisting># <command>run_init rc-service fetchmail start</command>
+# <command>rc-update add fetchmail default</command></programlisting>
+    </section>
+
+    <section>
+      <title>Procmail</title>
+
+      <para>From <command>fetchmail</command>, mails that are pulled in will
+      be sent towards <command>procmail</command>, so configure
+      <command>procmail</command> to automatically extract the certificate
+      signing request files from the mails and drop them in the proper
+      directory (like /home/csrpull/requests). Create a
+      <filename>.procmailrc</filename> file in the csrpull home directory with
+      the following content:</para>
+
+      <programlisting>CSR_DROP_DIR=$HOME/requests
+:0c
+* ^To: csrpull@systems.genfic.com
+| munpack -q -C "$CSR_DROP_DIR"</programlisting>
+
+      <para>These rules can be made as powerful as necessary. For instance, if
+      the requests don't need to be signed manually, a procmail recipe can be
+      created that calls the proper script which, after extracting the
+      request, signs it automatically and sends it back to the sender (or to
+      the address set in the certificate itself).</para>
+
+      <para>With this file in place, <command>fetchmail</command> will
+      automatically forward any mails received towards the
+      <command>procmail</command> recipe, which will then extract the
+      attachment(s) into the requests folder.</para>
     </section>
   </section>
 </chapter>

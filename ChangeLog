@@ -1,3 +1,6 @@
+** (2014-01-01) Sven Vermeulen <sven.vermeulen@siphos.be>
+	- Update certificate setup with scripted approach
+
 ** (2013-12-30) Sven Vermeulen <sven.vermeulen@siphos.be>
 	- Update ISC DHCP setup
 	- Update certificate setup to use new structure

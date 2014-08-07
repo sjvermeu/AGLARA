@@ -1,0 +1,15 @@
+AGLARA is the acronym of "A Gentoo Linux Advanced Reference Architecture".
+
+Its purpose is to document and explain /A/ possible implementation of Gentoo
+Linux for medium-sized enterprises. It will dive into the gory details of
+various free software tools and sets and use Gentoo Linux as the distribution of
+choice, although it must be said that many of the aspects described in it also
+work on other distributions such as RedHat Enterprise Linux.
+
+The idea of creating a reference architecture is based on my experience with
+free software and the wonderful tools it contains, but the lower experience on a
+more mature enterprise level of the many documents surrounding it.
+
+If you are an administrator for a small enterprise, this might still be a good
+resource for you, but you'll find some (or many) of its details to be "overhead"
+for such smaller environments.

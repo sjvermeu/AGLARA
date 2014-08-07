@@ -12,14 +12,234 @@
   <section>
     <title>Introduction</title>
 
-    <para>For some applications or services, you will need a high available
-    file server. Although clustering file systems exist (like OCFS and GFS),
-    in this chapter, we focus on providing a high-available, secure file
+    <para>For some applications or services, a high available file server is
+    necessary. Although clustering file systems exist (like OCFS and GFS), in
+    this chapter, the focus lies on providing a high-available, secure file
     server based on NFS v4.</para>
 
     <para>Users that are interested in providing network file systems across a
-    heterogenous network of Unix, Linux and Windows systems might want to read
-    about Samba instead.</para>
+    heterogeneous network of Unix, Linux and Windows systems might want to
+    read about Samba instead.</para>
+
+    <para>In another chapter, distributed storage is presented as a different
+    approach to high available storage. </para>
+  </section>
+
+  <section>
+    <title>File server requirements</title>
+
+    <para>A file server is responsible for managing large sets of unstructured
+    data. Important requirements for it are therefore</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>high availability (little to no downtime)</para>
+      </listitem>
+
+      <listitem>
+        <para>good performance</para>
+      </listitem>
+
+      <listitem>
+        <para>well managed backup/restore routines</para>
+      </listitem>
+
+      <listitem>
+        <para>access control on the files and directories</para>
+      </listitem>
+
+      <listitem>
+        <para>good capacity management</para>
+      </listitem>
+    </itemizedlist>
+
+    <para>Optionally, the following services might be of interest as
+    well:</para>
+
+    <itemizedlist>
+      <listitem>
+        <para>anti-malware scanning in case clients are using
+        malware-sensitive operating systems or designs</para>
+      </listitem>
+
+      <listitem>
+        <para>file retention support</para>
+      </listitem>
+
+      <listitem>
+        <para>tiered data storage</para>
+      </listitem>
+    </itemizedlist>
+
+    <section>
+      <title>Hard requirements</title>
+
+      <para/>
+
+      <section>
+        <title>High availability</title>
+
+        <para>The file system must be (very) high available. Multiple services
+        should be positioned that can take over serving file requests if one
+        goes down. A fail-over of the service will incur a small service
+        disruption though.</para>
+      </section>
+
+      <section>
+        <title>Good performance</title>
+
+        <para>All file operations must return within reasonable
+        performance.</para>
+      </section>
+
+      <section>
+        <title>Backup/restore</title>
+
+        <para>Backup and restore operations must be possible on the file
+        server level without disruption of the file service itself, and
+        sufficiently granular. Most of the time, users will request a restore
+        of a single file or directory anyway.</para>
+      </section>
+
+      <section>
+        <title>Access control</title>
+
+        <para>Make sure access to file shares is properly governed. This
+        includes both host access (which system is allowed to access mounts)
+        as well as individual user rights.</para>
+      </section>
+
+      <section>
+        <title>Capacity management</title>
+
+        <para>The capacity used by the file server should be very well
+        monitored. The necessary thresholds should be put in place so that
+        additional storage can be purchased before the file system is full, as
+        well as other resources (like CPU resources in case the file system
+        becomes overloaded).</para>
+      </section>
+    </section>
+
+    <section>
+      <title>Optional features</title>
+
+      <para/>
+
+      <section>
+        <title>Anti-malware scanning</title>
+
+        <para>With anti-malware scanning on the file server during off-hours
+        potential threats can be removed before they do harm. Of course,
+        on-access file scanning through the clients is still
+        recommended.</para>
+      </section>
+
+      <section>
+        <title>File retention support</title>
+
+        <para>Although probably handled through organizational processes
+        rather than technology, having file retention on the file server can
+        help to keep the amount of storage consumption under control. </para>
+      </section>
+
+      <section>
+        <title>Tiered data storage</title>
+
+        <para>If data access times are kept, one can consider moving less
+        often used data towards slower data storage. This keeps the cost of
+        the infrastructure lower while providing good performance.</para>
+      </section>
+    </section>
+  </section>
+
+  <section>
+    <title>Architecture</title>
+
+    <para>The used architecture for a high-available NFS service is
+    simple:</para>
+
+    <figure>
+      <title>NFS architecture</title>
+
+      <mediaobject>
+        <imageobject>
+          <imagedata fileref="images/07-nfs.png"/>
+        </imageobject>
+      </mediaobject>
+    </figure>
+
+    <para>In the drawing, general components such as configuration management,
+    backup &amp; monitoring are left out.</para>
+
+    <para>The OpenAIS service is used for messaging state changes. Changes are
+    communicated to Pacemaker, a cluster management framework, which is
+    responsible for automatically updating services based on the input.</para>
+
+    <section>
+      <title>Flows and feeds</title>
+
+      <para>The most obvious (and important) flow is the DRBD sync. Important
+      to know here is that the synchronization is handled by a kernel
+      subsystem, not a userspace daemon.</para>
+    </section>
+
+    <section>
+      <title>Administration</title>
+
+      <para/>
+
+      <section>
+        <title>DRBD administration</title>
+
+        <para/>
+
+        <figure>
+          <title>DRBD Administration</title>
+
+          <mediaobject>
+            <imageobject>
+              <imagedata fileref="images/07-drbd-admin.png"/>
+            </imageobject>
+          </mediaobject>
+        </figure>
+      </section>
+
+      <section>
+        <title>OpenAIS administration</title>
+
+        <para/>
+      </section>
+
+      <section>
+        <title>Pacemaker administration</title>
+
+        <para/>
+      </section>
+    </section>
+
+    <section>
+      <title>Monitoring</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Operations</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Users</title>
+
+      <para/>
+    </section>
+
+    <section>
+      <title>Security</title>
+
+      <para/>
+    </section>
   </section>
 
   <section>
@@ -30,16 +250,16 @@
     like NFSv2, NFSv3 and NFSv4) are open standards and defined in various
     RFCs. It provides an easy, integrated way for sharing files between
     Unix/Linux systems as systems that have access to NFS mounts see them as
-    part of the (local) file system tree. In other words, /home can very well
-    be an NFS-provided, remote mount rather than a locally mounted file
-    system.</para>
+    part of the (local) file system tree. In other words,
+    <filename>/home</filename> can very well be an NFS-provided, remote mount
+    rather than a locally mounted file system.</para>
 
     <section>
       <title>Architecture</title>
 
       <para>NFS at first might seem a bit difficult to master. In the past
       (NFSv3 and earlier), this might have been true, but with NFSv4, its
-      architecture has become greatly simplified, especially when you use TCP
+      architecture has become greatly simplified, especially when using TCP
       rather than UDP.</para>
 
       <figure>
@@ -52,9 +272,8 @@
         </mediaobject>
       </figure>
 
-      <para>When you used NFS v3, next to the NFS daemon
-      (<command>nfsd</command>), the following services need to run as
-      well:</para>
+      <para>With NFS v3, next to the NFS daemon (<command>nfsd</command>), the
+      following services need to run as well:</para>
 
       <itemizedlist>
         <listitem>
@@ -107,20 +326,15 @@
       </itemizedlist>
 
       <para>With NFSv4, mount and locking services have been integrated in the
-      NFS daemon itself. The rpc.mountd daemon is still needed to handle the
-      exports, but is not involved with network communication anymore (in
-      other words, the client connects directly with the NFS daemon).</para>
+      NFS daemon itself. The <command>rpc.mountd</command> daemon is still
+      needed to handle the exports, but is not involved with network
+      communication anymore (in other words, the client connects directly with
+      the NFS daemon).</para>
 
       <para>Although the high-level architecture is greatly simplified (and
       especially for the NFS client, since all accesses are now done through
       the NFS daemon), other daemons are being introduced to further enhance
       the functionalities offered by NFSv4.</para>
-
-      <important>
-        <para>The Linux-NFS software we use in this architecture still
-        requires the NFSv3 daemons to run on the server even when running
-        NFSv4 only.</para>
-      </important>
 
       <section>
         <title>ID Mapping</title>
@@ -136,21 +350,22 @@
       <section>
         <title>Kerberos support</title>
 
-        <para>The second daemon (well, actually set of daemons) is
+        <para>A second daemon (well, actually set of daemons) is
         <command>rpc.gssd</command><indexterm>
             <primary>rpc.gssd</primary>
           </indexterm> (client) and <command>rpc.svcgssd</command><indexterm>
             <primary>rpc.svcgssd</primary>
           </indexterm> (server). These daemons are responsible for handling
-        the kerberos authentication mechanism for NFS.</para>
+        the kerberos authentication mechanism for NFS if Kerberos is
+        used.</para>
       </section>
     </section>
 
     <section>
       <title>Installation</title>
 
-      <para>On both server as well as clients you will need to install the
-      necessary supporting tools (and perhaps kernel settings).</para>
+      <para>On both server as well as clients install the necessary supporting
+      tools (and perhaps kernel settings).</para>
 
       <section>
         <title>Server-side installation</title>
@@ -175,8 +390,8 @@ CONFIG_NFSD_V4_ACL=y</programlisting>
         <programlisting>OPTS_RPC_MOUNTD="-V 4 -N 3 -N 2"
 OPTS_RPC_NFSD="-N 2 -N 3"</programlisting>
 
-        <para>I had to create the following directories as well since SELinux
-        wouldn't allow the init script to create those for me:</para>
+        <para>The following directories might need to be created as well if
+        the SELinux doesn't allow the init scripts to create those:</para>
 
         <programlisting># <command>mkdir /var/lib/nfs/{v4root,v4recovery,rpc_pipefs}</command></programlisting>
 
@@ -187,7 +402,7 @@ OPTS_RPC_NFSD="-N 2 -N 3"</programlisting>
 [General]
 Domain = internal.genfic.com</programlisting>
 
-        <para>You can then start the NFS service.</para>
+        <para>Now start the NFS service.</para>
 
         <programlisting># <command>run_init rc-service nfs start</command></programlisting>
       </section>
@@ -214,7 +429,8 @@ CONFIG_NFS_V4_ACL=y</programlisting>
 [General]
 Domain = internal.genfic.com</programlisting>
 
-        <para>Finally, start the rpc.statd and rpc.idmapd daemons:</para>
+        <para>Finally, start the <command>rpc.statd</command> and
+        <command>rpc.idmapd</command> daemons:</para>
 
         <programlisting># <command>run_init rc-service rpc.statd start</command>
 # <command>run_init rc-service rpc.idmapd start</command></programlisting>
@@ -232,286 +448,60 @@ Domain = internal.genfic.com</programlisting>
       <section>
         <title>Shared file systems in /etc/exports</title>
 
-        <para>To share file systems (or file structures) through NFS, you need
-        to edit the <filename>/etc/exports</filename> file. Below is a first
-        example for an exported packages directory:</para>
+        <para>To share file systems (or file structures) through NFS, edit the
+        <filename>/etc/exports</filename> file. Below is a first example for
+        an exported packages directory:</para>
 
         <programlisting>/srv/nfs                        2001:db8:81:e2:0:26b5:365b:5072/48(rw,fsid=0,no_subtree_check,no_root_squash,sync)
 /srv/nfs/gentoo/packages        2001:db8:81:e2:0:26b5:365b:5072/48(rw,sync,no_subtree_check,no_root_squash)</programlisting>
 
         <para>The first one contains the <parameter>fsid=0</parameter>
         parameter. This one is important, as it tells NFSv4 what the root is
-        of the file systems that it exports. In our case, that is
+        of the file systems that it exports. In this case, that is
         <filename>/srv/nfs</filename>. A client will then mount file systems
         relative to this root location (so mount
         <filename>gentoo/packages</filename>, not
         <filename>srv/nfs/gentoo/packages</filename>).</para>
 
-        <para>If you get problems with NFS mounts, make sure to
+        <para>When NFS mounts are failing, make sure to
         double/triple/quadruple-check the exports file. NFS is not good at
-        logging things, but I have found I always mess up my
-        <filename>exports</filename> rather than misconfigure daemons or
-        so.</para>
+        logging things, but in the majority of cases, the problem lies with a
+        misconfiguration in the <filename>exports</filename> file.</para>
       </section>
     </section>
   </section>
 
   <section>
-    <title>Disaster Recovery Setup</title>
+    <title>Synchronous or asynchronous replication with DRBD</title>
 
-    <para>For our NFS server, I will first discuss a high availability setup
-    based on the virtualization setup, but with an additional layer in case of
-    a disaster: replication towards a remote location. Now, in some
-    organizations, disaster recovery requirements might be so high that the
-    organization doesn't want any data loss. For the NFS service, I assume
-    that a (small amount of) data loss is acceptable so that we can use
-    asynchronous replication techniques. This provides us with a simple
-    architecture, manageable and with less impact on distance (synchronous
-    replication has impact on performance) and number of participating nodes
-    (synchronous replication is often only between two nodes).</para>
-
-    <para>Next, an alternative architecture will be suggested where high
-    availability is handled differently (and which can be used for disaster
-    recovery as well), giving you enough ideas on the setup of your own highly
-    available NFS architecture.</para>
+    <para>In some organizations, the requirements might be so high that the
+    organization doesn't want any data loss. If this is the case, DRBD must be
+    configured to use synchronous replication. This means that data writes are
+    only acknowledged to the client if it has been replicated as well.
+    Synchronous replication incurs a small performance penalty though, so it
+    might make sense to offer file services for both synchronous and
+    asynchronous replication.</para>
 
     <section>
-      <title>Architectures</title>
+      <title>Installation</title>
 
-      <section>
-        <title>Simple setup</title>
+      <para>First, install drbd and drbd-kernel.</para>
 
-        <para>In the simple setup, the high-available NFS within one location
-        is regularly synchronised with a high-available NFS on a different
-        location. The term "regularly" here can be looked at as frequent as
-        you want: be it time-based scheduled (every hour, run rsync to
-        synchronize changes from one system to another) or change-based - the
-        idea is that after a while, the secundary system is synchronized with
-        the primary one.</para>
+      <programlisting># <command>emerge drbd drbd-kernel</command></programlisting>
 
-        <para>The setup of a time-based scheduled approach is simply
-        scheduling the following command regularly (assuming the /srv/data
-        location is where the NFS-disclosed files are at).</para>
-
-        <programlisting>rsync -auq /srv/data remote-system:/srv/data</programlisting>
-
-        <para>Using a more change-based approach requires a bit more
-        scripting, but nothing unmanageable. It basically uses the
-        <command>inotifywait</command> tool to notify the system when changes
-        have been made on the files, and then trigger <command>rsync</command>
-        when needed. For low-volume systems, this works pretty well, but
-        larger deployments will find the overhead of the
-        <command>rsync</command> commands too much.</para>
-      </section>
-
-      <section>
-        <title>Dedicated NFS with DRBD and Heartbeat</title>
-
-        <para>Another setup for a high available NFS is the popular
-        NFS/DRDB/Heartbeat combination. This is an interesting architecture to
-        look at if the virtualization platform used has too much overhead on
-        the performance of the NFS system (you have the overhead of the
-        virtualization layer, the logical volume layer, DRDB, again logical
-        volume layer). In this case, DRBD is used to synchronize the storage
-        while heartbeat is used to ensure the proper "node" in the setup is up
-        and running (and if one node is unreachable, the other one can take
-        over).</para>
-
-        <figure>
-          <title>Alternative HA setup using DRBD and Heartbeat</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/05-alt-ha.png" scalefit="0"
-                         width="100%"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-      </section>
+      <para>So far for the easy stuff ;-)</para>
     </section>
 
     <section>
-      <title>Simple replication</title>
+      <title>Configuring DRBD</title>
 
-      <para>Using rsync, we can introduce simple replication between hosts.
-      However, there is a bit more to it to look at then just run
-      rsync...</para>
+      <para>Now first configure the DRBD replication. In
+      <filename>/etc/drbd.d/nfs-disk.res</filename> (on both systems - the
+      file name is completely free to choose, but keep the
+      <filename>.res</filename> extension), configure the replication as
+      such:</para>
 
-      <section>
-        <title>Tuning file system performance - dir_index</title>
-
-        <para>First of all, you definitely want to tune your file system
-        performance. Running rsync against a location with several thousand of
-        files means that rsync will need to stat() each and every file. As a
-        result, you will have peak I/O loads while rsync is preparing its
-        replication, so it makes sense to optimize the file system for this.
-        One of the optimizations you might want to consider is to use
-        dir_index enabled file systems.</para>
-
-        <para>When the file system (ext3 or ext4) uses dir_index (ext4 uses
-        this by default), lookup operations on the file system uses hashed
-        b-trees to speed up the operation. This algorithm has a huge influence
-        on the time needed to list directory content. Let's take a quick
-        (overly simplified and thus also incorrect) view at the
-        approach.</para>
-
-        <figure>
-          <title>HTree in a simple example</title>
-
-          <mediaobject>
-            <imageobject>
-              <imagedata fileref="images/05-htree.png" scalefit="0"
-                         width="100%"/>
-            </imageobject>
-          </mediaobject>
-        </figure>
-
-        <para>In the above drawing, the left side shows a regular, linear
-        structure: the top block represents the directory, which holds the
-        references (numbers) of the files. The files themselves are stored in
-        the blocks with the capital letter (which includes metadata of the
-        file, such as modification time - which is used by rsync to find the
-        files it needs to replicate). The small letters contain some
-        information about the file (which is for instance the file name). In
-        the right side, you see a possible example of an HTree (hashed
-        b-tree).</para>
-
-        <para>So how does this work? Let's assume you need to traverse all
-        files (what rsync does) and check the modification times. How many
-        "steps" would this take?</para>
-
-        <itemizedlist>
-          <listitem>
-            <para>In the left example (ext2), the code first gets the overview
-            of file identifications. It starts at the beginning of the top
-            block, finds one reference to a file (1), then after it looks
-            where the information about the second file is at. Because the
-            name of a file ("a" in this case) is not of a fixed width, the
-            reference to the file (1) also contains the offset where the next
-            file is at. So the code jumps to the second file (2), and so on.
-            At the end, the code returns "1, 2, 5, 7, 8, 12, 19 and 21" and
-            has done 7 jumps to do so (from 1 to 2, from 2 to 5, ...)</para>
-
-            <para>Next, the code wants to get the modification time of each of
-            those files. So for the first file (1) it looks at its address and
-            goes to the file. Then, it wants to do the same for the second
-            file, but since it only has the number (2) and not the reference
-            to the file, it repeats the process: read (1), jump, read (2) and
-            look at file. To get the information about the last file, it does
-            a sequence similar to "read 1, jump, read 2, jump, read 5, jump,
-            ..., read 21, look at file". At the end, this took 36 jumps. In
-            total, the code used 43 jumps.</para>
-          </listitem>
-
-          <listitem>
-            <para>In the right example (using HTrees), the code gets the
-            references first. The list of references (similar to the numbers
-            in the left code) use fixed structures so within a node, no jumps
-            are needed. So starting from the top node [c;f] it takes 3 jumps
-            (one to [a;b], one to [d;e] and one to [g;h]) to get an overview
-            of all references.</para>
-
-            <para>Next, the code again wants to get the modification time of
-            each of those files. So for the first file (A) it reads the top
-            node, finds that "a" is less than "c" so goes to the first node
-            lower. There, it finds the reference to A. So for file A it took 2
-            jumps. Same for file B. File c is referred in the top node, so
-            only takes one jump, etc. At the end, this took 14 jumps, or in
-            total 17 jumps.</para>
-          </listitem>
-        </itemizedlist>
-
-        <para>So even for this very simple example (with just 8 files) the
-        difference is 43 jumps (random-ish reads on the disk) versus 17 jumps.
-        This is, what in algorithm terms, is O(n^2) versus O(nlog(n)) speed:
-        the "order" of the first example goes with n^2 whereas the second one
-        is n.log(n) - "order" here means that the impact (number of jumps in
-        our case) goes up the same way as the given formula - it doesn't give
-        the exact number of jumps. For very large sets of files, this gives a
-        very huge difference (100^2 = 10'000 whereas 100*log(100) = 200, and
-        1000^2 = 1'000'000 whereas 1000*log(1000) = 3000).</para>
-
-        <para>Hence the speed difference.</para>
-
-        <para>If you haven't set dir_index while creating the file systems,
-        you can use tune2fs to set it.</para>
-
-        <programlisting># <command>tune2fs -O dir_index /dev/vda1</command>
-# <command>umount /dev/vda1</command>
-# <command>fsck -Df /dev/vda1</command></programlisting>
-      </section>
-
-      <section>
-        <title>Tuning rsync</title>
-
-        <para>Next, take a look at how you want to use rsync. If the
-        replication is on a high-speed network, you probably want to disable
-        the rsync delta algorithm (where rsync tries to look for changes in a
-        file, rather than just replicate the entire, modified file),
-        especially if the files are relatively small:</para>
-
-        <programlisting># <command>rsync -auq --whole-file &lt;source&gt; &lt;targethost&gt;:&lt;targetlocation&gt;</command></programlisting>
-
-        <para>If the data is easily compressable, you might want to enable the
-        compression in rsync:</para>
-
-        <programlisting># <command>rsync -auq --compress &lt;source&gt; &lt;targethost&gt;:&lt;targetlocation&gt;</command></programlisting>
-
-        <para>If you trust the network, you might want to use standard rsync
-        operation rather than SSH. This will not perform the SSH handshake nor
-        encrypt the data transfer so has a better transfer rate (but it does
-        require the rsync daemon to run on the target if you push, or on the
-        source if you pull):</para>
-
-        <programlisting># <command>rsync -auq &lt;source&gt; rsync://&lt;targethost&gt;/&lt;targetlocation&gt;</command></programlisting>
-      </section>
-
-      <section>
-        <title>Rsync for just the changed files</title>
-
-        <para>If the load on the system is low (but the number of files is
-        very high), you can use inotifywait to present the list of changes
-        that are occurring live. For each change that occurred, rsync can then
-        be invoked to copy the file (or its delta's) to the remote
-        system:</para>
-
-        <programlisting>inotifywait -e close_wait -r -m --format '%w%f' &lt;source&gt; | while read file
-do
-  rsync -auq $file &lt;targethost&gt;:&lt;targetlocation&gt;/$file
-done</programlisting>
-
-        <para>This is however a bit hackish and most likely not sufficiently
-        scalable for larger workloads. I mention it here though to show the
-        flexibility of Linux.</para>
-      </section>
-    </section>
-
-    <section>
-      <title>DRBD and Heartbeat</title>
-
-      <para>If you however require the use of the different approach (DRBD and
-      heartbeat), a bit more work (and most importantly, knowledge) is
-      needed.</para>
-
-      <section>
-        <title>Installation</title>
-
-        <para>First, install drbd, drbd-kernel and heartbeat.</para>
-
-        <programlisting># <command>emerge drbd drbd-kernel heartbeat</command></programlisting>
-
-        <para>So far for the easy stuff ;-)</para>
-      </section>
-
-      <section>
-        <title>Configuring DRBD</title>
-
-        <para>Now let's first configure the DRBD replication. In
-        /etc/drbd.d/nfs-disk.res (on both systems - you can pick your own file
-        name, but keep the .res extension), configure the replication as
-        such:</para>
-
-        <programlisting>global {
+      <programlisting>global {
   usage-count yes;
 }
 
@@ -520,7 +510,7 @@ common {
 }
 
 resource r0 {
-  protocol A;
+  protocol C;
   handlers {
     pri-on-incon-degr "echo o &gt; /proc/sysrq-trigger ; halt -f";
     pri-lost-after-sb "echo o &gt; /proc/sysrq-trigger ; halt -f";
@@ -558,163 +548,374 @@ on nfs_s {
   }
 }</programlisting>
 
-        <para>What we do here is to define the replication resource (r0) and
-        use protocol A (which, in DRBD's terms, means asynchronous replication
-        - use C if you want synchronous replication). On the hosts (with
-        hostnames nfs_p for the primary, and nfs_s for the secundary) the
-        /dev/sdb1 partition is managed by DRBD, and /dev/sdc1 is used to store
-        the DRBD meta-data.</para>
+      <para>In this example, the replication resource (r0) is defined and uses
+      protocol C (which, in DRBD's terms, means synchronous replication - use
+      A if asynchronous replication is wanted). On the hosts (with hostnames
+      nfs_p for the primary, and nfs_s for the secondary) the
+      <filename>/dev/sdb1</filename> partition is managed by DRBD, and
+      <filename>/dev/sdc1</filename> is used to store the DRBD
+      meta-data.</para>
 
-        <para>Next, create the managed device on both systems:</para>
+      <para>Next, create the managed device on both systems:</para>
 
-        <programlisting># <command>drbdadm create-md r0</command>
+      <programlisting># <command>drbdadm create-md r0</command>
 # <command>drbdadm up all</command></programlisting>
 
-        <para>You can see the state of the DRBD setup in /proc/drbd. At this
-        point, on both systems it should show their resource be in secundary
-        mode, so enable it on one side:</para>
+      <para>The state of the DRBD setup can be followed up on in
+      <filename>/proc/drbd</filename>. At this point, on both systems it
+      should show their resources be in secondary mode, so enable it on one
+      side:</para>
 
-        <programlisting># <command>drbdsetup /dev/drbd0 primary -o</command></programlisting>
+      <programlisting># <command>drbdsetup /dev/drbd0 primary -o</command></programlisting>
 
-        <para>Now the drbd0 device is ready to be used (so you can now create
-        a file system on it and mount it to your system).</para>
-      </section>
+      <para>Now the drbd0 device is ready to be used (create file systems on
+      it and mount it on systems).</para>
+    </section>
 
-      <section>
-        <title>Configuring heartbeat</title>
+    <section>
+      <title>Start the services</title>
 
-        <para>Next configure heartbeat. There are three files that need some
-        attention: the first one is /etc/ha.d/ha.cf, the second one is an
-        authorization key used to authenticate and authorize requests (so that
-        a third party cannot influence the heartbeat) and the last one
-        identifies the resource(s) itself.</para>
+      <para>Start the installed services to get it up and running.</para>
 
-        <para>So first the ha.cf file:</para>
+      <programlisting># <command>rc-update add drbd default</command>
+# <command>rc-service drbd start</command></programlisting>
+    </section>
 
-        <programlisting>logfacility local0
+    <section>
+      <title>Managing DRBD</title>
+
+      <para>Run <command>drbd-overview</command> to get a view on the
+      replication state of the system:</para>
+
+      <programlisting># <command>drbd-overview</command>
+0:nfs-disk             Connected Primary/Secondary
+  UpToDate/UpToDate C r--- /srv/data ext4 150G  97G  52G  65%</programlisting>
+
+      <para>Another file to keep an eye on is
+      <filename>/proc/drbd</filename>:</para>
+
+      <programlisting># <command>cat /proc/drbd</command>
+ 0: cs:Connected ro:Primary/Secondary ds:UpToDate/UpToDate C r-----
+    ns:0 nr:0 dw:0 dr:656 al:0 bm:0 lo:0 pe:0 ua:0 ap:0 ep:1 wo:b oos:0</programlisting>
+
+      <para>This particular example can be read as "Resource 0 has its
+      connection state (cs) set as Connected. The role (ro) of the disk is
+      Primary, its partner disk has the role Secondary. The disk states (ds)
+      are both UpToDate and the synchronisation protocol is C
+      (synchronous)."</para>
+
+      <para>The "r-----" shows the I/O flags of the resource (more details in
+      the DRBD user guide) whereas the next line gives a general overview of
+      the various performance indicators.</para>
+
+      <para>If the disks need to be brought down manually, use the drbdadm
+      command:</para>
+
+      <programlisting># <command>drbdadm down nfs-disk</command></programlisting>
+    </section>
+  </section>
+
+  <section>
+    <title>OpenAIS</title>
+
+    <para/>
+
+    <section>
+      <title>Configuration</title>
+
+      <para>First install OpenAIS:</para>
+
+      <programlisting># <command>emerge openais</command></programlisting>
+
+      <para>The OpenAIS configuration is handled through the
+      <filename>/etc/ais/openais.conf</filename> file:</para>
+
+      <programlisting>aisexec {
+        user:   root
+        group:  root
+}
+service {
+        name: pacemaker
+        ver:  0
+}
+totem {
+        version: 2
+        token:          1000
+        hold: 180
+        token_retransmits_before_loss_const: 20
+        join:           60
+        consensus:      4800
+        vsftype:        none
+        max_messages:   20
+        clear_node_high_bit: yes
+        secauth: off
+        threads: 0
+        interface {
+                ringnumber: 0
+                bindnetaddr: 192.168.10.0
+                mcastaddr: 226.94.1.2
+                mcastport: 5406
+        }
+}
+logging {
+        debug: off
+        fileline: off
+        to_syslog: yes
+        to_stderr: no
+        syslog_facility: daemon
+        timestamp: on
+}
+amf {
+        mode: disabled
+}</programlisting>
+
+      <para>Then start the OpenAIS daemon:</para>
+
+      <programlisting># <command>rc-update add openais default</command>
+# <command>rc-service openais start</command></programlisting>
+    </section>
+  </section>
+
+  <section>
+    <title>Pacemaker</title>
+
+    <para>Pacemaker is the cluster software that administrators will work with
+    the most. It receives feedback from the OpenAIS messaging framework to
+    know about the state of all resources.</para>
+
+    <section>
+      <title>Configuring pacemaker</title>
+
+      <para>First install pacemaker:</para>
+
+      <programlisting># <command>emerge pacemaker</command></programlisting>
+
+      <para>The cluster can be configured using the <command>crm</command>
+      command. In the next example, quorum support is disabled (in a two-node
+      cluster, quorums are not concerned, although the use of a quorum is
+      recommended to properly handle communication failures between nodes) and
+      resource stickiness is enabled to keep resources where they are after a
+      fail-over:</para>
+
+      <programlisting># <command>crm</command>
+crm(live)# <command>configure</command>
+crm(live)configure# <command>property no-quorum-policy=ignore</command>
+crm(live)configure# <command>property default-resource-stickiness=1000</command>
+crm(live)configure# <command>commit</command>
+crm(live)configure# <command>bye</command></programlisting>
+    </section>
+  </section>
+
+  <section>
+    <title>Heartbeat</title>
+
+    <para>Heartbeat is a process that regularly checks the state of a service
+    (or set of services) and performs predefined actions when a service is
+    unavailable. It is a simple yet powerful method for creating
+    high-available setups.</para>
+
+    <section>
+      <title>Configuring heartbeat</title>
+
+      <para>First install heartbeat:</para>
+
+      <programlisting># <command>emerge heartbeat</command></programlisting>
+
+      <para>Next configure heartbeat. There are three files that need some
+      attention: the first one is <filename>/etc/ha.d/ha.cf</filename>, the
+      second one is an authorization key used to authenticate and authorize
+      requests (so that a third party cannot influence the heartbeat) and the
+      last one identifies the resource(s) itself.</para>
+
+      <para>So first the <filename>ha.cf</filename> file:</para>
+
+      <programlisting>logfacility local0
 keepalive 1
 deadtime 10
 bcast eth1
 auto_failback on
 node nfs_p nfs_s</programlisting>
 
-        <para>In /etc/heartbeat/authkeys, put:</para>
+      <para>In <filename>/etc/heartbeat/authkeys</filename>, put:</para>
 
-        <programlisting>auth 3
+      <programlisting>auth 3
 3 sha1 TopS3cr1tPassword</programlisting>
 
-        <para>In /etc/ha.d/haresources put:</para>
+      <para>In <filename>/etc/ha.d/haresources</filename> put:</para>
 
-        <programlisting>nfs_p IPaddr::nfs_p
+      <programlisting>nfs_p IPaddr::nfs_p
 nfs_p drbddisk::r0 Filesystem::/dev/drbd0::/data::ext3 nfs-kernel-server</programlisting>
 
-        <para>On the secundary server, use the same but use nfs_s. This will
-        ensure that, once the secundary server becomes the primary (a failover
-        occurred) this remains so, even when the primary system is back up. If
-        you rather have a switch-over when the primary gets back, use the same
-        file content on both systems.</para>
-      </section>
+      <para>On the secondary server, use the same but use nfs_s. This will
+      ensure that, once the secondary server becomes the primary (a fail-over
+      occurred) this remains so, even when the primary system is back up. If a
+      switch-over should occur when the primary gets back, use the same file
+      content on both systems.</para>
+    </section>
 
-      <section>
-        <title>Start the services</title>
+    <section>
+      <title>Start the services</title>
 
-        <para>Start the installed services to get the heartbeat up and
-        running.</para>
+      <para>Start the installed services to get the heartbeat up and
+      running.</para>
 
-        <programlisting># <command>rc-update add drbd default</command>
-# <command>rc-service drbd start</command>
-# <command>rc-update add heartbeat default</command>
+      <programlisting># <command>rc-update add heartbeat default</command>
 # <command>rc-service heartbeat start</command></programlisting>
-      </section>
+    </section>
 
-      <section>
-        <title>Managing DRBD</title>
+    <section>
+      <title>Split brain</title>
 
-        <para>When you have DRBD running, the first thing you need to do is to
-        monitor its status. I will cover monitoring solutions later, so let's
-        first look at this the "old-school" way.</para>
+      <para>A split brain is something to avoid, but need to be trained on. A
+      split brain occurs when both sides of the synchronisation believe they
+      are the primary disk (i.e. the other side has failed and, while the
+      primary disk remains active, the secondary disk invoked a fail-over and
+      became active). A DRBD split brain will be detected by DRBD itself when
+      both resources can "see" each other again. When this occurs, the
+      replication is immediately stopped, one disk will be in StandAlone
+      connection state while the other will be in either StandAlone or in
+      WFConnection (WF = Waiting For).</para>
 
-        <para>Run <command>drbd-overview</command> to get a view on the
-        replication state of the system:</para>
+      <para>Although it is possible to configure DRBD to automatically resolve
+      a split brain, it is important to understand that this always involves
+      sacrificing one of the nodes: changes made on the node that gets
+      sacrificed will be lost. In the NFS case, it is necessary to check where
+      heartbeat had the NFS service running. If the NFS service remained
+      running on the primary node (nfs_p) then sacrifice the secondary
+      one.</para>
 
-        <programlisting># <command>drbd-overview</command>
-0:nfs-disk             Connected Primary/Secondary
-  UpToDate/UpToDate C r--- /srv/data ext4 150G  97G  52G  65%</programlisting>
-
-        <para>Another file you probably want to keep an eye on is
-        /etc/drbd:</para>
-
-        <programlisting># <command>cat /proc/drbd</command>
- 0: cs:Connected ro:Primary/Secondary ds:UpToDate/UpToDate A r-----
-    ns:0 nr:0 dw:0 dr:656 al:0 bm:0 lo:0 pe:0 ua:0 ap:0 ep:1 wo:b oos:0</programlisting>
-
-        <para>This particular example can be read as "Resource 0 has its
-        connection state (cs) set as Connected. The role (ro) of the disk is
-        Primary, its partner disk has the role Secondary. The disk states (ds)
-        are both UpToDate and the synchronisation protocol is A
-        (asynchronous)."</para>
-
-        <para>The "r-----" shows the I/O flags of the resource (more details
-        in the DRBD user guide) whereas the next line gives a general overview
-        of the various performance indicators.</para>
-
-        <para>If you need to manually bring down (or up) one or more
-        resources, use the drbdadm command:</para>
-
-        <programlisting># <command>drbdadm down nfs-disk</command></programlisting>
-      </section>
-
-      <section>
-        <title>Split brain</title>
-
-        <para>A split brain is something you definitely want to avoid, but
-        need to train on. A split brain occurs when both sides of the
-        synchronisation have believed they are the primary disk (i.e. the
-        other side has failed and, while the primary disk remains active, the
-        secundary disk invoked a fail-over and became active). A DRBD split
-        brain will be detected by DRBD itself when both resources can "see"
-        each other again. When this occurs, the replication is immediately
-        stopped, one disk will be in StandAlone connection state while the
-        other will be in either StandAlone or in WFConnection (WF = Waiting
-        For).</para>
-
-        <para>Although you can configure DRBD to automatically resolve a split
-        brain, it is important to understand that this always involves
-        sacrificing one of the nodes: changes made on the node that gets
-        sacrificed will be lost. In our NFS case, you will need to check where
-        heartbeat had the NFS service running. If the NFS service remained
-        running on the primary node (nfs_p) then sacrifice the secundary
-        one.</para>
-
-        <programlisting>$ <command>ssh nfs_p cat /proc/drbd</command>
+      <programlisting>$ <command>ssh nfs_p cat /proc/drbd</command>
 0: cs:Standalone st:Primary/Secondary ds:UpToDate/Unknown C r---
 $ <command>ssh nfs_s cat /proc/drbd</command>
 0: cs:WFConnection:Primary/Secondary ds:UpToDate/Unknown C r---</programlisting>
 
-        <para>Assuming that heartbeat left the NFS service running on the
-        primary node, we can now sacrifice the secondary and reset the
-        synchronisation.</para>
+      <para>Assuming that heartbeat left the NFS service running on the
+      primary node, sacrifice the secondary and reset the
+      synchronisation.</para>
 
-        <programlisting>$ <command>ssh nfs_s sudo rc-service heartbeat stop</command>
+      <programlisting>$ <command>ssh nfs_s sudo rc-service heartbeat stop</command>
 * Stopping heartbeat...     [ ok ]
 $ <command>ssh nfs_p sudo rc-service heartbeat stop</command>
 * Stopping heartbeat...     [ ok ]</programlisting>
 
-        <para>Now log on to the secundary node (nfs_s), explicitly mark it as
-        a secundary one, reset its state and reconnect:</para>
+      <para>Now log on to the secondary node (nfs_s), explicitly mark it as a
+      secondary one, reset its state and reconnect:</para>
 
-        <programlisting># <command>drbdadm secondary nfs-disk</command>
+      <programlisting># <command>drbdadm secondary nfs-disk</command>
 # <command>drbdadm disconnect nfs-disk</command>
 # <command>drbdadm -- --discard-my-data connect nfs-disk</command></programlisting>
 
-        <para>Now log on to the primary node (nfs_p) and connect the resource
-        again.</para>
+      <para>Now log on to the primary node (nfs_p) and connect the resource
+      again.</para>
 
-        <programlisting># <command>drbdadm connect nfs-disk</command></programlisting>
+      <programlisting># <command>drbdadm connect nfs-disk</command></programlisting>
 
-        <para>Restart the heartbeat service and you should be all set
-        again.</para>
-      </section>
+      <para>Restart the heartbeat service and everything should be set up
+      again.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Performance tuning</title>
+
+    <para/>
+
+    <section>
+      <title>Tuning file system performance - dir_index</title>
+
+      <para>First of all, tune the file system performance. One of the
+      optimizations to consider is to use <parameter>dir_index</parameter>
+      enabled file systems.</para>
+
+      <para>When the file system (ext3 or ext4) uses
+      <parameter>dir_index</parameter> (ext4 uses this by default), lookup
+      operations on the file system uses hashed b-trees to speed up the
+      operation. This algorithm has a huge influence on the time needed to
+      list directory content. A quick (overly simplified and thus also
+      incorrect) view at the approach is given next.</para>
+
+      <figure>
+        <title>HTree in a simple example</title>
+
+        <mediaobject>
+          <imageobject>
+            <imagedata fileref="images/05-htree.png" scalefit="0" width="100%"/>
+          </imageobject>
+        </mediaobject>
+      </figure>
+
+      <para>In the above drawing, the left side shows a regular, linear
+      structure: the top block represents the directory, which holds the
+      references (numbers) of the files. The files themselves are stored in
+      the blocks with the capital letter (which includes metadata of the file,
+      such as modification time - which is used by rsync to find the files it
+      needs to replicate). The small letters contain some information about
+      the file (which is for instance the file name). In the right side, a
+      possible example of an HTree (hashed b-tree) is shown.</para>
+
+      <para>So how does this work? Let's assume a process needs to traverse
+      all files (for instance <command>rsync</command>) and check the
+      modification times. How many "steps" would this take?</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>In the left example (ext2), the code first gets the overview
+          of file identifications. It starts at the beginning of the top
+          block, finds one reference to a file (1), then after it looks where
+          the information about the second file is at. Because the name of a
+          file ("a" in this case) is not of a fixed width, the reference to
+          the file (1) also contains the offset where the next file is at. So
+          the code jumps to the second file (2), and so on. At the end, the
+          code returns "1, 2, 5, 7, 8, 12, 19 and 21" and has done 7 jumps to
+          do so (from 1 to 2, from 2 to 5, ...)</para>
+
+          <para>Next, the code wants to get the modification time of each of
+          those files. So for the first file (1) it looks at its address and
+          goes to the file. Then, it wants to do the same for the second file,
+          but since it only has the number (2) and not the reference to the
+          file, it repeats the process: read (1), jump, read (2) and look at
+          file. To get the information about the last file, it does a sequence
+          similar to "read 1, jump, read 2, jump, read 5, jump, ..., read 21,
+          look at file". At the end, this took 36 jumps. In total, the code
+          used 43 jumps.</para>
+        </listitem>
+
+        <listitem>
+          <para>In the right example (using HTrees), the code gets the
+          references first. The list of references (similar to the numbers in
+          the left code) use fixed structures so within a node, no jumps are
+          needed. So starting from the top node [c;f] it takes 3 jumps (one to
+          [a;b], one to [d;e] and one to [g;h]) to get an overview of all
+          references.</para>
+
+          <para>Next, the code again wants to get the modification time of
+          each of those files. So for the first file (A) it reads the top
+          node, finds that "a" is less than "c" so goes to the first node
+          lower. There, it finds the reference to A. So for file A it took 2
+          jumps. Same for file B. File c is referred in the top node, so only
+          takes one jump, etc. At the end, this took 14 jumps, or in total 17
+          jumps.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>So even for this very simple example (with just 8 files) the
+      difference is 43 jumps (random-ish reads on the disk) versus 17 jumps.
+      This is, what in algorithm terms, is O(n^2) versus O(nlog(n)) speed: the
+      "order" of the first example goes with n^2 whereas the second one is
+      n.log(n) - "order" here means that the impact (number of jumps in our
+      case) goes up the same way as the given formula - it doesn't give the
+      exact number of jumps. For very large sets of files, this gives a very
+      huge difference (100^2 = 10'000 whereas 100*log(100) = 200, and 1000^2 =
+      1'000'000 whereas 1000*log(1000) = 3000).</para>
+
+      <para>Hence the speed difference.</para>
+
+      <para>The <parameter>dir_index</parameter> parameter can be set using
+      <command>tune2fs</command>:</para>
+
+      <programlisting># <command>tune2fs -O dir_index /dev/vda1</command>
+# <command>umount /dev/vda1</command>
+# <command>fsck -Df /dev/vda1</command></programlisting>
     </section>
   </section>
 

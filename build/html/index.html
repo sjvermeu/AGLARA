@@ -1,0 +1,202 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>A Gentoo Linux Advanced Reference Architecture &mdash; AGLARA 1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="AGLARA 1.0 documentation" href="#" />
+    <link rel="next" title="Enterprise view" href="enterprise/index.html" /> 
+  </head>
+  <body>
+
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+<a href="#"><img src="_static/logo.svg" width="64px" height="64px" border="0" alt="py4sci"/></a>
+</div>
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="enterprise/index.html" title="Enterprise view"
+             accesskey="N">next</a> |</li>
+        <li><a href="#">home</a>|&nbsp;</li>
+        <li><a href="search.html">search</a>|&nbsp;</li>
+ 
+      </ul>
+    </div>
+
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">A Gentoo Linux Advanced Reference Architecture</a><ul>
+<li><a class="reference internal" href="#abstract">Abstract</a></li>
+<li><a class="reference internal" href="#how-is-the-document-structured">How is the document structured</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="enterprise/index.html"
+                        title="next chapter">Enterprise view</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="a-gentoo-linux-advanced-reference-architecture">
+<h1>A Gentoo Linux Advanced Reference Architecture<a class="headerlink" href="#a-gentoo-linux-advanced-reference-architecture" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="enterprise/index.html">Enterprise view</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="enterprise/basic_infrastructure/index.html">Basic infrastructure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enterprise/management_control_services/index.html">Management and control services</a></li>
+<li class="toctree-l2"><a class="reference internal" href="enterprise/supporting_infrastructure/index.html">Supporting infrastructure</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="solutions/index.html">Solutions</a><ul class="simple">
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="systems/index.html">Systems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="systems/version_control/index.html">Version control systems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="components/index.html">Components</a><ul class="simple">
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="abstract">
+<h2>Abstract<a class="headerlink" href="#abstract" title="Permalink to this headline">¶</a></h2>
+<p>This online resource called &#8220;A Gentoo Linux Advanced Reference Architecture&#8221; is
+meant as a resource displaying the powerful features of many free software
+solutions that are supported on top of Gentoo Linux. It is a deep-dive approach
+in many aspects related to processes, supportability, maintainability based on
+Gentoo Linux system deployments.</p>
+<p>Unlike the existing, per-application documents that exist on the Internet (and
+which are a valuable resource to get into the gory details of many applications)
+and the per-distribution guides that provide information on using that particular
+distribution, this book will focus more on architecturing IT infrastructure for
+medium-sized enterprises. Smaller enterprises might find the reference architecture
+here too expensive or large - however, many services described in the book can be
+slimmed down into a smaller deployment as well.</p>
+<p>It is seriously recommended to have a good grasp of what Gentoo Linux is to start
+with. The other online resource (&#8220;Linux Sea&#8221;) can be a good introduction to Gentoo
+Linux, but that might not be sufficient to appreciate the detail and organization
+of this book.</p>
+<p>This resource will progress rather slowly (compared to the initial development of
+&#8220;Linux Sea&#8221; as its content will be written down as I teach myself the technologies
+mentioned within. When the development of this book started, knowledge about the
+technical services described later is still limited, and the book will be used as
+a sort-of progress report by the author. Call it offsite knowledge storage ;-)</p>
+<p>The version you are currently reading is 1 and has been generated on 2014/08/08.</p>
+</div>
+<div class="section" id="how-is-the-document-structured">
+<h2>How is the document structured<a class="headerlink" href="#how-is-the-document-structured" title="Permalink to this headline">¶</a></h2>
+<p>All documentation inside AGLARA is documented in layers, making it easy to find
+and position specific information.</p>
+<p>The first level is the <em>class</em> of the documentation. There are currently four
+classes identified:</p>
+<ol class="arabic simple">
+<li>In the <em>enterprise</em> class, generic, functional requirements are gathered. It
+provides a high-level overview of the necessary services within a (fictional)
+compnay.</li>
+<li>In the <em>solutions</em> class, specific technologies are mapped to these services.
+A solution is usually tied with a service agreement (SLA or other) and as such
+should be seen as a completely operational set of technologies acting together.</li>
+<li>In the <em>systems</em> class, individual technologies are documented. These are the
+technologies that are used in the solutions.</li>
+<li>Finally, the <em>components</em> class provides documentation about smaller aspects
+of a technology.</li>
+</ol>
+<p>A fifth class, <em>assets</em>, will not be documented right now.</p>
+<p>Within each class, a subhierarchy will be provided that is tied to that class
+itself. Once a topic is encountered, a topic will have documentation specific
+to a certain audience. The general audiences that we aim for are architects,
+administrators, engineers, users and developers.</p>
+<p>If necessary, different audience subtypes will be used.</p>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="enterprise/index.html" title="Enterprise view"
+             >next</a> |</li>
+        <li><a href="#">home</a>|&nbsp;</li>
+        <li><a href="search.html">search</a>|&nbsp;</li>
+ 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Sven Vermeulen.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

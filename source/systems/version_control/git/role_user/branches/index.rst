@@ -1,7 +1,18 @@
-Working with branches
-=====================
+********
+Branches
+********
 
-Branches in Git allow for parallel development, merging changes and temporarily trying out new stuff.
+Branches in Git allow for parallel development, merging changes and developing
+without affecting master code.
+
+Concept
+=======
+
+Please see `Git Branching
+<http://git-scm.com/book/en/Git-Branching-Basic-Branching-and-Merging>`_.
+
+Tasks
+=====
 
 How to create a branch that is also trackable by remotes?
 ---------------------------------------------------------
@@ -22,6 +33,11 @@ In order to delete a local branch, and remove it from the ``origin`` remote::
   ~$ git push origin :testing
 
 The important bit is the ``:``, telling that the given remote should be removed.
+
+Next, remove all tracking branches that are deleted from the remote repositories::
+
+  ~$ git remote prune origin
+
 
 How do I reset my local branch to the state of the remote branch?
 -----------------------------------------------------------------

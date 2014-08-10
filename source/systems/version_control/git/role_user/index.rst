@@ -1,10 +1,16 @@
-.. AGLARA documentation master file, created by
-   sphinx-quickstart on Thu Aug  7 18:45:10 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Git User Documentation
 ======================
+
+Git has a wide community and lots of information is available online.
+
+Recommended resources are:
+
+* The `Git Tutorial <http://git-scm.com/docs/gittutorial>`_ that new users can
+  "blindly" follow to get started. It talks about the initiation of
+  repositories, committing changes, branching and more.
+
+Content
+-------
 
 .. toctree::
    :maxdepth: 2

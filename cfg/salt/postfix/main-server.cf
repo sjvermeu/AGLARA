@@ -1,5 +1,0 @@
-myorigin = ip4.internal.genfic.local
-mydestination = genfic.local ip4.internal.genfic.local
-mynetworks_style = subnet
-mynetworks = 192.168.100.0/24 [2001:db8:81:e2::]/64
-home_mailbox = .maildir/

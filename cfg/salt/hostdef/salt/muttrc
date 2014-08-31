@@ -1,0 +1,55 @@
+# Identification
+set realname="Root at Salt"
+set from="root@salt.ip4.internal.genfic.local"
+# Outgoing: SMTP
+set smtp_url="smtp://mail.ip4.internal.genfic.local"
+set record="~/.maildir/Sent"
+
+# Edit information
+set editor="vim +20 -c 'set fo=tcrq' -c 'set tw=76'"
+set edit_hdrs
+set charset="utf8"
+set send_charset="utf8"
+set implicit_autoview       # Autoview HTML mails
+set envelope_from           # Automatically set the From header (not From:)
+set mbox_type=Maildir
+set folder="~/.maildir"
+set mask="!^\\.[^.]"
+set mbox="~/.maildir"
+
+# Colors and layout
+set ascii_chars
+set sort=threads
+ignore *
+unignore from date subject to cc x-mailer
+set index_format="%3C %Z %{%d} (%-17.17F) %s"
+set nomarkers                   # No + in front of wrapped lines
+color   hdrdefault      green black
+color   quoted          yellow black
+color   signature       red black
+color   indicator       white blue
+color   attachment      magenta black
+color   error           red black
+color   status          white blue
+color   tree            yellow black
+color   normal          white black
+color   body            cyan black      (http|ftp)://[_a-zA-Z0-9\./~\-]+
+color   body    green black             "^gpg: Good signature from"
+color   body    brightred black         "^gpg: Bad signature from"
+color   body    brightred black         "^gpg: BAD signature from"
+color   body    brightred black         "^gpg: Note: This key has expired!"
+color   body    brightyellow black      "^gpg: WARNING: This key is not certified with a trusted signature!"
+color   body    brightyellow black      "^gpg:          There is no indication the signature belongs to the owner."
+color   body    brightyellow black      "^gpg: can't handle these multiple signatures"
+color   body    brightyellow black    "^gpg: signature verification suppressed"
+color   body    brightyellow black      "^gpg: invalid node with packet of type"
+bind generic <up> previous-entry
+bind generic <down> next-entry
+bind generic <home> first-entry
+bind generic <end> last-entry
+bind generic <pageup> previous-page
+bind generic <pagedown> next-page
+bind index '#' tag-subthread
+bind pager <up> previous-line
+bind pager <down> next-line
+

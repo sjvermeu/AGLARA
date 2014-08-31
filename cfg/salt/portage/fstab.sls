@@ -1,7 +1,7 @@
 /usr/portage-mnt:
   mount.mounted:
     - name: /usr/portage
-    - device: workstation4:gentoo/portage
+    - device: workstation4:/usr/portage
     - fstype: nfs4
     - mkmnt: True
     - persist: True
@@ -11,7 +11,7 @@
 /var/portage/packages-mnt:
   mount.mounted:
     - name: /var/portage/packages
-    - device: workstation4:gentoo/packages
+    - device: workstation4:/srv/virt/nfs/gentoo/packages
     - fstype: nfs4
     - mkmnt: True
     - persist: True

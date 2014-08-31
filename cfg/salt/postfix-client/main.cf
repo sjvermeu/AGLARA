@@ -1,0 +1,8 @@
+# send as genfic.local
+# receive for $hostname.ip4.internal.genfic.local
+myorigin = genfic.local
+mydomain = ip4.internal.genfic.local
+# only accept internal incoming
+mynetworks_style = subnet
+mynetworks = 192.168.100.0/24 [2001:db8:81:e2::]/64
+relay_domains =

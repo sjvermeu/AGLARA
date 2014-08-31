@@ -24,6 +24,14 @@ In order to create a branch locally and then push it to the ``origin`` remote::
 
 This will create a remote branch called ``origin/testing``.
 
+How do I set or switch the remote that a branch uses?
+-----------------------------------------------------
+
+Use the ``--set-upstream-to`` parameter like so::
+
+  ~$ git branch --set-upstream-to remotes/foobar/mybranch thisbranch
+
+
 How to delete a branch and also its remote?
 -------------------------------------------
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-FILE=linux-3.15.8-hardened-x86.tar.bz2
+FILE=linux-3.15.10-hardened-r1-x86.tar.bz2
 
 TARGETFILE=/root/kernel-pkg.tar.bz2
 VMLINUZ=$(echo ${FILE} | sed -e 's:linux-:vmlinuz-:g' -e 's:-x86.tar.bz2::g');

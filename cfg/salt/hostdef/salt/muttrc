@@ -4,6 +4,14 @@ set from="root@salt.ip4.internal.genfic.local"
 # Outgoing: SMTP
 set smtp_url="smtp://mail.ip4.internal.genfic.local"
 set record="~/.maildir/Sent"
+# Incoming:
+set imap_user="root"
+set imap_pass="rootpass"
+set folder="imap://mail.ip4.internal.genfic.local"
+set spoolfile="+INBOX"
+set move=no
+set ssl_starttls=no
+set ssl_force_tls=no
 
 # Edit information
 set editor="vim +20 -c 'set fo=tcrq' -c 'set tw=76'"
@@ -13,9 +21,9 @@ set send_charset="utf8"
 set implicit_autoview       # Autoview HTML mails
 set envelope_from           # Automatically set the From header (not From:)
 set mbox_type=Maildir
-set folder="~/.maildir"
+#set folder="~/.maildir"
 set mask="!^\\.[^.]"
-set mbox="~/.maildir"
+#set mbox="~/.maildir"
 
 # Colors and layout
 set ascii_chars

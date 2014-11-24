@@ -41,3 +41,11 @@
     - group: root
     - mode: 644
     - makedirs: True
+
+/etc/portage/package.accept_keywords/selinux:
+  file.managed:
+    - source: salt://portage/package.accept_keywords_selinux
+    - user: root
+    - group: root
+    - mode: 644
+    - makedirs: True

@@ -4,3 +4,10 @@
     - user: root
     - group: root
     - mode: 644
+
+/root/.vimrc:
+  file.managed:
+    - source: salt://system/vimrc
+    - user: root
+    - group: root
+    - mode: 644

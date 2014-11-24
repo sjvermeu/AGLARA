@@ -5,9 +5,9 @@ base:
     - hosts
     - dhcpcd
     - system
+    - kernel
   'salt.internal.genfic.local':
     - hostdef.salt
-    - kernel
   'mail.internal.genfic.local':
     - postfix-server
     - hostdef.mail

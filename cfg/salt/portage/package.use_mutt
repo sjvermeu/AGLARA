@@ -1,1 +1,1 @@
-mail-client/mutt smtp
+mail-client/mutt smtp imap sasl

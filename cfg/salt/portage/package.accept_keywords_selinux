@@ -1,0 +1,12 @@
+#sys-libs/libselinux
+dev-ruby/libselinux-ruby
+#sys-apps/policycoreutils
+#sys-libs/libsemanage
+#sys-libs/libsepol
+#app-admin/setools
+#dev-python/sepolgen
+#sys-apps/checkpolicy
+#sys-apps/setroubleshoot
+sec-policy/* **
+local-policy/*
+=dev-python/ipy-0.81

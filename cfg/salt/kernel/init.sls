@@ -1,6 +1,6 @@
 /root/kernel-pkg.tar.bz2:
   file.managed:
-    - source: salt://kernel/linux-3.15.10-hardened-r1-x86.tar.bz2
+    - source: salt://kernel/linux-3.17.7-hardened-r1-x86.tar.bz2
     - user: root
     - group: root
     - mode: 644

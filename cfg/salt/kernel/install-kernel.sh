@@ -16,10 +16,11 @@ test -d /boot/grub || die "couldn't mount /boot"
 
 # Unpack kernel
 test -f ${TARGETFILE} || die "couldn't find the kernel image"
-tar xvf ${TARGETFILE} --exclude "boot/vmlinux-*" -C /
+tar xvf ${TARGETFILE} --dereference --exclude "boot/vmlinux-*" -C /
 test -f /boot/${VMLINUZ} || die "coulnd't find expected kernel image ${VMLINUZ}";
 
 # Update grub
+cd /tmp; # Needed because grub2-mkconfig requires access to its cdir for some weird reasons
 grub2-mkconfig -o /boot/grub/grub.cfg || die "grub2-mkconfig failed"
 test /boot/grub/grub.cfg -nt ${TARGETFILE} || die "grub.cfg file has not been changed"
 

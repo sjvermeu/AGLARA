@@ -10,3 +10,6 @@ dev-ruby/libselinux-ruby
 sec-policy/* **
 local-policy/*
 =dev-python/ipy-0.81
+
+# Bug 539462 for support of 2.4 userspace
+=app-admin/setools-3.3.8-r6

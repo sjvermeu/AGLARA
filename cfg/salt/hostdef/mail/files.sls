@@ -1,3 +1,7 @@
+mail-client/mutt:
+  pkg:
+    - installed
+
 /root/.muttrc:
   file.managed:
     - source: salt://hostdef/mail/muttrc

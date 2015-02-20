@@ -10,10 +10,10 @@ net-misc/dhcpcd:
 net-fs/nfs-utils:
   pkg.installed
 
-app-editors/vim:
+sys-process/time:
   pkg.installed
 
-sys-process/time:
+app-editors/vim:
   pkg.installed
 
 # Needed for dig and host commands (set hostname at boot)

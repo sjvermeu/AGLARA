@@ -13,6 +13,9 @@ net-fs/nfs-utils:
 app-editors/vim:
   pkg.installed
 
+sys-process/time:
+  pkg.installed
+
 # Needed for dig and host commands (set hostname at boot)
 net-dns/bind-tools:
   pkg.installed

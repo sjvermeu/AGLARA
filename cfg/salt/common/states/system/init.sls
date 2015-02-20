@@ -11,3 +11,10 @@
     - user: root
     - group: root
     - mode: 644
+
+/etc/pam.d/run_init:
+  file.managed:
+  - source: salt://system/run_init
+  - user: root
+  - group: root
+  - mode: 644

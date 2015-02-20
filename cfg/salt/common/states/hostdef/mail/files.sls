@@ -15,3 +15,10 @@ restorecon-/root/.muttrc:
     - name: "restorecon -v /root/.muttrc"
     - watch:
       - file: /root/.muttrc
+
+/etc/salt/grains:
+  file.managed:
+    - source: salt://hostdef/mail/salt-grains
+    - user: root
+    - group: root
+    - mode: 644

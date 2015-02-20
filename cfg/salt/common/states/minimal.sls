@@ -1,6 +1,5 @@
 include:
   - users
-  - portage
   - hosts
   - dhcpcd
   - system

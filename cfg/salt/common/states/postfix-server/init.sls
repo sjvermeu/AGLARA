@@ -4,6 +4,7 @@ mail-mta/postfix:
   service:
     - name: "postfix"
     - running
+    - enable: True
 
 /etc/postfix/main.cf:
   file.managed:

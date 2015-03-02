@@ -1,0 +1,2 @@
+include:
+  - hostdef.policytest.files

@@ -4,7 +4,7 @@ mail-client/mutt:
 
 /root/.muttrc:
   file.managed:
-    - source: salt://hostdef/minion/muttrc
+    - source: salt://hostdef/stable/muttrc
     - user: root
     - group: root
     - mode: 644
@@ -18,7 +18,7 @@ restorecon-/root/.muttrc:
 
 /etc/salt/grains:
   file.managed:
-    - source: salt://hostdef/minion/salt-grains
+    - source: salt://hostdef/stable/salt-grains
     - user: root
     - group: root
     - mode: 644

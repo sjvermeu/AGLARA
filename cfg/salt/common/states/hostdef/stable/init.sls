@@ -1,0 +1,2 @@
+include:
+  - hostdef.stable.files

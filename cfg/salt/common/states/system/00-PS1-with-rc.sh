@@ -3,3 +3,7 @@ if [[ ${EUID} == 0 ]] ; then
 else
   PS1="RC=\$? \[\033[01;32m\]\u@\h\[\033[01;34m\] \w \$\[\033[00m\] "
 fi
+
+# Set infratest resources
+export INFRATEST_BASEDIR=/root/infratest
+export INFRATEST_RESULTDIR=/root/results

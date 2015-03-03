@@ -1,6 +1,6 @@
 /root/.muttrc:
   file.managed:
-    - source: salt://hostdef/test/muttrc
+    - source: salt://hostdef/alltest/muttrc
     - user: root
     - group: root
     - mode: 644
@@ -14,7 +14,7 @@ restorecon-/root/.muttrc:
 
 /etc/salt/grains:
   file.managed:
-    - source: salt://hostdef/test/salt-grains
+    - source: salt://hostdef/alltest/salt-grains
     - user: root
     - group: root
     - mode: 644

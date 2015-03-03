@@ -1,0 +1,7 @@
+sys-libs/libselinux
+sys-apps/policycoreutils
+sys-libs/libsemanage
+sys-libs/libsepol
+app-admin/setools
+dev-python/sepolgen
+sys-apps/checkpolicy

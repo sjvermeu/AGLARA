@@ -5,6 +5,7 @@
     - mkmnt: True
     - persist: True
     - opts:
+      - nfsvers=4
       - defaults
 
 include:

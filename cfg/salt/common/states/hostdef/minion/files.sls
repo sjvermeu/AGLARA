@@ -1,7 +1,3 @@
-mail-client/mutt:
-  pkg:
-    - installed
-
 /root/.muttrc:
   file.managed:
     - source: salt://hostdef/minion/muttrc

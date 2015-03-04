@@ -17,3 +17,6 @@ pillar_roots:
     - /srv/salt/testing/pillars
   stable:
     - /srv/salt/stable/pillars
+
+# Single-line output
+state_output: terse

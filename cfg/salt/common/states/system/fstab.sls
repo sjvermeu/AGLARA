@@ -6,7 +6,7 @@
     - mkmnt: True
     - persist: True
     - opts:
-      - nfsvers=4
+      - vers=4.0
       - defaults
 
 /var/portage/packages-mnt:
@@ -17,5 +17,5 @@
     - mkmnt: True
     - persist: True
     - opts:
-      - nfsvers=4
+      - vers=4.0
       - defaults

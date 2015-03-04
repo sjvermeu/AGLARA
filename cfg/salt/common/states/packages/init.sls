@@ -24,6 +24,9 @@ sys-process/time:
 app-editors/vim:
   pkg.installed
 
+sys-fs/lvm2:
+  pkg.installed
+
 # Needed for dig and host commands (set hostname at boot)
 net-dns/bind-tools:
   pkg.installed

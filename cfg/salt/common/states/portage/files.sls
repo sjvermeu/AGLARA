@@ -34,3 +34,11 @@
     - group: root
     - mode: 644
     - makedirs: True
+
+/etc/portage/common-make.conf:
+  file.managed:
+  - source: salt://portage/common-make.conf
+  - user: root
+  - group: root
+  - mode: 644
+  - makedirs: True

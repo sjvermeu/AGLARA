@@ -20,3 +20,5 @@ pillar_roots:
 
 # Single-line output
 state_output: terse
+# Show minions that did not reply in time
+show_timeout: True

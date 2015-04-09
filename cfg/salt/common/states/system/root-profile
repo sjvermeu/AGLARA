@@ -7,3 +7,7 @@ fi
 # Set infratest resources
 export INFRATEST_BASEDIR=/root/infratest
 export INFRATEST_RESULTDIR=/root/results
+
+# Set AIMS resources
+export AIMS_CONFDIR=/root/aims/conf
+export PATH="/root/aims/bin:${PATH}"

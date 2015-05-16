@@ -1,2 +1,0 @@
-include:
-  - hostdef.minion.files
